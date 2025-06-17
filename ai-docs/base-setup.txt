@@ -1,0 +1,342 @@
+#!/bin/bash
+
+# Euphoria POS - Complete Setup Script
+# Run these commands in order to create your project
+
+# 1. Create project directory and navigate to it
+mkdir euphoria-pos
+cd euphoria-pos
+
+# 2. Initialize pnpm (if you don't have it, install with: npm install -g pnpm)
+pnpm init
+
+# 3. Install core dependencies
+pnpm add electron react react-dom react-router-dom
+pnpm add @supabase/supabase-js zustand @tanstack/react-query
+pnpm add date-fns uuid lodash
+pnpm add lucide-react class-variance-authority clsx tailwind-merge
+pnpm add react-hook-form zod @hookform/resolvers
+pnpm add drizzle-orm postgres
+pnpm add serialport node-hid usb
+
+# 4. Install dev dependencies
+pnpm add -D typescript @types/react @types/react-dom @types/node @types/lodash
+pnpm add -D electron-vite vite @vitejs/plugin-react
+pnpm add -D electron-builder
+pnpm add -D tailwindcss postcss autoprefixer
+pnpm add -D eslint prettier eslint-config-prettier
+pnpm add -D @typescript-eslint/parser @typescript-eslint/eslint-plugin
+pnpm add -D drizzle-kit
+
+# 5. Install Radix UI components (for shadcn/ui)
+pnpm add @radix-ui/react-dialog @radix-ui/react-dropdown-menu
+pnpm add @radix-ui/react-label @radix-ui/react-select
+pnpm add @radix-ui/react-slot @radix-ui/react-toast
+
+# 6. Create TypeScript config
+cat > tsconfig.json << 'EOF'
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "useDefineForClassFields": true,
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "module": "ESNext",
+    "skipLibCheck": true,
+    "esModuleInterop": true,
+    "moduleResolution": "bundler",
+    "allowImportingTsExtensions": true,
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "noEmit": true,
+    "jsx": "react-jsx",
+    "strict": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noFallthroughCasesInSwitch": true,
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["src/*"],
+      "@shared/*": ["src/shared/*"],
+      "@features/*": ["src/features/*"]
+    }
+  },
+  "include": ["src", "electron"],
+  "references": [{ "path": "./tsconfig.node.json" }]
+}
+EOF
+
+# 7. Create Node TypeScript config
+cat > tsconfig.node.json << 'EOF'
+{
+  "compilerOptions": {
+    "composite": true,
+    "skipLibCheck": true,
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "allowSyntheticDefaultImports": true,
+    "strict": true
+  },
+  "include": ["electron.vite.config.ts"]
+}
+EOF
+
+# 8. Create Electron Vite config
+cat > electron.vite.config.ts << 'EOF'
+import { defineConfig, externalizeDepsPlugin } from 'electron-vite'
+import react from '@vitejs/plugin-react'
+import { resolve } from 'path'
+
+export default defineConfig({
+  main: {
+    plugins: [externalizeDepsPlugin()],
+    build: {
+      rollupOptions: {
+        input: {
+          index: resolve(__dirname, 'electron/main.ts')
+        }
+      }
+    }
+  },
+  preload: {
+    plugins: [externalizeDepsPlugin()],
+    build: {
+      rollupOptions: {
+        input: {
+          index: resolve(__dirname, 'electron/preload.ts')
+        }
+      }
+    }
+  },
+  renderer: {
+    resolve: {
+      alias: {
+        '@': resolve(__dirname, 'src'),
+        '@shared': resolve(__dirname, 'src/shared'),
+        '@features': resolve(__dirname, 'src/features')
+      }
+    },
+    plugins: [react()],
+    build: {
+      rollupOptions: {
+        input: {
+          index: resolve(__dirname, 'index.html')
+        }
+      }
+    }
+  }
+})
+EOF
+
+# 9. Create Tailwind config
+cat > tailwind.config.ts << 'EOF'
+import type { Config } from 'tailwindcss'
+
+const config: Config = {
+  darkMode: ['class'],
+  content: [
+    './index.html',
+    './src/**/*.{js,ts,jsx,tsx}',
+  ],
+  theme: {
+    extend: {},
+  },
+  plugins: [],
+}
+
+export default config
+EOF
+
+# 10. Create PostCSS config
+cat > postcss.config.js << 'EOF'
+export default {
+  plugins: {
+    tailwindcss: {},
+    autoprefixer: {},
+  },
+}
+EOF
+
+# 11. Create directory structure
+mkdir -p electron/hardware
+mkdir -p electron/ipc/handlers
+mkdir -p electron/services
+mkdir -p src/features/checkout/components
+mkdir -p src/features/checkout/hooks
+mkdir -p src/features/checkout/services
+mkdir -p src/features/checkout/store
+mkdir -p src/features/customer
+mkdir -p src/features/inventory
+mkdir -p src/features/employee
+mkdir -p src/shared/components
+mkdir -p src/shared/hooks
+mkdir -p src/shared/lib
+mkdir -p src/shared/types
+mkdir -p drizzle
+mkdir -p public
+
+# 12. Create basic electron main file
+cat > electron/main.ts << 'EOF'
+import { app, BrowserWindow } from 'electron'
+import { join } from 'path'
+
+let mainWindow: BrowserWindow | null = null
+
+function createWindow(): void {
+  mainWindow = new BrowserWindow({
+    width: 1400,
+    height: 900,
+    webPreferences: {
+      preload: join(__dirname, 'preload.js'),
+      contextIsolation: true,
+      nodeIntegration: false
+    }
+  })
+
+  if (!app.isPackaged && process.env['ELECTRON_RENDERER_URL']) {
+    mainWindow.loadURL(process.env['ELECTRON_RENDERER_URL'])
+  } else {
+    mainWindow.loadFile(join(__dirname, '../renderer/index.html'))
+  }
+}
+
+app.whenReady().then(createWindow)
+
+app.on('window-all-closed', () => {
+  if (process.platform !== 'darwin') {
+    app.quit()
+  }
+})
+EOF
+
+# 13. Create preload script
+cat > electron/preload.ts << 'EOF'
+import { contextBridge } from 'electron'
+
+contextBridge.exposeInMainWorld('electron', {
+  version: process.versions.electron
+})
+EOF
+
+# 14. Create index.html
+cat > index.html << 'EOF'
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Euphoria POS</title>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
+EOF
+
+# 15. Create React entry point
+cat > src/main.tsx << 'EOF'
+import React from 'react'
+import ReactDOM from 'react-dom/client'
+import App from './App'
+import './index.css'
+
+ReactDOM.createRoot(document.getElementById('root')!).render(
+  <React.StrictMode>
+    <App />
+  </React.StrictMode>
+)
+EOF
+
+# 16. Create basic App component
+cat > src/App.tsx << 'EOF'
+import { useState } from 'react'
+
+function App() {
+  const [count, setCount] = useState(0)
+
+  return (
+    <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100">
+      <h1 className="text-4xl font-bold text-gray-900 mb-8">
+        Euphoria POS
+      </h1>
+      <p className="text-xl text-gray-700 mb-4">
+        Electron + React + TypeScript
+      </p>
+      <button
+        className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+        onClick={() => setCount(count + 1)}
+      >
+        Count: {count}
+      </button>
+    </div>
+  )
+}
+
+export default App
+EOF
+
+# 17. Create Tailwind CSS file
+cat > src/index.css << 'EOF'
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+EOF
+
+# 18. Update package.json with scripts
+cat > package.json << 'EOF'
+{
+  "name": "euphoria-pos",
+  "version": "0.1.0",
+  "description": "Modern POS system for Euphoria Liquor",
+  "main": "dist-electron/main.js",
+  "scripts": {
+    "dev": "electron-vite dev",
+    "build": "electron-vite build",
+    "preview": "electron-vite preview",
+    "start": "electron-vite preview",
+    "pack": "electron-builder --dir",
+    "dist": "electron-builder",
+    "dist:mac": "electron-builder --mac"
+  },
+  "keywords": ["pos", "electron", "react"],
+  "author": "Euphoria Liquor",
+  "license": "MIT"
+}
+EOF
+
+# 19. Create .gitignore
+cat > .gitignore << 'EOF'
+node_modules
+dist
+dist-electron
+release
+.DS_Store
+*.local
+.env
+.env.local
+EOF
+
+# 20. Create environment template
+cat > .env.example << 'EOF'
+DATABASE_URL=postgresql://user:password@localhost:5432/euphoria_pos
+VITE_SUPABASE_URL=your_supabase_url
+VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
+VITE_ZINRELO_API_KEY=your_zinrelo_key
+CARDPOINTE_TERMINAL_PORT=/dev/tty.usbserial
+EOF
+
+# 21. Initialize git repository
+git init
+git add .
+git commit -m "Initial commit - Euphoria POS"
+
+echo "✅ Setup complete! Now run:"
+echo "  cd euphoria-pos"
+echo "  pnpm dev"
+echo ""
+echo "The app should open showing 'Euphoria POS' with a counter button."
+echo ""
+echo "Next steps:"
+echo "1. Copy .env.example to .env and add your credentials"
+echo "2. Set up your Supabase database with the Drizzle schema"
+echo "3. Start building features in src/features/"

@@ -1,0 +1,189 @@
+# Euphoria POS - Tech Stack & Project Structure
+
+## Tech Stack
+
+```json
+{
+  "name": "euphoria-pos",
+  "version": "0.1.0",
+  "description": "Modern POS system for Euphoria Liquor",
+  "dependencies": {
+    // Core
+    "electron": "^28.1.0",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "typescript": "^5.3.3",
+    
+    // Build Tools
+    "vite": "^5.0.10",
+    "electron-vite": "^2.0.0",
+    "electron-builder": "^24.9.1",
+    
+    // State Management
+    "zustand": "^4.4.7",
+    "@tanstack/react-query": "^5.14.2",
+    
+    // Database ORM
+    "drizzle-orm": "^0.29.1",
+    "postgres": "^3.4.3",
+    
+    // UI Framework
+    "tailwindcss": "^3.4.0",
+    "@radix-ui/react-*": "latest", // shadcn/ui components
+    "lucide-react": "^0.303.0", // icons
+    "react-hook-form": "^7.48.2",
+    "zod": "^3.22.4", // validation
+    
+    // Hardware Integration
+    "serialport": "^12.0.0", // receipt printer
+    "node-hid": "^3.0.0", // RFID reader
+    "usb": "^2.11.0", // direct USB access
+    
+    // Backend Integration
+    "@supabase/supabase-js": "^2.39.1",
+    
+    // Payment Integration
+    // Note: CardPointe terminal via serial/USB, no SDK needed
+    
+    // Utilities
+    "date-fns": "^3.0.6",
+    "uuid": "^9.0.1",
+    "lodash": "^4.17.21"
+  },
+  "devDependencies": {
+    "drizzle-kit": "^0.20.7", // for migrations and schema
+    "@types/pg": "^8.10.9"
+  }
+}
+```
+
+## Project Structure
+
+```
+euphoria-pos/
+├── electron/                    # Main process (Node.js environment)
+│   ├── main.ts                 # App entry point
+│   ├── preload.ts              # Secure bridge to renderer
+│   ├── hardware/               # Hardware device services
+│   │   ├── BarcodeScanner.ts
+│   │   ├── ReceiptPrinter.ts
+│   │   ├── RFIDReader.ts
+│   │   ├── CashDrawer.ts
+│   │   └── PaymentTerminal.ts  # CardPointe terminal
+│   ├── ipc/                    # IPC communication handlers
+│   │   ├── handlers/
+│   │   └── types.ts
+│   └── services/               # Business logic services
+│       ├── InventorySync.ts
+│       └── OfflineQueue.ts
+│
+├── drizzle/                    # Database schema and migrations
+│   ├── schema.ts              # Drizzle ORM schema definitions
+│   ├── migrations/            # SQL migration files
+│   └── migrate.ts             # Migration runner
+│
+├── src/                        # Renderer process (React app)
+│   ├── features/               # Vertical slice architecture
+│   │   ├── checkout/
+│   │   │   ├── components/     # UI components
+│   │   │   ├── hooks/          # React hooks
+│   │   │   ├── services/       # Business logic
+│   │   │   ├── store/          # Zustand store
+│   │   │   └── types.ts        # TypeScript types
+│   │   ├── customer/
+│   │   ├── inventory/
+│   │   ├── employee/
+│   │   └── returns/
+│   ├── shared/
+│   │   ├── components/         # Reusable UI components
+│   │   ├── hooks/             # Common hooks
+│   │   ├── lib/               # Utilities
+│   │   └── types/             # Global types
+│   ├── App.tsx
+│   └── main.tsx
+│
+├── public/                     # Static assets
+├── build/                      # Build configurations
+│   └── entitlements.mac.plist  # Mac app permissions
+├── .env.example               # Environment variables template
+├── drizzle.config.ts          # Drizzle configuration
+├── electron.vite.config.ts    # Vite configuration
+├── tsconfig.json              # TypeScript config
+└── package.json
+```
+
+## Key Architectural Patterns
+
+### IPC Communication
+```typescript
+// Type-safe communication between main and renderer
+interface IElectronAPI {
+  scanner: ScannerAPI
+  printer: PrinterAPI
+  rfid: RFIDAPI
+  payment: PaymentTerminalAPI
+  database: DatabaseAPI
+}
+```
+
+### Feature Structure Example
+```
+/features/checkout/
+├── components/          # React components
+│   ├── Cart.tsx
+│   ├── Scanner.tsx
+│   └── Payment.tsx
+├── hooks/              # Custom React hooks
+│   ├── useCart.ts
+│   └── useScanner.ts
+├── services/           # Business logic
+│   ├── discount.ts
+│   └── tax.ts
+├── store/              # Zustand store slice
+│   └── checkout.store.ts
+├── types.ts            # Feature-specific types
+└── index.ts           # Public API exports
+```
+
+## Development Commands
+
+```bash
+# Install dependencies
+pnpm install
+
+# Development
+pnpm dev          # Start Electron + React with hot reload
+
+# Database
+pnpm db:push      # Push schema changes to database
+pnpm db:migrate   # Run migrations
+pnpm db:studio    # Open Drizzle Studio
+
+# Testing
+pnpm test         # Run unit tests
+pnpm test:e2e     # Run integration tests
+
+# Building
+pnpm build        # Build for production
+pnpm dist         # Package into .dmg/.exe
+```
+
+## Environment Variables
+
+```env
+DATABASE_URL=                    # PostgreSQL connection string
+VITE_SUPABASE_URL=
+VITE_SUPABASE_ANON_KEY=
+VITE_ZINRELO_API_KEY=
+CARDPOINTE_TERMINAL_PORT=        # Serial port for payment terminal
+```
+
+## Notes for AI Implementation
+
+1. **Vertical Slices**: Each feature is self-contained with its own components, logic, and state
+2. **Hardware in Main Process**: All hardware communication happens in Electron's main process
+3. **Type Safety**: Use TypeScript interfaces for all IPC communication
+4. **Database**: Use Drizzle ORM for type-safe database queries and migrations
+5. **Offline First**: Implement queue system for syncing when offline
+6. **State Management**: Use Zustand for local state, React Query for server state
+7. **Payment Processing**: CardPointe terminal handles all card processing via serial/USB
