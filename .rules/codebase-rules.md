@@ -4,12 +4,13 @@
 You are working on a Point of Sale (POS) system for a liquor store built with Electron + React + TypeScript. The system prioritizes inventory accuracy, fast checkout, and hardware integration.
 
 ## Technology Stack
-- **Frontend**: React 18, TypeScript, Zustand, TailwindCSS, shadcn/ui components
+- **Frontend**: React 18, TypeScript, Zustand, TailwindCSS 3.x (NOT v4!), shadcn/ui components
 - **Desktop**: Electron 28+ with electron-vite
 - **Database**: PostgreSQL via Supabase with Drizzle ORM
 - **Hardware**: SerialPort, node-hid for scanners/printers/RFID
 - **Payments**: CardPointe terminal (serial/USB)
 - **Build**: Vite, electron-builder
+- **Auth**: PIN-based for POS, Supabase auth for web dashboard (future)
 
 ## Project Structure Rules
 
@@ -296,6 +297,13 @@ const products = import.meta.env.DEV ? mockProducts : await fetchProducts()
 3. Create migration for production
 4. Update types imports in affected features
 5. Add IPC handlers for CRUD operations
+
+### Implementing Authentication
+1. PIN verification ALWAYS in main process
+2. Store employee session in main process only
+3. Renderer only gets boolean + basic info (id, name)
+4. All IPC handlers check currentEmployee
+5. Use auth store with persist middleware for isAuthenticated flag
 
 ## Performance Rules
 

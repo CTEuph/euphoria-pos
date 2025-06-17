@@ -3,4 +3,3 @@
 
 READ:
     .rules/codebase-rules.md
-    ai-docs/*
