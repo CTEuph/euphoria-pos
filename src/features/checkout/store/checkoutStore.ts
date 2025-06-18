@@ -11,11 +11,21 @@ interface CheckoutStore {
   isPaymentModalOpen: boolean
   isCustomerModalOpen: boolean
   
+  // Search state
+  searchTerm: string
+  searchResults: Product[]
+  selectedResultIndex: number
+  isSearchDropdownOpen: boolean
+  
   // Computed values
   get subtotal(): number
   get tax(): number
   get total(): number
   get itemCount(): number
+  
+  // Search computed values
+  get hasSearchResults(): boolean
+  get selectedResult(): Product | null
   
   // Actions
   addItem: (product: Product) => void
@@ -28,6 +38,14 @@ interface CheckoutStore {
   // Modal state actions
   setPaymentModal: (open: boolean) => void
   setCustomerModal: (open: boolean) => void
+  
+  // Search actions
+  setSearchTerm: (term: string) => void
+  setSelectedResultIndex: (index: number) => void
+  selectSearchResult: (product: Product) => void
+  clearSearch: () => void
+  openSearchDropdown: () => void
+  closeSearchDropdown: () => void
   
   // Utility functions
   getCartItem: (productId: string) => CartItem | undefined
@@ -44,6 +62,12 @@ export const useCheckoutStore = create<CheckoutStore>((set, get) => ({
   isPaymentModalOpen: false,
   isCustomerModalOpen: false,
   
+  // Search state
+  searchTerm: '',
+  searchResults: [],
+  selectedResultIndex: -1,
+  isSearchDropdownOpen: false,
+  
   // Computed values
   get subtotal() {
     return get().cart.reduce((sum, item) => sum + item.total, 0)
@@ -59,6 +83,19 @@ export const useCheckoutStore = create<CheckoutStore>((set, get) => ({
   
   get itemCount() {
     return get().cart.reduce((sum, item) => sum + item.quantity, 0)
+  },
+  
+  // Search computed values
+  get hasSearchResults() {
+    return get().searchResults.length > 0
+  },
+  
+  get selectedResult() {
+    const { searchResults, selectedResultIndex } = get()
+    if (selectedResultIndex >= 0 && selectedResultIndex < searchResults.length) {
+      return searchResults[selectedResultIndex]
+    }
+    return null
   },
   
   // Actions
@@ -139,6 +176,43 @@ export const useCheckoutStore = create<CheckoutStore>((set, get) => ({
   
   setCustomerModal: (open: boolean) => {
     set({ isCustomerModalOpen: open })
+  },
+  
+  // Search actions
+  setSearchTerm: (term: string) => {
+    set({ 
+      searchTerm: term,
+      selectedResultIndex: -1 // Reset selection when term changes
+    })
+  },
+  
+  setSelectedResultIndex: (index: number) => {
+    const { searchResults } = get()
+    if (index >= -1 && index < searchResults.length) {
+      set({ selectedResultIndex: index })
+    }
+  },
+  
+  selectSearchResult: (product: Product) => {
+    get().addItem(product)
+    get().clearSearch()
+  },
+  
+  clearSearch: () => {
+    set({
+      searchTerm: '',
+      searchResults: [],
+      selectedResultIndex: -1,
+      isSearchDropdownOpen: false
+    })
+  },
+  
+  openSearchDropdown: () => {
+    set({ isSearchDropdownOpen: true })
+  },
+  
+  closeSearchDropdown: () => {
+    set({ isSearchDropdownOpen: false })
   },
   
   // Utility functions

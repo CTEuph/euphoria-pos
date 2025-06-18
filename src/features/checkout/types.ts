@@ -1,6 +1,27 @@
 /**
- * Types for checkout feature including barcode scanner simulation
+ * Types for checkout feature including barcode scanner simulation and product search
  */
+
+import type { Product } from '@/shared/lib/mockData'
+
+export interface SearchState {
+  // Data
+  searchTerm: string             // Current search input
+  searchResults: Product[]       // Filtered product results
+  selectedResultIndex: number    // Currently highlighted result (-1 for none)
+  isDropdownOpen: boolean        // Whether search dropdown is visible
+}
+
+export interface SearchConfig {
+  // Maximum number of results to show
+  maxResults?: number
+  
+  // Minimum characters before searching
+  minSearchLength?: number
+  
+  // Debounce delay in milliseconds
+  debounceDelay?: number
+}
 
 export interface ScannerState {
   // Data
