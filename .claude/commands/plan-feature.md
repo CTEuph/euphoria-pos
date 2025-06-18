@@ -15,7 +15,7 @@ Examples:
 - mode: $3 (optional: "quick" for abbreviated planning - stop at phase 3 and output )
 
 ## Output Configuration:
-- Output file: `/deep-plans/[TASK_ID]-plan.md`
+- Output file: `_plans/deep-plans/[TASK_ID]-plan.md`
 - Create directory if not exists: `mkdir -p deep-plans`
 - Filename example: `deep-plans/task-1.1-plan.md`
 
