@@ -12171,11 +12171,22 @@ const createLucideIcon = (iconName, iconNode) => {
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
  */
-const __iconNode$c = [
+const __iconNode$d = [
   ["circle", { cx: "12", cy: "12", r: "10", key: "1mglay" }],
   ["polyline", { points: "12 6 12 12 16 14", key: "68esgv" }]
 ];
-const Clock = createLucideIcon("clock", __iconNode$c);
+const Clock = createLucideIcon("clock", __iconNode$d);
+/**
+ * @license lucide-react v0.516.0 - ISC
+ *
+ * This source code is licensed under the ISC license.
+ * See the LICENSE file in the root directory of this source tree.
+ */
+const __iconNode$c = [
+  ["rect", { width: "20", height: "14", x: "2", y: "5", rx: "2", key: "ynyp8z" }],
+  ["line", { x1: "2", x2: "22", y1: "10", y2: "10", key: "1b3vmo" }]
+];
+const CreditCard = createLucideIcon("credit-card", __iconNode$c);
 /**
  * @license lucide-react v0.516.0 - ISC
  *
@@ -12183,10 +12194,12 @@ const Clock = createLucideIcon("clock", __iconNode$c);
  * See the LICENSE file in the root directory of this source tree.
  */
 const __iconNode$b = [
-  ["rect", { width: "20", height: "14", x: "2", y: "5", rx: "2", key: "ynyp8z" }],
-  ["line", { x1: "2", x2: "22", y1: "10", y2: "10", key: "1b3vmo" }]
+  ["line", { x1: "4", x2: "20", y1: "9", y2: "9", key: "4lhtct" }],
+  ["line", { x1: "4", x2: "20", y1: "15", y2: "15", key: "vyu0kd" }],
+  ["line", { x1: "10", x2: "8", y1: "3", y2: "21", key: "1ggp8o" }],
+  ["line", { x1: "16", x2: "14", y1: "3", y2: "21", key: "weycgp" }]
 ];
-const CreditCard = createLucideIcon("credit-card", __iconNode$b);
+const Hash = createLucideIcon("hash", __iconNode$b);
 /**
  * @license lucide-react v0.516.0 - ISC
  *
@@ -15840,6 +15853,11 @@ const useCheckoutStore = create((set, get) => ({
   // Modal states
   isPaymentModalOpen: false,
   isCustomerModalOpen: false,
+  // Search state
+  searchTerm: "",
+  searchResults: [],
+  selectedResultIndex: -1,
+  isSearchDropdownOpen: false,
   // Computed values
   get subtotal() {
     return get().cart.reduce((sum, item) => sum + item.total, 0);
@@ -15852,6 +15870,17 @@ const useCheckoutStore = create((set, get) => ({
   },
   get itemCount() {
     return get().cart.reduce((sum, item) => sum + item.quantity, 0);
+  },
+  // Search computed values
+  get hasSearchResults() {
+    return get().searchResults.length > 0;
+  },
+  get selectedResult() {
+    const { searchResults, selectedResultIndex } = get();
+    if (selectedResultIndex >= 0 && selectedResultIndex < searchResults.length) {
+      return searchResults[selectedResultIndex];
+    }
+    return null;
   },
   // Actions
   addItem: (product) => {
@@ -15916,6 +15945,38 @@ const useCheckoutStore = create((set, get) => ({
   },
   setCustomerModal: (open) => {
     set({ isCustomerModalOpen: open });
+  },
+  // Search actions
+  setSearchTerm: (term) => {
+    set({
+      searchTerm: term,
+      selectedResultIndex: -1
+      // Reset selection when term changes
+    });
+  },
+  setSelectedResultIndex: (index) => {
+    const { searchResults } = get();
+    if (index >= -1 && index < searchResults.length) {
+      set({ selectedResultIndex: index });
+    }
+  },
+  selectSearchResult: (product) => {
+    get().addItem(product);
+    get().clearSearch();
+  },
+  clearSearch: () => {
+    set({
+      searchTerm: "",
+      searchResults: [],
+      selectedResultIndex: -1,
+      isSearchDropdownOpen: false
+    });
+  },
+  openSearchDropdown: () => {
+    set({ isSearchDropdownOpen: true });
+  },
+  closeSearchDropdown: () => {
+    set({ isSearchDropdownOpen: false });
   },
   // Utility functions
   getCartItem: (productId) => {
@@ -16307,6 +16368,222 @@ function ShoppingCart() {
     )
   ] });
 }
+const searchProducts = (term, products) => {
+  if (!term.trim()) return [];
+  const words = term.toLowerCase().split(" ").filter(Boolean);
+  return products.filter((product) => {
+    const searchable = `${product.name} ${product.barcode}`.toLowerCase();
+    return words.every((word) => searchable.includes(word));
+  }).slice(0, 8);
+};
+function useProductSearch() {
+  const {
+    searchTerm,
+    searchResults,
+    selectedResultIndex,
+    isSearchDropdownOpen,
+    hasSearchResults,
+    selectedResult,
+    setSearchTerm,
+    setSelectedResultIndex,
+    selectSearchResult,
+    clearSearch,
+    openSearchDropdown,
+    closeSearchDropdown
+  } = useCheckoutStore();
+  const results = reactExports.useMemo(() => {
+    return searchProducts(searchTerm, mockProducts);
+  }, [searchTerm]);
+  reactExports.useEffect(() => {
+    useCheckoutStore.setState({ searchResults: results });
+    if (results.length > 0 && searchTerm.trim()) {
+      openSearchDropdown();
+    } else {
+      closeSearchDropdown();
+    }
+  }, [results, searchTerm, openSearchDropdown, closeSearchDropdown]);
+  const search = reactExports.useCallback((term) => {
+    setSearchTerm(term);
+  }, [setSearchTerm]);
+  const selectNext = reactExports.useCallback(() => {
+    const maxIndex = searchResults.length - 1;
+    const nextIndex = selectedResultIndex < maxIndex ? selectedResultIndex + 1 : 0;
+    setSelectedResultIndex(nextIndex);
+  }, [selectedResultIndex, searchResults.length, setSelectedResultIndex]);
+  const selectPrevious = reactExports.useCallback(() => {
+    const maxIndex = searchResults.length - 1;
+    const prevIndex = selectedResultIndex > 0 ? selectedResultIndex - 1 : maxIndex;
+    setSelectedResultIndex(prevIndex);
+  }, [selectedResultIndex, searchResults.length, setSelectedResultIndex]);
+  const addSelectedToCart = reactExports.useCallback(() => {
+    if (selectedResult) {
+      selectSearchResult(selectedResult);
+    }
+  }, [selectedResult, selectSearchResult]);
+  const handleKeyDown = reactExports.useCallback((event) => {
+    if (!isSearchDropdownOpen || !hasSearchResults) return false;
+    switch (event.key) {
+      case "ArrowDown":
+        event.preventDefault();
+        selectNext();
+        return true;
+      case "ArrowUp":
+        event.preventDefault();
+        selectPrevious();
+        return true;
+      case "Enter":
+        event.preventDefault();
+        addSelectedToCart();
+        return true;
+      case "Escape":
+        event.preventDefault();
+        clearSearch();
+        return true;
+      default:
+        return false;
+    }
+  }, [isSearchDropdownOpen, hasSearchResults, selectNext, selectPrevious, addSelectedToCart, clearSearch]);
+  reactExports.useEffect(() => {
+    if (searchResults.length > 0 && selectedResultIndex === -1) {
+      setSelectedResultIndex(0);
+    }
+  }, [searchResults.length, selectedResultIndex, setSelectedResultIndex]);
+  return {
+    // State
+    searchTerm,
+    searchResults,
+    selectedIndex: selectedResultIndex,
+    isOpen: isSearchDropdownOpen,
+    // Computed
+    hasResults: hasSearchResults,
+    selectedResult,
+    // Actions
+    search,
+    selectResult: setSelectedResultIndex,
+    addSelectedToCart,
+    clearSearch,
+    // Navigation
+    selectNext,
+    selectPrevious,
+    handleKeyDown
+  };
+}
+const ProductSearchItem = reactExports.forwardRef(
+  ({ product, isSelected, onClick }, ref) => {
+    return /* @__PURE__ */ jsxRuntimeExports.jsxs(
+      "div",
+      {
+        ref,
+        className: cn(
+          "flex items-center gap-3 p-3 cursor-pointer transition-colors",
+          "hover:bg-purple-50 border-b border-gray-100 last:border-b-0",
+          isSelected && "bg-purple-100 border-purple-200"
+        ),
+        onClick,
+        role: "option",
+        "aria-selected": isSelected,
+        children: [
+          /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: cn(
+            "flex-shrink-0 w-8 h-8 rounded-lg flex items-center justify-center",
+            "bg-gray-100 text-gray-600",
+            isSelected && "bg-purple-200 text-purple-700"
+          ), children: /* @__PURE__ */ jsxRuntimeExports.jsx(Package, { className: "w-4 h-4" }) }),
+          /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex-1 min-w-0", children: [
+            /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex items-center justify-between", children: [
+              /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: cn(
+                "text-sm font-medium truncate",
+                isSelected ? "text-purple-900" : "text-gray-900"
+              ), children: product.name }),
+              /* @__PURE__ */ jsxRuntimeExports.jsxs("span", { className: cn(
+                "text-sm font-semibold ml-2 flex-shrink-0",
+                isSelected ? "text-purple-700" : "text-gray-700"
+              ), children: [
+                "$",
+                product.price.toFixed(2)
+              ] })
+            ] }),
+            /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex items-center gap-4 mt-1", children: [
+              /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex items-center gap-1 text-xs text-gray-500", children: [
+                /* @__PURE__ */ jsxRuntimeExports.jsx(Hash, { className: "w-3 h-3" }),
+                /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "font-mono", children: product.barcode })
+              ] }),
+              /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex items-center gap-2 text-xs", children: [
+                /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: cn(
+                  "px-2 py-0.5 rounded-full text-xs font-medium",
+                  product.category === "wine" && "bg-red-100 text-red-700",
+                  product.category === "liquor" && "bg-amber-100 text-amber-700",
+                  product.category === "beer" && "bg-yellow-100 text-yellow-700",
+                  product.category === "rtd" && "bg-blue-100 text-blue-700",
+                  product.category === "accessories" && "bg-gray-100 text-gray-700"
+                ), children: product.category }),
+                /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "text-gray-500", children: product.size })
+              ] })
+            ] }),
+            /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "flex items-center justify-between mt-1", children: /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: cn(
+              "text-xs font-medium",
+              product.inStock ? "text-green-600" : "text-red-600"
+            ), children: product.inStock ? "In Stock" : "Out of Stock" }) })
+          ] })
+        ]
+      }
+    );
+  }
+);
+ProductSearchItem.displayName = "ProductSearchItem";
+const ProductSearchDropdown = reactExports.forwardRef(
+  ({ results, selectedIndex, onSelect, onClose, isOpen, className }, ref) => {
+    if (!isOpen || results.length === 0) {
+      return null;
+    }
+    return /* @__PURE__ */ jsxRuntimeExports.jsxs(jsxRuntimeExports.Fragment, { children: [
+      /* @__PURE__ */ jsxRuntimeExports.jsx(
+        "div",
+        {
+          className: "fixed inset-0 z-40",
+          onClick: onClose,
+          "aria-hidden": "true"
+        }
+      ),
+      /* @__PURE__ */ jsxRuntimeExports.jsx(
+        "div",
+        {
+          ref,
+          className: cn(
+            "absolute top-full left-0 right-0 z-50 mt-1",
+            "bg-white border border-gray-200 rounded-lg shadow-lg",
+            "max-h-64 overflow-y-auto",
+            className
+          ),
+          role: "listbox",
+          "aria-label": "Search results",
+          children: results.length === 0 ? /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "p-4 text-center text-gray-500", children: [
+            /* @__PURE__ */ jsxRuntimeExports.jsx(Package, { className: "w-8 h-8 mx-auto mb-2 text-gray-300" }),
+            /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "text-sm", children: "No products found" }),
+            /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "text-xs text-gray-400 mt-1", children: "Try a different search term" })
+          ] }) : /* @__PURE__ */ jsxRuntimeExports.jsxs(jsxRuntimeExports.Fragment, { children: [
+            /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "px-3 py-2 bg-gray-50 border-b border-gray-200", children: /* @__PURE__ */ jsxRuntimeExports.jsxs("p", { className: "text-xs font-medium text-gray-600", children: [
+              results.length,
+              " product",
+              results.length !== 1 ? "s" : "",
+              " found"
+            ] }) }),
+            /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "max-h-48 overflow-y-auto", children: results.map((product, index) => /* @__PURE__ */ jsxRuntimeExports.jsx(
+              ProductSearchItem,
+              {
+                product,
+                isSelected: index === selectedIndex,
+                onClick: () => onSelect(product)
+              },
+              product.id
+            )) }),
+            /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "px-3 py-2 bg-gray-50 border-t border-gray-200", children: /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "text-xs text-gray-500", children: "Use ↑↓ arrows to navigate, Enter to select, Esc to close" }) })
+          ] })
+        }
+      )
+    ] });
+  }
+);
+ProductSearchDropdown.displayName = "ProductSearchDropdown";
 const TOAST_LIMIT = 1;
 const TOAST_REMOVE_DELAY = 1e6;
 let count = 0;
@@ -16518,55 +16795,131 @@ const playErrorSound = () => audioManager.playErrorSound();
 const playSuccessSound = () => audioManager.playSuccessSound();
 const setAudioEnabled = (enabled) => audioManager.setEnabled(enabled);
 function BarcodeInput() {
-  const [barcode, setBarcode] = reactExports.useState("");
+  const [inputValue, setInputValue] = reactExports.useState("");
   const [isScanning, setIsScanning] = reactExports.useState(false);
+  const [searchMode, setSearchMode] = reactExports.useState(false);
   const inputRef = reactExports.useRef(null);
+  const dropdownRef = reactExports.useRef(null);
   const { addItem } = useCheckoutStore();
-  const handleScan = (code) => {
+  const {
+    searchResults,
+    selectedIndex,
+    isOpen,
+    hasResults,
+    selectedResult,
+    search,
+    addSelectedToCart,
+    clearSearch,
+    handleKeyDown: handleSearchKeyDown
+  } = useProductSearch();
+  const isSearchMode = reactExports.useCallback((value) => {
+    return value.length < 12 || /[a-zA-Z]/.test(value) || value.trim() === "";
+  }, []);
+  const handleScan = reactExports.useCallback((code) => {
     if (!code.trim()) return;
     const product = mockProducts.find((p) => p.barcode === code.trim());
     if (product) {
       addItem(product);
-      setBarcode("");
+      setInputValue("");
+      setSearchMode(false);
+      clearSearch();
       setIsScanning(true);
       setTimeout(() => setIsScanning(false), 1e3);
       enhancedToast.success(`Added ${product.name}`);
     } else {
       enhancedToast.error("Product not found");
       playErrorSound();
-      setBarcode("");
+      setInputValue("");
+      setSearchMode(false);
+      clearSearch();
     }
-  };
-  const handleSubmit = (e) => {
+  }, [addItem, clearSearch]);
+  const handleSubmit = reactExports.useCallback((e) => {
     e.preventDefault();
-    handleScan(barcode);
-  };
-  const handleBarcodeChange = (e) => {
-    const value = e.target.value;
-    setBarcode(value);
-    if (value.length >= 12 && /^\d+$/.test(value)) {
-      setTimeout(() => handleScan(value), 100);
+    if (searchMode && hasResults && selectedResult) {
+      addSelectedToCart();
+      setInputValue("");
+      setSearchMode(false);
+    } else if (!searchMode && inputValue.trim()) {
+      handleScan(inputValue);
     }
-  };
+  }, [searchMode, hasResults, selectedResult, addSelectedToCart, inputValue, handleScan]);
+  const handleInputChange = reactExports.useCallback((e) => {
+    const value = e.target.value;
+    setInputValue(value);
+    const shouldSearchMode = isSearchMode(value);
+    setSearchMode(shouldSearchMode);
+    if (shouldSearchMode) {
+      search(value);
+    } else {
+      clearSearch();
+      if (value.length >= 12 && /^\d+$/.test(value)) {
+        setTimeout(() => handleScan(value), 100);
+      }
+    }
+  }, [isSearchMode, search, clearSearch, handleScan]);
+  const handleKeyDown = reactExports.useCallback((e) => {
+    if (searchMode && isOpen) {
+      const handled = handleSearchKeyDown(e.nativeEvent);
+      if (handled) {
+        e.preventDefault();
+      }
+    }
+  }, [searchMode, isOpen, handleSearchKeyDown]);
+  const handleSelectProduct = reactExports.useCallback((product) => {
+    addItem(product);
+    setInputValue("");
+    setSearchMode(false);
+    clearSearch();
+    enhancedToast.success(`Added ${product.name}`);
+    if (inputRef.current) {
+      inputRef.current.focus();
+    }
+  }, [addItem, clearSearch]);
   reactExports.useEffect(() => {
     if (inputRef.current) {
       inputRef.current.focus();
     }
   }, []);
+  reactExports.useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && inputRef.current && !dropdownRef.current.contains(event.target) && !inputRef.current.contains(event.target)) {
+        clearSearch();
+      }
+    };
+    if (isOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
+      return () => document.removeEventListener("mousedown", handleClickOutside);
+    }
+  }, [isOpen, clearSearch]);
   return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "bg-white border-b border-gray-200 p-4", children: [
     /* @__PURE__ */ jsxRuntimeExports.jsxs("form", { onSubmit: handleSubmit, className: "flex space-x-2", children: [
       /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex-1 relative", children: [
-        /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "absolute left-3 top-1/2 transform -translate-y-1/2", children: isScanning ? /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "w-5 h-5 text-green-500", children: "✓" }) : /* @__PURE__ */ jsxRuntimeExports.jsx(Scan, { className: "w-5 h-5 text-gray-400" }) }),
+        /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "absolute left-3 top-1/2 transform -translate-y-1/2 z-10", children: isScanning ? /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "w-5 h-5 text-green-500", children: "✓" }) : searchMode ? /* @__PURE__ */ jsxRuntimeExports.jsx(Search, { className: "w-5 h-5 text-purple-500" }) : /* @__PURE__ */ jsxRuntimeExports.jsx(Scan, { className: "w-5 h-5 text-gray-400" }) }),
         /* @__PURE__ */ jsxRuntimeExports.jsx(
           "input",
           {
             ref: inputRef,
             type: "text",
-            value: barcode,
-            onChange: handleBarcodeChange,
-            placeholder: "Scan barcode or enter manually...",
+            value: inputValue,
+            onChange: handleInputChange,
+            onKeyDown: handleKeyDown,
+            placeholder: searchMode ? "Search products by name..." : "Scan barcode or enter manually...",
             className: "w-full pl-12 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent text-lg",
-            autoFocus: true
+            autoFocus: true,
+            autoComplete: "off",
+            id: "product-search"
+          }
+        ),
+        /* @__PURE__ */ jsxRuntimeExports.jsx(
+          ProductSearchDropdown,
+          {
+            ref: dropdownRef,
+            results: searchResults,
+            selectedIndex,
+            onSelect: handleSelectProduct,
+            onClose: clearSearch,
+            isOpen: isOpen && searchMode
           }
         )
       ] }),
@@ -16575,12 +16928,16 @@ function BarcodeInput() {
         {
           type: "submit",
           className: "px-6 bg-purple-600 hover:bg-purple-700",
-          disabled: !barcode.trim(),
-          children: /* @__PURE__ */ jsxRuntimeExports.jsx(Search, { className: "w-5 h-5" })
+          disabled: !inputValue.trim() && !(searchMode && hasResults),
+          children: searchMode ? /* @__PURE__ */ jsxRuntimeExports.jsx(Search, { className: "w-5 h-5" }) : /* @__PURE__ */ jsxRuntimeExports.jsx(Scan, { className: "w-5 h-5" })
         }
       )
     ] }),
-    /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "mt-2 text-xs text-gray-500", children: "Scan products with barcode scanner or type manually and press Enter" })
+    /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "mt-2 text-xs text-gray-500", children: searchMode ? /* @__PURE__ */ jsxRuntimeExports.jsxs(jsxRuntimeExports.Fragment, { children: [
+      "Search products by typing name or barcode • ",
+      hasResults ? `${searchResults.length} results` : "No results",
+      " • Use ↑↓ arrows to navigate"
+    ] }) : "Scan products with barcode scanner or type manually and press Enter" })
   ] });
 }
 function useBarcodeScanner(config) {
@@ -16641,7 +16998,8 @@ function useBarcodeScanner(config) {
   const handleKeyDown = reactExports.useCallback((event) => {
     if (!enabledRef.current) return;
     const target = event.target;
-    if (target.tagName === "INPUT" || target.tagName === "TEXTAREA" || target.contentEditable === "true" || target.closest('[contenteditable="true"]')) {
+    if (target.tagName === "INPUT" || target.tagName === "TEXTAREA" || target.contentEditable === "true" || target.closest('[contenteditable="true"]') || target.id === "product-search" || // Skip our product search input specifically
+    document.querySelector('[role="listbox"]')) {
       return;
     }
     if (event.key.length === 1) {
@@ -18045,7 +18403,7 @@ function Toaster() {
 function App() {
   const [selectedCategory, setSelectedCategory] = reactExports.useState(null);
   const [searchTerm, setSearchTerm] = reactExports.useState("");
-  const { addItem, isPaymentModalOpen, isCustomerModalOpen } = useCheckoutStore();
+  const { addItem, isPaymentModalOpen, isCustomerModalOpen, isSearchDropdownOpen } = useCheckoutStore();
   const filteredProducts = reactExports.useMemo(() => {
     let filtered = mockProducts;
     if (selectedCategory) {
@@ -18075,7 +18433,7 @@ function App() {
         playErrorSound();
       }
     },
-    enabled: !isPaymentModalOpen && !isCustomerModalOpen,
+    enabled: !isPaymentModalOpen && !isCustomerModalOpen && !isSearchDropdownOpen,
     shortcuts: DEFAULT_SCANNER_SHORTCUTS
   });
   reactExports.useEffect(() => {

@@ -1,5 +1,5 @@
 import { forwardRef } from 'react'
-import { Package, DollarSign, Hash } from 'lucide-react'
+import { Package, Hash } from 'lucide-react'
 import { cn } from '@/shared/lib/utils'
 import { Product } from '@/shared/lib/mockData'
 

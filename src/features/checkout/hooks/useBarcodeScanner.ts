@@ -96,7 +96,9 @@ export function useBarcodeScanner(config: ScannerConfig): ScannerHookReturn {
       target.tagName === 'INPUT' ||
       target.tagName === 'TEXTAREA' ||
       target.contentEditable === 'true' ||
-      target.closest('[contenteditable="true"]')
+      target.closest('[contenteditable="true"]') ||
+      target.id === 'product-search' || // Skip our product search input specifically
+      document.querySelector('[role="listbox"]') // Skip if search dropdown is open
     ) {
       return
     }
