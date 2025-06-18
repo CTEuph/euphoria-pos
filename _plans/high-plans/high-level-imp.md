@@ -45,13 +45,14 @@
 **Goal**: Fallback when scanner fails or product missing barcode
 
 **Requirements**:
-- Search box with dropdown results
+- 1 search box for products and barcodes
 - Search by: name, SKU, partial barcode
+- Weigh different options, but I want to be able to search ja dan and jack daniels comes up. It should search for any product that has both of those strings within a string. Order matters and the space is very important to register as well
 - Keyboard navigation (arrow keys + enter)
 - Show price and SKU in results
 
 **Acceptance Criteria**:
-- [ ] Typing "jack" shows Jack Daniels in dropdown
+- [ ] Typing "jack" shows all Jack Daniels in dropdown
 - [ ] Arrow keys navigate results
 - [ ] Enter adds highlighted item to cart
 - [ ] Escape closes dropdown
