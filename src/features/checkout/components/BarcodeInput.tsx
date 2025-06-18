@@ -61,9 +61,9 @@ export function BarcodeInput() {
     setInputValue(value)
     setSelectedIndex(0) // Reset selection when input changes
     
-    // Auto-submit for barcode mode (check new value, not current state)
-    const newIsSearchMode = value.length < 12 || /[a-zA-Z]/.test(value)
-    if (!newIsSearchMode && value.length >= 12 && /^\d+$/.test(value)) {
+    // Auto-submit for pure barcode mode (12+ digits only, no letters)
+    const isBarcode = value.length >= 12 && /^\d+$/.test(value)
+    if (isBarcode) {
       setTimeout(() => handleScan(value), 100)
     }
   }, [handleScan])

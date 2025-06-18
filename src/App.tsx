@@ -48,6 +48,14 @@ function App() {
   // Global barcode scanner hook
   const { enableAudio } = useBarcodeScanner({
     onScan: (barcode: string, isShortcut = false) => {
+      // Clear any active search when scanner is used
+      const searchInput = document.getElementById('product-search') as HTMLInputElement
+      if (searchInput && searchInput.value) {
+        searchInput.value = ''
+        // Trigger input event to update React state
+        searchInput.dispatchEvent(new Event('input', { bubbles: true }))
+      }
+
       const product = findProductByBarcode(barcode)
       if (product) {
         addItem(product)

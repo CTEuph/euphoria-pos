@@ -16685,8 +16685,8 @@ function BarcodeInput() {
     const value = e.target.value;
     setInputValue(value);
     setSelectedIndex(0);
-    const newIsSearchMode = value.length < 12 || /[a-zA-Z]/.test(value);
-    if (!newIsSearchMode && value.length >= 12 && /^\d+$/.test(value)) {
+    const isBarcode = value.length >= 12 && /^\d+$/.test(value);
+    if (isBarcode) {
       setTimeout(() => handleScan(value), 100);
     }
   }, [handleScan]);
@@ -18298,6 +18298,11 @@ function App() {
   };
   const { enableAudio } = useBarcodeScanner({
     onScan: (barcode, isShortcut = false) => {
+      const searchInput = document.getElementById("product-search");
+      if (searchInput && searchInput.value) {
+        searchInput.value = "";
+        searchInput.dispatchEvent(new Event("input", { bubbles: true }));
+      }
       const product = findProductByBarcode(barcode);
       if (product) {
         addItem(product);
