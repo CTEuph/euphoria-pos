@@ -24,6 +24,15 @@ Euphoria POS is a modern point-of-sale system built with Electron + React for Eu
 - `npx drizzle-kit migrate` - Apply pending migrations to database
 - `npx drizzle-kit studio` - Open Drizzle Studio for database inspection
 
+### Testing
+- `npm test` - Run all tests in watch mode
+- `npm run test:unit` - Run unit tests only
+- `npm run test:integration` - Run integration tests only
+- `npm run test:e2e` - Run end-to-end tests only
+- `npm run test:watch` - Run tests in watch mode for development
+- `npm run test:coverage` - Run tests with coverage reporting
+- `npm run test:ui` - Open visual test runner interface
+
 ## Architecture
 
 ### Feature-Driven Structure
@@ -115,6 +124,13 @@ All hardware communication happens in Electron main process:
 - Handle network interruptions gracefully
 - Use React Query for automatic retry and caching
 
+### Testing Strategy
+- **Philosophy**: "Test the money paths obsessively, test the happy paths thoroughly, test the edge cases intelligently"
+- **Unit Tests**: 60% of testing pyramid - Focus on business logic, calculations, state management
+- **Integration Tests**: 30% of testing pyramid - Feature workflows, IPC communication, hardware simulation
+- **E2E Tests**: 10% of testing pyramid - Critical user flows, complete checkout scenarios
+- **Coverage Goals**: 90%+ for payment/discount logic, 80%+ for state management, 60%+ for UI components
+
 ## Technology Stack
 
 - **Desktop**: Electron 36+ (runs on Mac Mini M2)
@@ -124,7 +140,40 @@ All hardware communication happens in Electron main process:
 - **UI Components**: Radix UI (shadcn/ui)
 - **Build**: Electron-Vite + Electron-Builder
 - **Hardware**: node-hid, SerialPort, USB libraries
+- **Testing**: Vitest + React Testing Library + Playwright
+
+## Testing Framework
+
+### Test Structure
+```
+tests/
+├── unit/              # Unit tests for individual functions and hooks
+├── integration/       # Integration tests for feature workflows  
+├── e2e/              # End-to-end tests for complete user flows
+├── mocks/            # Mock implementations for Electron APIs
+├── helpers/          # Test utilities and POS-specific helpers
+└── setup.ts          # Global test configuration and mocks
+```
+
+### Testing Environment
+- **Unit Testing**: Vitest with jsdom environment for React component testing
+- **Mocking**: Comprehensive mocks for Electron APIs, Web Audio API, and hardware interfaces
+- **E2E Testing**: Playwright configured for Electron app testing
+- **Coverage**: v8 coverage provider with configurable thresholds
+
+### Test Utilities
+- `createMockProduct()` - Generate realistic product test data
+- `createMockCartItem()` - Generate cart item test data  
+- `createKeyboardEvent()` - Simulate barcode scanner keyboard events
+- `createMockAudioContext()` - Mock audio context for audio feedback testing
+
+### Critical Test Areas
+1. **Payment Processing** - All payment calculations, split payments, change calculation
+2. **Discount Engine** - Case discounts, employee pricing, loyalty point calculations
+3. **Inventory Management** - Stock updates, multi-lane sync, conflict resolution
+4. **Hardware Integration** - Barcode scanning, receipt printing, payment terminal communication
+5. **State Management** - Zustand store actions, computed values, persistence
 
 ## Current Status
 
-Project is in early development phase with boilerplate structure complete. Features are planned but not yet implemented. The comprehensive database schema and architecture indicate this will be a full-featured POS system with advanced capabilities like loyalty programs, multi-lane support, and extensive hardware integration.
+Project has completed **Task 1.1: Barcode Scanner Simulation** with comprehensive testing framework in place. The testing foundation supports rapid development of remaining POS features with confidence in system reliability.

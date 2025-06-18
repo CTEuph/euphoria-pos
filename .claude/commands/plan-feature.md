@@ -5,8 +5,8 @@
 /plan-feature [TASK_ID] [GUIDE_PATH] [MODE]
 
 Examples:
-/plan-feature task-1.1 ai-docs/implementation-guide.md        # Full planning
-/plan-feature task-1.1 ai-docs/implementation-guide.md quick  # Phases 1-3 only
+/plan-feature task-1.1 _plans/high-plans/implementation-guide.md        # Full planning
+/plan-feature task-1.1 _plans/high-plans/implementation-guide.md  quick  # Phases 1-3 only
 ```
 
 ## Variables:
