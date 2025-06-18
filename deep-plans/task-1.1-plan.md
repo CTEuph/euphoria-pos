@@ -249,3 +249,112 @@ Task 1.1 will implement a global keyboard-based barcode scanner simulation using
 
 
 
+ Task 1.1: Barcode Scanner Simulation Implementation Plan
+
+    Overview
+
+    Implement a realistic barcode scanner simulation system that captures keyboard input globally on the checkout screen, includes 
+    keyboard shortcuts for instant product scanning, and provides audible feedback for failed scans.
+
+    Step-by-Step Implementation
+
+    Phase 1: Foundation Infrastructure
+
+    1. Audio Feedback System - Create src/shared/lib/audio.ts with simple HTML5 Audio API (no Web Audio complexity needed in Electron)
+    2. Toast Notifications - Implement toast system using existing @radix-ui/react-toast dependency for scan feedback
+    3. Scanner Types - Define TypeScript interfaces in src/features/checkout/types.ts for scanner state and configuration
+
+    Phase 2: Core Scanner Logic
+
+    4. Global Scanner Hook - Create src/features/checkout/hooks/useBarcodeScanner.ts with:
+      - Global keyboard event listener (numeric input + Enter)
+      - Keyboard shortcuts (Shift+J for Jack Daniels, etc.)
+      - Barcode accumulation with 2-second timeout
+      - Debouncing for rapid inputs
+      - Modal state awareness for enabling/disabling
+
+    Phase 3: State Management Integration
+
+    5. Checkout Store Enhancement - Add modal state tracking (isPaymentModalOpen, isCustomerModalOpen) to existing checkout store for 
+    scanner control
+
+    Phase 4: UI Integration
+
+    6. Scanner Integration - Connect useBarcodeScanner hook to CheckoutView component with:
+      - Product lookup and cart addition on successful scan
+      - Toast notifications for success/error states  
+      - Audio feedback for unknown barcodes (simplified for Electron)
+      - Keyboard shortcut handling (Shift+J, Shift+G, Shift+C)
+
+    Phase 5: Testing & Validation
+
+    7. Acceptance Criteria Testing - Verify all requirements:
+      - Type "082184090563" + Enter adds Jack Daniels from any screen focus
+      - Shift+J instantly adds Jack Daniels with shortcut indicator
+      - Unknown barcodes show toast + play error sound
+      - Scanning disabled during customer search/payment modals
+      - Non-numeric input ignored
+
+    Key Features
+
+    - Global Scanning: Works from anywhere on checkout screen, not just input-focused areas
+    - Keyboard Shortcuts: Shift+J/G/C for instant common product scanning
+    - Audio Feedback: Simple HTML5 Audio for error sounds (no browser policy concerns in Electron)
+    - Smart Disabling: Automatically disabled during modals to prevent conflicts
+    - Hardware Preparation: Architecture ready for real scanner integration in Phase 2
+
+    Technical Approach
+
+    - Custom React hook with global keyboard event listeners
+    - Zustand store integration for cart management
+    - Toast-based feedback system (minimal UI disruption)
+    - Simple HTML5 Audio API (Electron advantage - no permission issues)
+    - Event filtering to avoid conflicts with form inputs
+
+    This implementation leverages Electron's desktop capabilities for reliable audio feedback while maintaining the existing checkout 
+    UI patterns and preparing for future hardware integration.
+
+
+     Task 1.1 Implementation Complete!
+
+  I have successfully implemented the barcode scanner simulation system with all required features:
+
+  ✅ Completed Features
+
+  1. Audio Feedback System - Simple HTML5 Audio for Electron environment with error sound playback
+  2. Toast Notification System - Full @radix-ui/react-toast integration with success/error variants
+  3. Scanner Types - Complete TypeScript interfaces for scanner configuration and state
+  4. Global Scanner Hook - useBarcodeScanner with keyboard event handling, shortcuts, and debouncing
+  5. Modal State Tracking - Enhanced checkout store to disable scanning during modals
+  6. Full Integration - Complete integration in App.tsx with product lookup and cart management
+
+  🎯 Acceptance Criteria Implemented
+
+  - ✅ Type "082184090563" + Enter - Adds Jack Daniels to cart from any screen focus
+  - ✅ Shift+J Shortcut - Instantly adds Jack Daniels with 🎯 shortcut indicator
+  - ✅ Non-numeric Input Ignored - Only processes numeric keys and Enter
+  - ✅ Unknown Barcodes - Shows toast notification AND plays audible alert
+  - ✅ Global Scanning - Works anywhere on checkout screen (not input-focused)
+  - ✅ Modal State Awareness - Automatically disabled during customer search/payment modals
+
+  🚀 Key Features
+
+  - Keyboard Shortcuts: Shift+J (Jack Daniels), Shift+G (Grey Goose), Shift+C (Corona), etc.
+  - Audio Feedback: Leverages Electron's desktop capabilities for reliable error sounds
+  - Smart Event Handling: Filters out input elements to prevent conflicts
+  - Debouncing: 2-second timeout for barcode completion
+  - Visual Feedback: Toast notifications with success/error styling
+  - Hardware Ready: Architecture prepared for real scanner integration
+
+  🔧 Technical Implementation
+
+  The solution uses:
+  - Custom React hook with global keyboard listeners
+  - Zustand store integration for cart management
+  - @radix-ui/react-toast for notifications
+  - HTML5 Audio API (Electron advantage)
+  - TypeScript for type safety
+  - Event filtering to avoid input conflicts
+
+  The application builds successfully and the development server starts without errors. The scanner simulation is now ready for testing
+   with all acceptance criteria fully implemented!
