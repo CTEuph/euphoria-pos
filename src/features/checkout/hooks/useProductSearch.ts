@@ -67,7 +67,10 @@ export function useProductSearch(): UseProductSearchReturn {
   
   // Update search results when term changes
   useEffect(() => {
-    useCheckoutStore.setState({ searchResults: results })
+    useCheckoutStore.setState({ 
+      searchResults: results,
+      selectedResultIndex: results.length > 0 ? 0 : -1 // Always select first result when results change
+    })
     
     // Open dropdown if we have results and a search term
     if (results.length > 0 && searchTerm.trim()) {
@@ -133,12 +136,7 @@ export function useProductSearch(): UseProductSearchReturn {
     }
   }, [isSearchDropdownOpen, hasSearchResults, selectNext, selectPrevious, addSelectedToCart, clearSearch])
   
-  // Initialize selection to first result when results change
-  useEffect(() => {
-    if (searchResults.length > 0 && selectedResultIndex === -1) {
-      setSelectedResultIndex(0)
-    }
-  }, [searchResults.length, selectedResultIndex, setSelectedResultIndex])
+  // Note: Selection initialization now handled in the search results update effect above
   
   return {
     // State

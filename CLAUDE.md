@@ -174,6 +174,10 @@ tests/
 4. **Hardware Integration** - Barcode scanning, receipt printing, payment terminal communication
 5. **State Management** - Zustand store actions, computed values, persistence
 
+## Development Memories
+
+- DO NOT USE useEffect UNLESS ABSOLUTELY NECESSARY
+
 ## Current Status
 
 Project has completed **Task 1.1: Barcode Scanner Simulation** with comprehensive testing framework in place. The testing foundation supports rapid development of remaining POS features with confidence in system reliability.

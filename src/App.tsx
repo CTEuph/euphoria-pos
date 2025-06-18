@@ -17,7 +17,7 @@ function App() {
   const [searchTerm, setSearchTerm] = useState('')
 
   // Checkout store for cart management and modal states
-  const { addItem, isPaymentModalOpen, isCustomerModalOpen, isSearchDropdownOpen } = useCheckoutStore()
+  const { addItem, isPaymentModalOpen, isCustomerModalOpen } = useCheckoutStore()
 
   // Filter products based on category and search term
   const filteredProducts = useMemo(() => {
@@ -59,7 +59,7 @@ function App() {
         playErrorSound()
       }
     },
-    enabled: !isPaymentModalOpen && !isCustomerModalOpen && !isSearchDropdownOpen,
+    enabled: !isPaymentModalOpen && !isCustomerModalOpen,
     shortcuts: DEFAULT_SCANNER_SHORTCUTS
   })
 

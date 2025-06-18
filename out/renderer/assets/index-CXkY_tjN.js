@@ -15853,11 +15853,6 @@ const useCheckoutStore = create((set, get) => ({
   // Modal states
   isPaymentModalOpen: false,
   isCustomerModalOpen: false,
-  // Search state
-  searchTerm: "",
-  searchResults: [],
-  selectedResultIndex: -1,
-  isSearchDropdownOpen: false,
   // Computed values
   get subtotal() {
     return get().cart.reduce((sum, item) => sum + item.total, 0);
@@ -15870,17 +15865,6 @@ const useCheckoutStore = create((set, get) => ({
   },
   get itemCount() {
     return get().cart.reduce((sum, item) => sum + item.quantity, 0);
-  },
-  // Search computed values
-  get hasSearchResults() {
-    return get().searchResults.length > 0;
-  },
-  get selectedResult() {
-    const { searchResults, selectedResultIndex } = get();
-    if (selectedResultIndex >= 0 && selectedResultIndex < searchResults.length) {
-      return searchResults[selectedResultIndex];
-    }
-    return null;
   },
   // Actions
   addItem: (product) => {
@@ -15945,38 +15929,6 @@ const useCheckoutStore = create((set, get) => ({
   },
   setCustomerModal: (open) => {
     set({ isCustomerModalOpen: open });
-  },
-  // Search actions
-  setSearchTerm: (term) => {
-    set({
-      searchTerm: term,
-      selectedResultIndex: -1
-      // Reset selection when term changes
-    });
-  },
-  setSelectedResultIndex: (index) => {
-    const { searchResults } = get();
-    if (index >= -1 && index < searchResults.length) {
-      set({ selectedResultIndex: index });
-    }
-  },
-  selectSearchResult: (product) => {
-    get().addItem(product);
-    get().clearSearch();
-  },
-  clearSearch: () => {
-    set({
-      searchTerm: "",
-      searchResults: [],
-      selectedResultIndex: -1,
-      isSearchDropdownOpen: false
-    });
-  },
-  openSearchDropdown: () => {
-    set({ isSearchDropdownOpen: true });
-  },
-  closeSearchDropdown: () => {
-    set({ isSearchDropdownOpen: false });
   },
   // Utility functions
   getCartItem: (productId) => {
@@ -16368,106 +16320,6 @@ function ShoppingCart() {
     )
   ] });
 }
-const searchProducts = (term, products) => {
-  if (!term.trim()) return [];
-  const words = term.toLowerCase().split(" ").filter(Boolean);
-  return products.filter((product) => {
-    const searchable = `${product.name} ${product.barcode}`.toLowerCase();
-    return words.every((word) => searchable.includes(word));
-  }).slice(0, 8);
-};
-function useProductSearch() {
-  const {
-    searchTerm,
-    searchResults,
-    selectedResultIndex,
-    isSearchDropdownOpen,
-    hasSearchResults,
-    selectedResult,
-    setSearchTerm,
-    setSelectedResultIndex,
-    selectSearchResult,
-    clearSearch,
-    openSearchDropdown,
-    closeSearchDropdown
-  } = useCheckoutStore();
-  const results = reactExports.useMemo(() => {
-    return searchProducts(searchTerm, mockProducts);
-  }, [searchTerm]);
-  reactExports.useEffect(() => {
-    useCheckoutStore.setState({ searchResults: results });
-    if (results.length > 0 && searchTerm.trim()) {
-      openSearchDropdown();
-    } else {
-      closeSearchDropdown();
-    }
-  }, [results, searchTerm, openSearchDropdown, closeSearchDropdown]);
-  const search = reactExports.useCallback((term) => {
-    setSearchTerm(term);
-  }, [setSearchTerm]);
-  const selectNext = reactExports.useCallback(() => {
-    const maxIndex = searchResults.length - 1;
-    const nextIndex = selectedResultIndex < maxIndex ? selectedResultIndex + 1 : 0;
-    setSelectedResultIndex(nextIndex);
-  }, [selectedResultIndex, searchResults.length, setSelectedResultIndex]);
-  const selectPrevious = reactExports.useCallback(() => {
-    const maxIndex = searchResults.length - 1;
-    const prevIndex = selectedResultIndex > 0 ? selectedResultIndex - 1 : maxIndex;
-    setSelectedResultIndex(prevIndex);
-  }, [selectedResultIndex, searchResults.length, setSelectedResultIndex]);
-  const addSelectedToCart = reactExports.useCallback(() => {
-    if (selectedResult) {
-      selectSearchResult(selectedResult);
-    }
-  }, [selectedResult, selectSearchResult]);
-  const handleKeyDown = reactExports.useCallback((event) => {
-    if (!isSearchDropdownOpen || !hasSearchResults) return false;
-    switch (event.key) {
-      case "ArrowDown":
-        event.preventDefault();
-        selectNext();
-        return true;
-      case "ArrowUp":
-        event.preventDefault();
-        selectPrevious();
-        return true;
-      case "Enter":
-        event.preventDefault();
-        addSelectedToCart();
-        return true;
-      case "Escape":
-        event.preventDefault();
-        clearSearch();
-        return true;
-      default:
-        return false;
-    }
-  }, [isSearchDropdownOpen, hasSearchResults, selectNext, selectPrevious, addSelectedToCart, clearSearch]);
-  reactExports.useEffect(() => {
-    if (searchResults.length > 0 && selectedResultIndex === -1) {
-      setSelectedResultIndex(0);
-    }
-  }, [searchResults.length, selectedResultIndex, setSelectedResultIndex]);
-  return {
-    // State
-    searchTerm,
-    searchResults,
-    selectedIndex: selectedResultIndex,
-    isOpen: isSearchDropdownOpen,
-    // Computed
-    hasResults: hasSearchResults,
-    selectedResult,
-    // Actions
-    search,
-    selectResult: setSelectedResultIndex,
-    addSelectedToCart,
-    clearSearch,
-    // Navigation
-    selectNext,
-    selectPrevious,
-    handleKeyDown
-  };
-}
 const ProductSearchItem = reactExports.forwardRef(
   ({ product, isSelected, onClick }, ref) => {
     return /* @__PURE__ */ jsxRuntimeExports.jsxs(
@@ -16794,35 +16646,32 @@ const audioManager = new AudioManager();
 const playErrorSound = () => audioManager.playErrorSound();
 const playSuccessSound = () => audioManager.playSuccessSound();
 const setAudioEnabled = (enabled) => audioManager.setEnabled(enabled);
+const searchProducts = (term) => {
+  if (!term.trim()) return [];
+  const words = term.toLowerCase().split(" ").filter(Boolean);
+  return mockProducts.filter((product) => {
+    const searchable = `${product.name} ${product.barcode}`.toLowerCase();
+    return words.every((word) => searchable.includes(word));
+  }).slice(0, 8);
+};
 function BarcodeInput() {
   const [inputValue, setInputValue] = reactExports.useState("");
+  const [selectedIndex, setSelectedIndex] = reactExports.useState(0);
   const [isScanning, setIsScanning] = reactExports.useState(false);
-  const [searchMode, setSearchMode] = reactExports.useState(false);
   const inputRef = reactExports.useRef(null);
   const dropdownRef = reactExports.useRef(null);
   const { addItem } = useCheckoutStore();
-  const {
-    searchResults,
-    selectedIndex,
-    isOpen,
-    hasResults,
-    selectedResult,
-    search,
-    addSelectedToCart,
-    clearSearch,
-    handleKeyDown: handleSearchKeyDown
-  } = useProductSearch();
-  const isSearchMode = reactExports.useCallback((value) => {
-    return value.length < 12 || /[a-zA-Z]/.test(value) || value.trim() === "";
-  }, []);
+  const isSearchMode = inputValue.length < 12 || /[a-zA-Z]/.test(inputValue);
+  const searchResults = reactExports.useMemo(() => isSearchMode ? searchProducts(inputValue) : [], [inputValue, isSearchMode]);
+  const hasResults = searchResults.length > 0;
+  const isDropdownOpen = isSearchMode && hasResults;
+  const selectedResult = hasResults && selectedIndex >= 0 && selectedIndex < searchResults.length ? searchResults[selectedIndex] : null;
   const handleScan = reactExports.useCallback((code) => {
     if (!code.trim()) return;
     const product = mockProducts.find((p) => p.barcode === code.trim());
     if (product) {
       addItem(product);
       setInputValue("");
-      setSearchMode(false);
-      clearSearch();
       setIsScanning(true);
       setTimeout(() => setIsScanning(false), 1e3);
       enhancedToast.success(`Added ${product.name}`);
@@ -16830,72 +16679,96 @@ function BarcodeInput() {
       enhancedToast.error("Product not found");
       playErrorSound();
       setInputValue("");
-      setSearchMode(false);
-      clearSearch();
     }
-  }, [addItem, clearSearch]);
-  const handleSubmit = reactExports.useCallback((e) => {
-    e.preventDefault();
-    if (searchMode && hasResults && selectedResult) {
-      addSelectedToCart();
-      setInputValue("");
-      setSearchMode(false);
-    } else if (!searchMode && inputValue.trim()) {
-      handleScan(inputValue);
-    }
-  }, [searchMode, hasResults, selectedResult, addSelectedToCart, inputValue, handleScan]);
+  }, [addItem]);
   const handleInputChange = reactExports.useCallback((e) => {
     const value = e.target.value;
     setInputValue(value);
-    const shouldSearchMode = isSearchMode(value);
-    setSearchMode(shouldSearchMode);
-    if (shouldSearchMode) {
-      search(value);
-    } else {
-      clearSearch();
-      if (value.length >= 12 && /^\d+$/.test(value)) {
-        setTimeout(() => handleScan(value), 100);
-      }
+    setSelectedIndex(0);
+    const newIsSearchMode = value.length < 12 || /[a-zA-Z]/.test(value);
+    if (!newIsSearchMode && value.length >= 12 && /^\d+$/.test(value)) {
+      setTimeout(() => handleScan(value), 100);
     }
-  }, [isSearchMode, search, clearSearch, handleScan]);
+  }, [handleScan]);
   const handleKeyDown = reactExports.useCallback((e) => {
-    if (searchMode && isOpen) {
-      const handled = handleSearchKeyDown(e.nativeEvent);
-      if (handled) {
-        e.preventDefault();
+    if (isDropdownOpen) {
+      switch (e.key) {
+        case "ArrowDown":
+          e.preventDefault();
+          e.stopPropagation();
+          setSelectedIndex((prev) => {
+            const newIndex = prev < searchResults.length - 1 ? prev + 1 : 0;
+            setTimeout(() => {
+              const selectedItem = document.querySelector('[role="option"][aria-selected="true"]');
+              if (selectedItem) {
+                selectedItem.scrollIntoView({ behavior: "smooth", block: "nearest" });
+              }
+            }, 0);
+            return newIndex;
+          });
+          return;
+        case "ArrowUp":
+          e.preventDefault();
+          e.stopPropagation();
+          setSelectedIndex((prev) => {
+            const newIndex = prev > 0 ? prev - 1 : searchResults.length - 1;
+            setTimeout(() => {
+              const selectedItem = document.querySelector('[role="option"][aria-selected="true"]');
+              if (selectedItem) {
+                selectedItem.scrollIntoView({ behavior: "smooth", block: "nearest" });
+              }
+            }, 0);
+            return newIndex;
+          });
+          return;
+        case "Enter":
+          e.preventDefault();
+          e.stopPropagation();
+          if (selectedResult) {
+            addItem(selectedResult);
+            setInputValue("");
+            setSelectedIndex(0);
+            enhancedToast.success(`Added ${selectedResult.name}`);
+          }
+          return;
+        case "Escape":
+          e.preventDefault();
+          e.stopPropagation();
+          setInputValue("");
+          setSelectedIndex(0);
+          return;
       }
     }
-  }, [searchMode, isOpen, handleSearchKeyDown]);
+  }, [isDropdownOpen, searchResults.length, selectedResult, addItem]);
+  const handleSubmit = reactExports.useCallback((e) => {
+    e.preventDefault();
+    if (isDropdownOpen && selectedResult) {
+      addItem(selectedResult);
+      setInputValue("");
+      setSelectedIndex(0);
+      enhancedToast.success(`Added ${selectedResult.name}`);
+    } else if (!isSearchMode && inputValue.trim()) {
+      handleScan(inputValue);
+    }
+  }, [isDropdownOpen, selectedResult, isSearchMode, inputValue, addItem, handleScan]);
   const handleSelectProduct = reactExports.useCallback((product) => {
     addItem(product);
     setInputValue("");
-    setSearchMode(false);
-    clearSearch();
+    setSelectedIndex(0);
     enhancedToast.success(`Added ${product.name}`);
     if (inputRef.current) {
       inputRef.current.focus();
     }
-  }, [addItem, clearSearch]);
+  }, [addItem]);
   reactExports.useEffect(() => {
     if (inputRef.current) {
       inputRef.current.focus();
     }
   }, []);
-  reactExports.useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (dropdownRef.current && inputRef.current && !dropdownRef.current.contains(event.target) && !inputRef.current.contains(event.target)) {
-        clearSearch();
-      }
-    };
-    if (isOpen) {
-      document.addEventListener("mousedown", handleClickOutside);
-      return () => document.removeEventListener("mousedown", handleClickOutside);
-    }
-  }, [isOpen, clearSearch]);
   return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "bg-white border-b border-gray-200 p-4", children: [
     /* @__PURE__ */ jsxRuntimeExports.jsxs("form", { onSubmit: handleSubmit, className: "flex space-x-2", children: [
       /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex-1 relative", children: [
-        /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "absolute left-3 top-1/2 transform -translate-y-1/2 z-10", children: isScanning ? /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "w-5 h-5 text-green-500", children: "✓" }) : searchMode ? /* @__PURE__ */ jsxRuntimeExports.jsx(Search, { className: "w-5 h-5 text-purple-500" }) : /* @__PURE__ */ jsxRuntimeExports.jsx(Scan, { className: "w-5 h-5 text-gray-400" }) }),
+        /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "absolute left-3 top-1/2 transform -translate-y-1/2 z-10", children: isScanning ? /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "w-5 h-5 text-green-500", children: "✓" }) : isSearchMode ? /* @__PURE__ */ jsxRuntimeExports.jsx(Search, { className: "w-5 h-5 text-purple-500" }) : /* @__PURE__ */ jsxRuntimeExports.jsx(Scan, { className: "w-5 h-5 text-gray-400" }) }),
         /* @__PURE__ */ jsxRuntimeExports.jsx(
           "input",
           {
@@ -16904,7 +16777,7 @@ function BarcodeInput() {
             value: inputValue,
             onChange: handleInputChange,
             onKeyDown: handleKeyDown,
-            placeholder: searchMode ? "Search products by name..." : "Scan barcode or enter manually...",
+            placeholder: isSearchMode ? "Search products by name..." : "Scan barcode or enter manually...",
             className: "w-full pl-12 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent text-lg",
             autoFocus: true,
             autoComplete: "off",
@@ -16918,8 +16791,11 @@ function BarcodeInput() {
             results: searchResults,
             selectedIndex,
             onSelect: handleSelectProduct,
-            onClose: clearSearch,
-            isOpen: isOpen && searchMode
+            onClose: () => {
+              setInputValue("");
+              setSelectedIndex(0);
+            },
+            isOpen: isDropdownOpen
           }
         )
       ] }),
@@ -16928,12 +16804,12 @@ function BarcodeInput() {
         {
           type: "submit",
           className: "px-6 bg-purple-600 hover:bg-purple-700",
-          disabled: !inputValue.trim() && !(searchMode && hasResults),
-          children: searchMode ? /* @__PURE__ */ jsxRuntimeExports.jsx(Search, { className: "w-5 h-5" }) : /* @__PURE__ */ jsxRuntimeExports.jsx(Scan, { className: "w-5 h-5" })
+          disabled: !inputValue.trim(),
+          children: isSearchMode ? /* @__PURE__ */ jsxRuntimeExports.jsx(Search, { className: "w-5 h-5" }) : /* @__PURE__ */ jsxRuntimeExports.jsx(Scan, { className: "w-5 h-5" })
         }
       )
     ] }),
-    /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "mt-2 text-xs text-gray-500", children: searchMode ? /* @__PURE__ */ jsxRuntimeExports.jsxs(jsxRuntimeExports.Fragment, { children: [
+    /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "mt-2 text-xs text-gray-500", children: isSearchMode ? /* @__PURE__ */ jsxRuntimeExports.jsxs(jsxRuntimeExports.Fragment, { children: [
       "Search products by typing name or barcode • ",
       hasResults ? `${searchResults.length} results` : "No results",
       " • Use ↑↓ arrows to navigate"
@@ -18403,7 +18279,7 @@ function Toaster() {
 function App() {
   const [selectedCategory, setSelectedCategory] = reactExports.useState(null);
   const [searchTerm, setSearchTerm] = reactExports.useState("");
-  const { addItem, isPaymentModalOpen, isCustomerModalOpen, isSearchDropdownOpen } = useCheckoutStore();
+  const { addItem, isPaymentModalOpen, isCustomerModalOpen } = useCheckoutStore();
   const filteredProducts = reactExports.useMemo(() => {
     let filtered = mockProducts;
     if (selectedCategory) {
@@ -18433,7 +18309,7 @@ function App() {
         playErrorSound();
       }
     },
-    enabled: !isPaymentModalOpen && !isCustomerModalOpen && !isSearchDropdownOpen,
+    enabled: !isPaymentModalOpen && !isCustomerModalOpen,
     shortcuts: DEFAULT_SCANNER_SHORTCUTS
   });
   reactExports.useEffect(() => {
