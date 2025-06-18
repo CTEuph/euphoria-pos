@@ -1,0 +1,799 @@
+// =====================================================
+// AUTH STORE - src/features/auth/store/auth.store.ts
+// =====================================================
+import { create } from 'zustand'
+import { persist } from 'zustand/middleware'
+
+interface AuthState {
+  isAuthenticated: boolean
+  employeeId: string | null
+  employeeName: string | null
+  
+  // Actions
+  login: (pin: string) => Promise<boolean>
+  logout: () => Promise<void>
+}
+
+export const useAuthStore = create<AuthState>()(
+  persist(
+    (set) => ({
+      isAuthenticated: false,
+      employeeId: null,
+      employeeName: null,
+      
+      login: async (pin: string) => {
+        try {
+          const employee = await window.electron.auth.verifyPin(pin)
+          if (employee) {
+            set({
+              isAuthenticated: true,
+              employeeId: employee.id,
+              employeeName: `${employee.firstName} ${employee.lastName}`
+            })
+            return true
+          }
+          return false
+        } catch (error) {
+          console.error('Login failed:', error)
+          return false
+        }
+      },
+      
+      logout: async () => {
+        await window.electron.auth.logout()
+        set({
+          isAuthenticated: false,
+          employeeId: null,
+          employeeName: null
+        })
+      }
+    }),
+    {
+      name: 'auth-storage',
+      partialize: (state) => ({ isAuthenticated: state.isAuthenticated })
+    }
+  )
+)
+
+// =====================================================
+// PIN LOGIN COMPONENT - src/features/auth/components/PinLogin.tsx
+// =====================================================
+import { useState } from 'react'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
+import { useAuthStore } from '../store/auth.store'
+import { useNavigate } from 'react-router-dom'
+
+export function PinLogin() {
+  const [pin, setPin] = useState('')
+  const [error, setError] = useState('')
+  const login = useAuthStore((state) => state.login)
+  const navigate = useNavigate()
+
+  const handleNumberClick = (num: string) => {
+    if (pin.length < 6) {
+      setPin(pin + num)
+      setError('')
+    }
+  }
+
+  const handleClear = () => {
+    setPin('')
+    setError('')
+  }
+
+  const handleSubmit = async () => {
+    if (pin.length < 4) {
+      setError('PIN must be at least 4 digits')
+      return
+    }
+
+    const success = await login(pin)
+    if (success) {
+      navigate('/')
+    } else {
+      setError('Invalid PIN')
+      setPin('')
+    }
+  }
+
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-gray-100">
+      <Card className="w-96">
+        <CardHeader>
+          <CardTitle className="text-center">Employee Login</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {/* PIN Display */}
+          <div className="mb-6">
+            <div className="h-14 bg-gray-100 rounded-lg flex items-center justify-center text-2xl font-mono">
+              {pin ? '•'.repeat(pin.length) : 'Enter PIN'}
+            </div>
+            {error && (
+              <p className="text-red-500 text-sm text-center mt-2">{error}</p>
+            )}
+          </div>
+
+          {/* Number Pad */}
+          <div className="grid grid-cols-3 gap-2">
+            {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((num) => (
+              <Button
+                key={num}
+                variant="outline"
+                size="lg"
+                className="h-16 text-xl"
+                onClick={() => handleNumberClick(num.toString())}
+              >
+                {num}
+              </Button>
+            ))}
+            <Button
+              variant="outline"
+              size="lg"
+              className="h-16"
+              onClick={handleClear}
+            >
+              Clear
+            </Button>
+            <Button
+              variant="outline"
+              size="lg"
+              className="h-16 text-xl"
+              onClick={() => handleNumberClick('0')}
+            >
+              0
+            </Button>
+            <Button
+              variant="default"
+              size="lg"
+              className="h-16"
+              onClick={handleSubmit}
+              disabled={pin.length === 0}
+            >
+              Enter
+            </Button>
+          </div>
+
+          {/* Demo hint - remove in production */}
+          <p className="text-xs text-center text-muted-foreground mt-4">
+            Demo: Use PIN 1234
+          </p>
+        </CardContent>
+      </Card>
+    </div>
+  )
+}
+
+// =====================================================
+// PROTECTED ROUTE - src/components/ProtectedRoute.tsx
+// =====================================================
+import { Navigate } from 'react-router-dom'
+import { useAuthStore } from '@/features/auth/store/auth.store'
+
+interface ProtectedRouteProps {
+  children: React.ReactNode
+}
+
+export function ProtectedRoute({ children }: ProtectedRouteProps) {
+  const isAuthenticated = useAuthStore((state) => state.isAuthenticated)
+  
+  if (!isAuthenticated) {
+    return <Navigate to="/login" replace />
+  }
+  
+  return <>{children}</>
+}
+
+// =====================================================
+// UPDATED APP.TSX WITH AUTH - src/App.tsx
+// =====================================================
+import { BrowserRouter, Routes, Route } from 'react-router-dom'
+import { CheckoutView } from '@/features/checkout/components/CheckoutView'
+import { PinLogin } from '@/features/auth/components/PinLogin'
+import { ProtectedRoute } from '@/components/ProtectedRoute'
+
+function App() {
+  return (
+    <BrowserRouter>
+      <Routes>
+        <Route path="/login" element={<PinLogin />} />
+        <Route
+          path="/"
+          element={
+            <ProtectedRoute>
+              <CheckoutView />
+            </ProtectedRoute>
+          }
+        />
+      </Routes>
+    </BrowserRouter>
+  )
+}
+
+export default App
+
+// =====================================================
+// SETUP INSTRUCTIONS
+// =====================================================
+// 1. Install dependencies:
+//    npm install react-router-dom zustand bcrypt
+//    npm install -D @types/bcrypt
+//
+// 2. Install shadcn/ui components:
+//    npx shadcn@latest add card button input toast
+//
+// 3. Ensure you're using Tailwind CSS 3.x (NOT v4):
+//    npm install tailwindcss@^3.4.0
+//
+// 4. Create the folder structure as shown in the boilerplate
+//
+// 5. Run: npm run dev
+
+// =====================================================
+// DEPENDENCIES TO ADD - package.json
+// =====================================================
+// Add these dependencies:
+// npm install react-router-dom zustand bcrypt
+// npm install -D @types/bcrypt
+
+// =====================================================
+// PROPER ZUSTAND STORE - src/features/checkout/store/checkout.store.ts
+// =====================================================
+import { create } from 'zustand'
+import { subscribeWithSelector } from 'zustand/middleware'
+import type { Product } from '@/drizzle/schema'
+
+interface CartItem {
+  id: string
+  product: Product
+  quantity: number
+  price: number
+  total: number
+}
+
+interface CheckoutState {
+  // State
+  cart: CartItem[]
+  customerId: string | null
+  
+  // Computed values stored IN the state (not selectors!)
+  subtotal: number
+  tax: number
+  total: number
+  itemCount: number
+  
+  // Actions
+  addItem: (product: Product) => void
+  removeItem: (itemId: string) => void
+  updateQuantity: (itemId: string, quantity: number) => void
+  setCustomer: (customerId: string | null) => void
+  clearCart: () => void
+}
+
+// Helper to calculate totals
+const calculateTotals = (cart: CartItem[]) => {
+  const subtotal = cart.reduce((sum, item) => sum + item.total, 0)
+  const tax = subtotal * 0.08 // 8% tax
+  const total = subtotal + tax
+  const itemCount = cart.reduce((sum, item) => sum + item.quantity, 0)
+  
+  return { subtotal, tax, total, itemCount }
+}
+
+export const useCheckoutStore = create<CheckoutState>()(
+  subscribeWithSelector((set) => ({
+    // Initial state
+    cart: [],
+    customerId: null,
+    subtotal: 0,
+    tax: 0,
+    total: 0,
+    itemCount: 0,
+    
+    // Actions that properly update computed values
+    addItem: (product) => set((state) => {
+      const existingItem = state.cart.find(item => item.product.id === product.id)
+      
+      let newCart: CartItem[]
+      if (existingItem) {
+        newCart = state.cart.map(item =>
+          item.product.id === product.id
+            ? { ...item, quantity: item.quantity + 1, total: item.price * (item.quantity + 1) }
+            : item
+        )
+      } else {
+        newCart = [...state.cart, {
+          id: crypto.randomUUID(),
+          product,
+          quantity: 1,
+          price: Number(product.retailPrice),
+          total: Number(product.retailPrice)
+        }]
+      }
+      
+      // Calculate totals once and store them
+      const totals = calculateTotals(newCart)
+      
+      return {
+        cart: newCart,
+        ...totals
+      }
+    }),
+    
+    removeItem: (itemId) => set((state) => {
+      const newCart = state.cart.filter(item => item.id !== itemId)
+      const totals = calculateTotals(newCart)
+      
+      return {
+        cart: newCart,
+        ...totals
+      }
+    }),
+    
+    updateQuantity: (itemId, quantity) => set((state) => {
+      if (quantity <= 0) {
+        // Remove item if quantity is 0 or less
+        const newCart = state.cart.filter(item => item.id !== itemId)
+        const totals = calculateTotals(newCart)
+        return { cart: newCart, ...totals }
+      }
+      
+      const newCart = state.cart.map(item =>
+        item.id === itemId
+          ? { ...item, quantity, total: item.price * quantity }
+          : item
+      )
+      const totals = calculateTotals(newCart)
+      
+      return {
+        cart: newCart,
+        ...totals
+      }
+    }),
+    
+    setCustomer: (customerId) => set({ customerId }),
+    
+    clearCart: () => set({
+      cart: [],
+      customerId: null,
+      subtotal: 0,
+      tax: 0,
+      total: 0,
+      itemCount: 0
+    })
+  }))
+)
+
+// =====================================================
+// SIMPLE SELECTORS - Use these in components
+// =====================================================
+// Return primitive values or stable references
+export const useCart = () => useCheckoutStore((state) => state.cart)
+export const useCartTotal = () => useCheckoutStore((state) => state.total)
+export const useCartSubtotal = () => useCheckoutStore((state) => state.subtotal)
+export const useCartTax = () => useCheckoutStore((state) => state.tax)
+export const useItemCount = () => useCheckoutStore((state) => state.itemCount)
+export const useCustomerId = () => useCheckoutStore((state) => state.customerId)
+
+// Actions - these are stable function references
+export const useAddItem = () => useCheckoutStore((state) => state.addItem)
+export const useRemoveItem = () => useCheckoutStore((state) => state.removeItem)
+export const useUpdateQuantity = () => useCheckoutStore((state) => state.updateQuantity)
+export const useSetCustomer = () => useCheckoutStore((state) => state.setCustomer)
+export const useClearCart = () => useCheckoutStore((state) => state.clearCart)
+
+// =====================================================
+// MOCK DATA - src/shared/lib/mockData.ts
+// =====================================================
+import type { Product } from '@/drizzle/schema'
+
+export const mockProducts: Product[] = [
+  {
+    id: '1',
+    sku: 'JD750',
+    name: 'Jack Daniels 750ml',
+    category: 'liquor',
+    size: '750ml',
+    cost: '15.00',
+    retailPrice: '24.99',
+    parentProductId: null,
+    unitsInParent: 1,
+    loyaltyPointMultiplier: '1.0',
+    isActive: true,
+    createdAt: new Date(),
+    updatedAt: new Date()
+  },
+  {
+    id: '2',
+    sku: 'GREY750',
+    name: 'Grey Goose Vodka 750ml',
+    category: 'liquor',
+    size: '750ml',
+    cost: '22.00',
+    retailPrice: '34.99',
+    parentProductId: null,
+    unitsInParent: 1,
+    loyaltyPointMultiplier: '2.0', // Double points
+    isActive: true,
+    createdAt: new Date(),
+    updatedAt: new Date()
+  },
+  {
+    id: '3',
+    sku: 'BUD6PK',
+    name: 'Budweiser 6-Pack',
+    category: 'beer',
+    size: 'other',
+    cost: '5.00',
+    retailPrice: '8.99',
+    parentProductId: null,
+    unitsInParent: 6,
+    loyaltyPointMultiplier: '1.0',
+    isActive: true,
+    createdAt: new Date(),
+    updatedAt: new Date()
+  }
+]
+
+// =====================================================
+// SIMPLE CART COMPONENT - src/features/checkout/components/Cart.tsx
+// =====================================================
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
+import { useCart, useCartTotal, useCartSubtotal, useCartTax, useRemoveItem, useUpdateQuantity } from '../store/checkout.store'
+import { Minus, Plus, Trash2 } from 'lucide-react'
+
+export function Cart() {
+  const cart = useCart()
+  const subtotal = useCartSubtotal()
+  const tax = useCartTax()
+  const total = useCartTotal()
+  const removeItem = useRemoveItem()
+  const updateQuantity = useUpdateQuantity()
+
+  return (
+    <Card className="h-full">
+      <CardHeader>
+        <CardTitle>Current Sale</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <div className="space-y-2 max-h-96 overflow-y-auto">
+          {cart.length === 0 ? (
+            <p className="text-center text-muted-foreground py-8">
+              Scan items to begin
+            </p>
+          ) : (
+            cart.map((item) => (
+              <div key={item.id} className="flex items-center gap-2 p-2 border rounded">
+                <div className="flex-1">
+                  <p className="font-medium">{item.product.name}</p>
+                  <p className="text-sm text-muted-foreground">
+                    ${item.price.toFixed(2)} × {item.quantity}
+                  </p>
+                </div>
+                
+                <div className="flex items-center gap-1">
+                  <Button
+                    size="icon"
+                    variant="outline"
+                    className="h-8 w-8"
+                    onClick={() => updateQuantity(item.id, item.quantity - 1)}
+                  >
+                    <Minus className="h-4 w-4" />
+                  </Button>
+                  
+                  <span className="w-8 text-center">{item.quantity}</span>
+                  
+                  <Button
+                    size="icon"
+                    variant="outline"
+                    className="h-8 w-8"
+                    onClick={() => updateQuantity(item.id, item.quantity + 1)}
+                  >
+                    <Plus className="h-4 w-4" />
+                  </Button>
+                  
+                  <Button
+                    size="icon"
+                    variant="destructive"
+                    className="h-8 w-8 ml-2"
+                    onClick={() => removeItem(item.id)}
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </div>
+                
+                <div className="text-right font-medium">
+                  ${item.total.toFixed(2)}
+                </div>
+              </div>
+            ))
+          )}
+        </div>
+        
+        {cart.length > 0 && (
+          <div className="mt-4 pt-4 border-t space-y-2">
+            <div className="flex justify-between">
+              <span>Subtotal</span>
+              <span>${subtotal.toFixed(2)}</span>
+            </div>
+            <div className="flex justify-between">
+              <span>Tax</span>
+              <span>${tax.toFixed(2)}</span>
+            </div>
+            <div className="flex justify-between text-lg font-bold">
+              <span>Total</span>
+              <span>${total.toFixed(2)}</span>
+            </div>
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  )
+}
+
+// =====================================================
+// PRODUCT GRID - src/features/checkout/components/ProductGrid.tsx
+// =====================================================
+import { Card, CardContent } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
+import { mockProducts } from '@/shared/lib/mockData'
+import { useAddItem } from '../store/checkout.store'
+
+export function ProductGrid() {
+  const addItem = useAddItem()
+
+  return (
+    <div className="grid grid-cols-3 gap-4">
+      {mockProducts.map((product) => (
+        <Card 
+          key={product.id} 
+          className="cursor-pointer hover:shadow-lg transition-shadow"
+          onClick={() => addItem(product)}
+        >
+          <CardContent className="p-4">
+            <h3 className="font-medium">{product.name}</h3>
+            <p className="text-sm text-muted-foreground">{product.sku}</p>
+            <p className="text-lg font-bold mt-2">${product.retailPrice}</p>
+            <Button 
+              className="w-full mt-2" 
+              size="sm"
+              onClick={(e) => {
+                e.stopPropagation()
+                addItem(product)
+              }}
+            >
+              Add to Cart
+            </Button>
+          </CardContent>
+        </Card>
+      ))}
+    </div>
+  )
+}
+
+// =====================================================
+// MAIN CHECKOUT VIEW - src/features/checkout/components/CheckoutView.tsx
+// =====================================================
+import { Cart } from './Cart'
+import { ProductGrid } from './ProductGrid'
+
+export function CheckoutView() {
+  return (
+    <div className="flex h-screen">
+      {/* Left side - Product selection */}
+      <div className="flex-1 p-6 overflow-y-auto">
+        <h1 className="text-2xl font-bold mb-6">Products</h1>
+        <ProductGrid />
+      </div>
+      
+      {/* Right side - Cart */}
+      <div className="w-96 border-l p-6">
+        <Cart />
+      </div>
+    </div>
+  )
+}
+
+// =====================================================
+// UPDATED APP.TSX - src/App.tsx
+// =====================================================
+import { CheckoutView } from '@/features/checkout/components/CheckoutView'
+
+function App() {
+  return <CheckoutView />
+}
+
+export default App
+
+// =====================================================
+// SIMPLE IPC SETUP - electron/preload.ts
+// =====================================================
+import { contextBridge, ipcRenderer } from 'electron'
+
+// Type-safe IPC API
+export interface IElectronAPI {
+  auth: {
+    verifyPin: (pin: string) => Promise<{ id: string; firstName: string; lastName: string } | null>
+    logout: () => Promise<void>
+    getCurrentEmployee: () => Promise<{ id: string; name: string } | null>
+  }
+  database: {
+    getProducts: () => Promise<Product[]>
+    getProduct: (barcode: string) => Promise<Product | null>
+  }
+  scanner: {
+    onScan: (callback: (barcode: string) => void) => () => void
+  }
+}
+
+const electronAPI: IElectronAPI = {
+  auth: {
+    verifyPin: (pin) => ipcRenderer.invoke('auth:verify-pin', pin),
+    logout: () => ipcRenderer.invoke('auth:logout'),
+    getCurrentEmployee: () => ipcRenderer.invoke('auth:get-current-employee')
+  },
+  database: {
+    getProducts: () => ipcRenderer.invoke('db:get-products'),
+    getProduct: (barcode) => ipcRenderer.invoke('db:get-product', barcode)
+  },
+  scanner: {
+    onScan: (callback) => {
+      const subscription = (_event: any, barcode: string) => callback(barcode)
+      ipcRenderer.on('scanner:data', subscription)
+      return () => {
+        ipcRenderer.removeListener('scanner:data', subscription)
+      }
+    }
+  }
+}
+
+contextBridge.exposeInMainWorld('electron', electronAPI)
+
+// =====================================================
+// TYPES FOR WINDOW - src/shared/types/electron.d.ts
+// =====================================================
+import type { IElectronAPI } from '../../../electron/preload'
+
+declare global {
+  interface Window {
+    electron: IElectronAPI
+  }
+}
+
+export {}
+
+// =====================================================
+// AUTH HANDLERS - electron/ipc/handlers/auth.ts
+// =====================================================
+import { ipcMain } from 'electron'
+import bcrypt from 'bcrypt'
+import type { Employee } from '@/drizzle/schema'
+
+// In production, this would query your database
+// For demo, using hardcoded employee
+const DEMO_EMPLOYEE = {
+  id: '123',
+  firstName: 'John',
+  lastName: 'Doe',
+  pin: '$2b$10$YourHashedPinHere' // bcrypt hash of '1234'
+}
+
+// Store current session in main process (secure)
+let currentEmployee: Employee | null = null
+
+export function setupAuthHandlers() {
+  // Verify PIN
+  ipcMain.handle('auth:verify-pin', async (event, pin: string) => {
+    // For demo purposes
+    if (pin === '1234') {
+      currentEmployee = DEMO_EMPLOYEE as Employee
+      return {
+        id: DEMO_EMPLOYEE.id,
+        firstName: DEMO_EMPLOYEE.firstName,
+        lastName: DEMO_EMPLOYEE.lastName
+      }
+    }
+    
+    // In production:
+    // const hashedPin = await bcrypt.hash(pin, 10)
+    // const employee = await db.query.employees.findFirst({
+    //   where: and(
+    //     eq(employees.pin, hashedPin),
+    //     eq(employees.isActive, true)
+    //   )
+    // })
+    
+    return null
+  })
+
+  // Logout
+  ipcMain.handle('auth:logout', async () => {
+    currentEmployee = null
+  })
+
+  // Get current employee
+  ipcMain.handle('auth:get-current-employee', async () => {
+    if (!currentEmployee) return null
+    return {
+      id: currentEmployee.id,
+      name: `${currentEmployee.firstName} ${currentEmployee.lastName}`
+    }
+  })
+
+  // Add auth check to other handlers
+  ipcMain.handle('transaction:complete', async (event, transactionData) => {
+    if (!currentEmployee) {
+      throw new Error('Not authenticated')
+    }
+    // Process transaction with currentEmployee.id
+  })
+}
+
+// =====================================================
+// MOCK EMPLOYEES - For development without database
+// =====================================================
+export const mockEmployees = [
+  {
+    id: '1',
+    employeeCode: 'EMP001',
+    firstName: 'John',
+    lastName: 'Doe',
+    pin: '1234', // In production, this would be hashed
+    isActive: true,
+    canOverridePrice: true,
+    canVoidTransaction: true,
+    isManager: true
+  },
+  {
+    id: '2',
+    employeeCode: 'EMP002',
+    firstName: 'Jane',
+    lastName: 'Smith',
+    pin: '5678',
+    isActive: true,
+    canOverridePrice: false,
+    canVoidTransaction: false,
+    isManager: false
+  }
+]
+
+// =====================================================
+// UPDATED MAIN.TS - electron/main.ts
+// =====================================================
+import { app, BrowserWindow } from 'electron'
+import { join } from 'path'
+import { setupAuthHandlers } from './ipc/handlers/auth'
+
+let mainWindow: BrowserWindow | null = null
+
+function createWindow(): void {
+  mainWindow = new BrowserWindow({
+    width: 1400,
+    height: 900,
+    webPreferences: {
+      preload: join(__dirname, 'preload.js'),
+      contextIsolation: true,
+      nodeIntegration: false
+    }
+  })
+
+  if (!app.isPackaged && process.env['ELECTRON_RENDERER_URL']) {
+    mainWindow.loadURL(process.env['ELECTRON_RENDERER_URL'])
+  } else {
+    mainWindow.loadFile(join(__dirname, '../renderer/index.html'))
+  }
+}
+
+app.whenReady().then(() => {
+  // Set up IPC handlers
+  setupAuthHandlers()
+  
+  createWindow()
+})
+
+app.on('window-all-closed', () => {
+  if (process.platform !== 'darwin') {
+    app.quit()
+  }
+})

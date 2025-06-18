@@ -3,6 +3,8 @@ import { Scan, Search } from 'lucide-react'
 import { mockProducts } from '@/shared/lib/mockData'
 import { useCheckoutStore } from '../store/checkoutStore'
 import { Button } from '@/components/ui/button'
+import { toast } from '@/shared/hooks/useToast'
+import { playErrorSound } from '@/shared/lib/audio'
 
 export function BarcodeInput() {
   const [barcode, setBarcode] = useState('')
@@ -22,9 +24,11 @@ export function BarcodeInput() {
       // Show success feedback
       setIsScanning(true)
       setTimeout(() => setIsScanning(false), 1000)
+      toast.success(`Added ${product.name}`)
     } else {
-      // Handle unknown barcode - could show a modal or notification
-      alert(`Product not found for barcode: ${code}`)
+      // Handle unknown barcode with toast and audio feedback
+      toast.error('Product not found')
+      playErrorSound()
       setBarcode('')
     }
   }

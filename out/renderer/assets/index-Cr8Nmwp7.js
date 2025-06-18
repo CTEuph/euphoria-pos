@@ -1,3 +1,22 @@
+function _mergeNamespaces(n, m) {
+  for (var i = 0; i < m.length; i++) {
+    const e = m[i];
+    if (typeof e !== "string" && !Array.isArray(e)) {
+      for (const k in e) {
+        if (k !== "default" && !(k in n)) {
+          const d = Object.getOwnPropertyDescriptor(e, k);
+          if (d) {
+            Object.defineProperty(n, k, d.get ? d : {
+              enumerable: true,
+              get: () => e[k]
+            });
+          }
+        }
+      }
+    }
+  }
+  return Object.freeze(Object.defineProperty(n, Symbol.toStringTag, { value: "Module" }));
+}
 function getDefaultExportFromCjs(x) {
   return x && x.__esModule && Object.prototype.hasOwnProperty.call(x, "default") ? x["default"] : x;
 }
@@ -159,8 +178,8 @@ function requireReact_production() {
           function(fulfilledValue) {
             "pending" === thenable.status && (thenable.status = "fulfilled", thenable.value = fulfilledValue);
           },
-          function(error) {
-            "pending" === thenable.status && (thenable.status = "rejected", thenable.reason = error);
+          function(error2) {
+            "pending" === thenable.status && (thenable.status = "rejected", thenable.reason = error2);
           }
         )), thenable.status) {
           case "fulfilled":
@@ -247,9 +266,9 @@ function requireReact_production() {
   }
   function mapChildren(children, func, context) {
     if (null == children) return children;
-    var result = [], count = 0;
+    var result = [], count2 = 0;
     mapIntoArray(children, result, "", "", function(child) {
-      return func.call(context, child, count++);
+      return func.call(context, child, count2++);
     });
     return result;
   }
@@ -262,9 +281,9 @@ function requireReact_production() {
           if (0 === payload._status || -1 === payload._status)
             payload._status = 1, payload._result = moduleObject;
         },
-        function(error) {
+        function(error2) {
           if (0 === payload._status || -1 === payload._status)
-            payload._status = 2, payload._result = error;
+            payload._status = 2, payload._result = error2;
         }
       );
       -1 === payload._status && (payload._status = 0, payload._result = ctor);
@@ -272,20 +291,20 @@ function requireReact_production() {
     if (1 === payload._status) return payload._result.default;
     throw payload._result;
   }
-  var reportGlobalError = "function" === typeof reportError ? reportError : function(error) {
+  var reportGlobalError = "function" === typeof reportError ? reportError : function(error2) {
     if ("object" === typeof window && "function" === typeof window.ErrorEvent) {
       var event = new window.ErrorEvent("error", {
         bubbles: true,
         cancelable: true,
-        message: "object" === typeof error && null !== error && "string" === typeof error.message ? String(error.message) : String(error),
-        error
+        message: "object" === typeof error2 && null !== error2 && "string" === typeof error2.message ? String(error2.message) : String(error2),
+        error: error2
       });
       if (!window.dispatchEvent(event)) return;
     } else if ("object" === typeof process && "function" === typeof process.emit) {
-      process.emit("uncaughtException", error);
+      process.emit("uncaughtException", error2);
       return;
     }
-    console.error(error);
+    console.error(error2);
   };
   function noop() {
   }
@@ -417,8 +436,8 @@ function requireReact_production() {
       var returnValue = scope(), onStartTransitionFinish = ReactSharedInternals.S;
       null !== onStartTransitionFinish && onStartTransitionFinish(currentTransition, returnValue);
       "object" === typeof returnValue && null !== returnValue && "function" === typeof returnValue.then && returnValue.then(noop, reportGlobalError);
-    } catch (error) {
-      reportGlobalError(error);
+    } catch (error2) {
+      reportGlobalError(error2);
     } finally {
       ReactSharedInternals.T = prevTransition;
     }
@@ -466,11 +485,11 @@ function requireReact_production() {
   react_production.useMemo = function(create2, deps) {
     return ReactSharedInternals.H.useMemo(create2, deps);
   };
-  react_production.useOptimistic = function(passthrough, reducer) {
-    return ReactSharedInternals.H.useOptimistic(passthrough, reducer);
+  react_production.useOptimistic = function(passthrough, reducer2) {
+    return ReactSharedInternals.H.useOptimistic(passthrough, reducer2);
   };
-  react_production.useReducer = function(reducer, initialArg, init) {
-    return ReactSharedInternals.H.useReducer(reducer, initialArg, init);
+  react_production.useReducer = function(reducer2, initialArg, init) {
+    return ReactSharedInternals.H.useReducer(reducer2, initialArg, init);
   };
   react_production.useRef = function(initialValue) {
     return ReactSharedInternals.H.useRef(initialValue);
@@ -502,6 +521,10 @@ function requireReact() {
 }
 var reactExports = requireReact();
 const React = /* @__PURE__ */ getDefaultExportFromCjs(reactExports);
+const React$1 = /* @__PURE__ */ _mergeNamespaces({
+  __proto__: null,
+  default: React
+}, [reactExports]);
 var client = { exports: {} };
 var reactDomClient_production = {};
 var scheduler = { exports: {} };
@@ -1685,11 +1708,11 @@ function requireReactDomClient_production() {
   }
   function getStackByFiberInDevAndProd(workInProgress2) {
     try {
-      var info = "";
+      var info2 = "";
       do
-        info += describeFiber(workInProgress2), workInProgress2 = workInProgress2.return;
+        info2 += describeFiber(workInProgress2), workInProgress2 = workInProgress2.return;
       while (workInProgress2);
-      return info;
+      return info2;
     } catch (x) {
       return "\nError generating stack: " + x.message + "\n" + x.stack;
     }
@@ -2831,8 +2854,8 @@ function requireReactDomClient_production() {
   }
   var hydrationParentFiber = null, nextHydratableInstance = null, isHydrating = false, hydrationErrors = null, rootOrSingletonContext = false, HydrationMismatchException = Error(formatProdErrorMessage(519));
   function throwOnHydrationMismatch(fiber) {
-    var error = Error(formatProdErrorMessage(418, ""));
-    queueHydrationError(createCapturedValueAtFiber(error, fiber));
+    var error2 = Error(formatProdErrorMessage(418, ""));
+    queueHydrationError(createCapturedValueAtFiber(error2, fiber));
     throw HydrationMismatchException;
   }
   function prepareToHydrateHostInstance(fiber) {
@@ -2952,8 +2975,8 @@ function requireReactDomClient_production() {
     ), hydrationErrors = null);
     return queuedErrors;
   }
-  function queueHydrationError(error) {
-    null === hydrationErrors ? hydrationErrors = [error] : hydrationErrors.push(error);
+  function queueHydrationError(error2) {
+    null === hydrationErrors ? hydrationErrors = [error2] : hydrationErrors.push(error2);
   }
   var valueCursor = createCursor(null), currentlyRenderingFiber$1 = null, lastContextDependency = null;
   function pushProvider(providerFiber, context, nextValue) {
@@ -3091,15 +3114,15 @@ function requireReactDomClient_production() {
     return value;
   }
   var AbortControllerLocal = "undefined" !== typeof AbortController ? AbortController : function() {
-    var listeners = [], signal = this.signal = {
+    var listeners2 = [], signal = this.signal = {
       aborted: false,
       addEventListener: function(type, listener) {
-        listeners.push(listener);
+        listeners2.push(listener);
       }
     };
     this.abort = function() {
       signal.aborted = true;
-      listeners.forEach(function(listener) {
+      listeners2.forEach(function(listener) {
         return listener();
       });
     };
@@ -3145,33 +3168,33 @@ function requireReactDomClient_production() {
   function pingEngtangledActionScope() {
     if (0 === --currentEntangledPendingCount && null !== currentEntangledListeners) {
       null !== currentEntangledActionThenable && (currentEntangledActionThenable.status = "fulfilled");
-      var listeners = currentEntangledListeners;
+      var listeners2 = currentEntangledListeners;
       currentEntangledListeners = null;
       currentEntangledLane = 0;
       currentEntangledActionThenable = null;
-      for (var i = 0; i < listeners.length; i++) (0, listeners[i])();
+      for (var i = 0; i < listeners2.length; i++) (0, listeners2[i])();
     }
   }
   function chainThenableValue(thenable, result) {
-    var listeners = [], thenableWithOverride = {
+    var listeners2 = [], thenableWithOverride = {
       status: "pending",
       value: null,
       reason: null,
       then: function(resolve) {
-        listeners.push(resolve);
+        listeners2.push(resolve);
       }
     };
     thenable.then(
       function() {
         thenableWithOverride.status = "fulfilled";
         thenableWithOverride.value = result;
-        for (var i = 0; i < listeners.length; i++) (0, listeners[i])(result);
+        for (var i = 0; i < listeners2.length; i++) (0, listeners2[i])(result);
       },
-      function(error) {
+      function(error2) {
         thenableWithOverride.status = "rejected";
-        thenableWithOverride.reason = error;
-        for (error = 0; error < listeners.length; error++)
-          (0, listeners[error])(void 0);
+        thenableWithOverride.reason = error2;
+        for (error2 = 0; error2 < listeners2.length; error2++)
+          (0, listeners2[error2])(void 0);
       }
     );
     return thenableWithOverride;
@@ -3225,11 +3248,11 @@ function requireReactDomClient_production() {
                 fulfilledThenable.value = fulfilledValue;
               }
             },
-            function(error) {
+            function(error2) {
               if ("pending" === thenable.status) {
                 var rejectedThenable = thenable;
                 rejectedThenable.status = "rejected";
-                rejectedThenable.reason = error;
+                rejectedThenable.reason = error2;
               }
             }
           );
@@ -3627,14 +3650,14 @@ function requireReactDomClient_production() {
   function basicStateReducer(state, action) {
     return "function" === typeof action ? action(state) : action;
   }
-  function updateReducer(reducer) {
+  function updateReducer(reducer2) {
     var hook = updateWorkInProgressHook();
-    return updateReducerImpl(hook, currentHook, reducer);
+    return updateReducerImpl(hook, currentHook, reducer2);
   }
-  function updateReducerImpl(hook, current, reducer) {
+  function updateReducerImpl(hook, current, reducer2) {
     var queue = hook.queue;
     if (null === queue) throw Error(formatProdErrorMessage(311));
-    queue.lastRenderedReducer = reducer;
+    queue.lastRenderedReducer = reducer2;
     var baseQueue = hook.baseQueue, pendingQueue = queue.pending;
     if (null !== pendingQueue) {
       if (null !== baseQueue) {
@@ -3677,8 +3700,8 @@ function requireReactDomClient_production() {
               next: null
             }, null === newBaseQueueLast ? (newBaseQueueFirst = newBaseQueueLast = updateLane, baseFirst = pendingQueue) : newBaseQueueLast = newBaseQueueLast.next = updateLane, currentlyRenderingFiber.lanes |= revertLane, workInProgressRootSkippedLanes |= revertLane;
           updateLane = update.action;
-          shouldDoubleInvokeUserFnsInHooksDEV && reducer(pendingQueue, updateLane);
-          pendingQueue = update.hasEagerState ? update.eagerState : reducer(pendingQueue, updateLane);
+          shouldDoubleInvokeUserFnsInHooksDEV && reducer2(pendingQueue, updateLane);
+          pendingQueue = update.hasEagerState ? update.eagerState : reducer2(pendingQueue, updateLane);
         } else
           revertLane = {
             lane: updateLane,
@@ -3691,8 +3714,8 @@ function requireReactDomClient_production() {
         update = update.next;
       } while (null !== update && update !== current);
       null === newBaseQueueLast ? baseFirst = pendingQueue : newBaseQueueLast.next = newBaseQueueFirst;
-      if (!objectIs(pendingQueue, hook.memoizedState) && (didReceiveUpdate = true, didReadFromEntangledAsyncAction$32 && (reducer = currentEntangledActionThenable, null !== reducer)))
-        throw reducer;
+      if (!objectIs(pendingQueue, hook.memoizedState) && (didReceiveUpdate = true, didReadFromEntangledAsyncAction$32 && (reducer2 = currentEntangledActionThenable, null !== reducer2)))
+        throw reducer2;
       hook.memoizedState = pendingQueue;
       hook.baseState = baseFirst;
       hook.baseQueue = newBaseQueueLast;
@@ -3701,23 +3724,23 @@ function requireReactDomClient_production() {
     null === baseQueue && (queue.lanes = 0);
     return [hook.memoizedState, queue.dispatch];
   }
-  function rerenderReducer(reducer) {
+  function rerenderReducer(reducer2) {
     var hook = updateWorkInProgressHook(), queue = hook.queue;
     if (null === queue) throw Error(formatProdErrorMessage(311));
-    queue.lastRenderedReducer = reducer;
-    var dispatch = queue.dispatch, lastRenderPhaseUpdate = queue.pending, newState = hook.memoizedState;
+    queue.lastRenderedReducer = reducer2;
+    var dispatch2 = queue.dispatch, lastRenderPhaseUpdate = queue.pending, newState = hook.memoizedState;
     if (null !== lastRenderPhaseUpdate) {
       queue.pending = null;
       var update = lastRenderPhaseUpdate = lastRenderPhaseUpdate.next;
       do
-        newState = reducer(newState, update.action), update = update.next;
+        newState = reducer2(newState, update.action), update = update.next;
       while (update !== lastRenderPhaseUpdate);
       objectIs(newState, hook.memoizedState) || (didReceiveUpdate = true);
       hook.memoizedState = newState;
       null === hook.baseQueue && (hook.baseState = newState);
       queue.lastRenderedState = newState;
     }
-    return [newState, dispatch];
+    return [newState, dispatch2];
   }
   function updateSyncExternalStore(subscribe, getSnapshot, getServerSnapshot) {
     var fiber = currentlyRenderingFiber, hook = updateWorkInProgressHook(), isHydrating$jscomp$0 = isHydrating;
@@ -3774,7 +3797,7 @@ function requireReactDomClient_production() {
     try {
       var nextValue = latestGetSnapshot();
       return !objectIs(inst, nextValue);
-    } catch (error) {
+    } catch (error2) {
       return true;
     }
   }
@@ -3806,12 +3829,12 @@ function requireReactDomClient_production() {
     };
     return hook;
   }
-  function updateOptimisticImpl(hook, current, passthrough, reducer) {
+  function updateOptimisticImpl(hook, current, passthrough, reducer2) {
     hook.baseState = passthrough;
     return updateReducerImpl(
       hook,
       currentHook,
-      "function" === typeof reducer ? reducer : basicStateReducer
+      "function" === typeof reducer2 ? reducer2 : basicStateReducer
     );
   }
   function dispatchActionState(fiber, actionQueue, setPendingState, setState, payload) {
@@ -3846,8 +3869,8 @@ function requireReactDomClient_production() {
         var returnValue = action(prevState, payload), onStartTransitionFinish = ReactSharedInternals.S;
         null !== onStartTransitionFinish && onStartTransitionFinish(currentTransition, returnValue);
         handleActionReturnValue(actionQueue, node, returnValue);
-      } catch (error) {
-        onActionError(actionQueue, node, error);
+      } catch (error2) {
+        onActionError(actionQueue, node, error2);
       } finally {
         ReactSharedInternals.T = prevTransition;
       }
@@ -3863,8 +3886,8 @@ function requireReactDomClient_production() {
       function(nextState) {
         onActionSuccess(actionQueue, node, nextState);
       },
-      function(error) {
-        return onActionError(actionQueue, node, error);
+      function(error2) {
+        return onActionError(actionQueue, node, error2);
       }
     ) : onActionSuccess(actionQueue, node, returnValue);
   }
@@ -3876,13 +3899,13 @@ function requireReactDomClient_production() {
     actionNode = actionQueue.pending;
     null !== actionNode && (nextState = actionNode.next, nextState === actionNode ? actionQueue.pending = null : (nextState = nextState.next, actionNode.next = nextState, runActionStateAction(actionQueue, nextState)));
   }
-  function onActionError(actionQueue, actionNode, error) {
+  function onActionError(actionQueue, actionNode, error2) {
     var last = actionQueue.pending;
     actionQueue.pending = null;
     if (null !== last) {
       last = last.next;
       do
-        actionNode.status = "rejected", actionNode.reason = error, notifyActionListeners(actionNode), actionNode = actionNode.next;
+        actionNode.status = "rejected", actionNode.reason = error2, notifyActionListeners(actionNode), actionNode = actionNode.next;
       while (actionNode !== last);
     }
     actionQueue.action = null;
@@ -3997,14 +4020,14 @@ function requireReactDomClient_production() {
       }
     else state = currentStateHook;
     currentStateHook = updateWorkInProgressHook();
-    var actionQueue = currentStateHook.queue, dispatch = actionQueue.dispatch;
+    var actionQueue = currentStateHook.queue, dispatch2 = actionQueue.dispatch;
     action !== currentStateHook.memoizedState && (currentlyRenderingFiber.flags |= 2048, pushSimpleEffect(
       9,
       createEffectInstance(),
       actionStateActionEffect.bind(null, actionQueue, action),
       null
     ));
-    return [state, dispatch, stateHook];
+    return [state, dispatch2, stateHook];
   }
   function actionStateActionEffect(actionQueue, action) {
     actionQueue.action = action;
@@ -4016,9 +4039,9 @@ function requireReactDomClient_production() {
     updateWorkInProgressHook();
     stateHook = stateHook.memoizedState;
     currentStateHook = updateWorkInProgressHook();
-    var dispatch = currentStateHook.queue.dispatch;
+    var dispatch2 = currentStateHook.queue.dispatch;
     currentStateHook.memoizedState = action;
-    return [stateHook, dispatch, false];
+    return [stateHook, dispatch2, false];
   }
   function pushSimpleEffect(tag, inst, create2, createDeps) {
     tag = { tag, create: create2, deps: createDeps, inst, next: null };
@@ -4161,12 +4184,12 @@ function requireReactDomClient_production() {
           finishedState,
           requestUpdateLane(fiber)
         );
-    } catch (error) {
+    } catch (error2) {
       dispatchSetStateInternal(
         fiber,
         queue,
         { then: function() {
-        }, status: "rejected", reason: error },
+        }, status: "rejected", reason: error2 },
         requestUpdateLane()
       );
     } finally {
@@ -4288,7 +4311,7 @@ function requireReactDomClient_production() {
           update.eagerState = eagerState;
           if (objectIs(eagerState, currentState))
             return enqueueUpdate$1(fiber, queue, update, 0), null === workInProgressRoot && finishQueueingConcurrentUpdates(), false;
-        } catch (error) {
+        } catch (error2) {
         } finally {
         }
       action = enqueueConcurrentHookUpdate(fiber, queue, update, lane);
@@ -4401,7 +4424,7 @@ function requireReactDomClient_production() {
       hook.memoizedState = [nextValue, deps];
       return nextValue;
     },
-    useReducer: function(reducer, initialArg, init) {
+    useReducer: function(reducer2, initialArg, init) {
       var hook = mountWorkInProgressHook();
       if (void 0 !== init) {
         var initialState = init(initialArg);
@@ -4415,20 +4438,20 @@ function requireReactDomClient_production() {
         }
       } else initialState = initialArg;
       hook.memoizedState = hook.baseState = initialState;
-      reducer = {
+      reducer2 = {
         pending: null,
         lanes: 0,
         dispatch: null,
-        lastRenderedReducer: reducer,
+        lastRenderedReducer: reducer2,
         lastRenderedState: initialState
       };
-      hook.queue = reducer;
-      reducer = reducer.dispatch = dispatchReducerAction.bind(
+      hook.queue = reducer2;
+      reducer2 = reducer2.dispatch = dispatchReducerAction.bind(
         null,
         currentlyRenderingFiber,
-        reducer
+        reducer2
       );
-      return [hook.memoizedState, reducer];
+      return [hook.memoizedState, reducer2];
     },
     useRef: function(initialValue) {
       var hook = mountWorkInProgressHook();
@@ -4437,9 +4460,9 @@ function requireReactDomClient_production() {
     },
     useState: function(initialState) {
       initialState = mountStateImpl(initialState);
-      var queue = initialState.queue, dispatch = dispatchSetState.bind(null, currentlyRenderingFiber, queue);
-      queue.dispatch = dispatch;
-      return [initialState.memoizedState, dispatch];
+      var queue = initialState.queue, dispatch2 = dispatchSetState.bind(null, currentlyRenderingFiber, queue);
+      queue.dispatch = dispatch2;
+      return [initialState.memoizedState, dispatch2];
     },
     useDebugValue: mountDebugValue,
     useDeferredValue: function(value, initialValue) {
@@ -4572,9 +4595,9 @@ function requireReactDomClient_production() {
     useHostTransitionStatus,
     useFormState: updateActionState,
     useActionState: updateActionState,
-    useOptimistic: function(passthrough, reducer) {
+    useOptimistic: function(passthrough, reducer2) {
       var hook = updateWorkInProgressHook();
-      return updateOptimisticImpl(hook, currentHook, passthrough, reducer);
+      return updateOptimisticImpl(hook, currentHook, passthrough, reducer2);
     },
     useMemoCache,
     useCacheRefresh: updateRefresh
@@ -4615,10 +4638,10 @@ function requireReactDomClient_production() {
     useHostTransitionStatus,
     useFormState: rerenderActionState,
     useActionState: rerenderActionState,
-    useOptimistic: function(passthrough, reducer) {
+    useOptimistic: function(passthrough, reducer2) {
       var hook = updateWorkInProgressHook();
       if (null !== currentHook)
-        return updateOptimisticImpl(hook, currentHook, passthrough, reducer);
+        return updateOptimisticImpl(hook, currentHook, passthrough, reducer2);
       hook.baseState = passthrough;
       return [passthrough, hook.queue.dispatch];
     },
@@ -5197,29 +5220,29 @@ function requireReactDomClient_production() {
     }
     return newProps;
   }
-  var reportGlobalError = "function" === typeof reportError ? reportError : function(error) {
+  var reportGlobalError = "function" === typeof reportError ? reportError : function(error2) {
     if ("object" === typeof window && "function" === typeof window.ErrorEvent) {
       var event = new window.ErrorEvent("error", {
         bubbles: true,
         cancelable: true,
-        message: "object" === typeof error && null !== error && "string" === typeof error.message ? String(error.message) : String(error),
-        error
+        message: "object" === typeof error2 && null !== error2 && "string" === typeof error2.message ? String(error2.message) : String(error2),
+        error: error2
       });
       if (!window.dispatchEvent(event)) return;
     } else if ("object" === typeof process && "function" === typeof process.emit) {
-      process.emit("uncaughtException", error);
+      process.emit("uncaughtException", error2);
       return;
     }
-    console.error(error);
+    console.error(error2);
   };
-  function defaultOnUncaughtError(error) {
-    reportGlobalError(error);
+  function defaultOnUncaughtError(error2) {
+    reportGlobalError(error2);
   }
-  function defaultOnCaughtError(error) {
-    console.error(error);
+  function defaultOnCaughtError(error2) {
+    console.error(error2);
   }
-  function defaultOnRecoverableError(error) {
-    reportGlobalError(error);
+  function defaultOnRecoverableError(error2) {
+    reportGlobalError(error2);
   }
   function logUncaughtError(root2, errorInfo) {
     try {
@@ -5261,9 +5284,9 @@ function requireReactDomClient_production() {
   function initializeClassErrorUpdate(update, root2, fiber, errorInfo) {
     var getDerivedStateFromError = fiber.type.getDerivedStateFromError;
     if ("function" === typeof getDerivedStateFromError) {
-      var error = errorInfo.value;
+      var error2 = errorInfo.value;
       update.payload = function() {
-        return getDerivedStateFromError(error);
+        return getDerivedStateFromError(error2);
       };
       update.callback = function() {
         logCaughtError(root2, fiber, errorInfo);
@@ -6804,8 +6827,8 @@ function requireReactDomClient_production() {
           updateQueue = updateQueue.next;
         } while (updateQueue !== firstEffect);
       }
-    } catch (error) {
-      captureCommitPhaseError(finishedWork, finishedWork.return, error);
+    } catch (error2) {
+      captureCommitPhaseError(finishedWork, finishedWork.return, error2);
     }
   }
   function commitHookEffectListUnmount(flags, finishedWork, nearestMountedAncestor$jscomp$0) {
@@ -6823,11 +6846,11 @@ function requireReactDomClient_production() {
               var nearestMountedAncestor = nearestMountedAncestor$jscomp$0, destroy_ = destroy;
               try {
                 destroy_();
-              } catch (error) {
+              } catch (error2) {
                 captureCommitPhaseError(
                   lastEffect,
                   nearestMountedAncestor,
-                  error
+                  error2
                 );
               }
             }
@@ -6835,8 +6858,8 @@ function requireReactDomClient_production() {
           updateQueue = updateQueue.next;
         } while (updateQueue !== firstEffect);
       }
-    } catch (error) {
-      captureCommitPhaseError(finishedWork, finishedWork.return, error);
+    } catch (error2) {
+      captureCommitPhaseError(finishedWork, finishedWork.return, error2);
     }
   }
   function commitClassCallbacks(finishedWork) {
@@ -6845,8 +6868,8 @@ function requireReactDomClient_production() {
       var instance = finishedWork.stateNode;
       try {
         commitCallbacks(updateQueue, instance);
-      } catch (error) {
-        captureCommitPhaseError(finishedWork, finishedWork.return, error);
+      } catch (error2) {
+        captureCommitPhaseError(finishedWork, finishedWork.return, error2);
       }
     }
   }
@@ -6858,8 +6881,8 @@ function requireReactDomClient_production() {
     instance.state = current.memoizedState;
     try {
       instance.componentWillUnmount();
-    } catch (error) {
-      captureCommitPhaseError(current, nearestMountedAncestor, error);
+    } catch (error2) {
+      captureCommitPhaseError(current, nearestMountedAncestor, error2);
     }
   }
   function safelyAttachRef(current, nearestMountedAncestor) {
@@ -6880,8 +6903,8 @@ function requireReactDomClient_production() {
         }
         "function" === typeof ref ? current.refCleanup = ref(instanceToUse) : ref.current = instanceToUse;
       }
-    } catch (error) {
-      captureCommitPhaseError(current, nearestMountedAncestor, error);
+    } catch (error2) {
+      captureCommitPhaseError(current, nearestMountedAncestor, error2);
     }
   }
   function safelyDetachRef(current, nearestMountedAncestor) {
@@ -6890,8 +6913,8 @@ function requireReactDomClient_production() {
       if ("function" === typeof refCleanup)
         try {
           refCleanup();
-        } catch (error) {
-          captureCommitPhaseError(current, nearestMountedAncestor, error);
+        } catch (error2) {
+          captureCommitPhaseError(current, nearestMountedAncestor, error2);
         } finally {
           current.refCleanup = null, current = current.alternate, null != current && (current.refCleanup = null);
         }
@@ -6916,8 +6939,8 @@ function requireReactDomClient_production() {
         case "img":
           props.src ? instance.src = props.src : props.srcSet && (instance.srcset = props.srcSet);
       }
-    } catch (error) {
-      captureCommitPhaseError(finishedWork, finishedWork.return, error);
+    } catch (error2) {
+      captureCommitPhaseError(finishedWork, finishedWork.return, error2);
     }
   }
   function commitHostUpdate(finishedWork, newProps, oldProps) {
@@ -6925,8 +6948,8 @@ function requireReactDomClient_production() {
       var domElement = finishedWork.stateNode;
       updateProperties(domElement, finishedWork.type, oldProps, newProps);
       domElement[internalPropsKey] = newProps;
-    } catch (error) {
-      captureCommitPhaseError(finishedWork, finishedWork.return, error);
+    } catch (error2) {
+      captureCommitPhaseError(finishedWork, finishedWork.return, error2);
     }
   }
   function isHostParent(fiber) {
@@ -6972,8 +6995,8 @@ function requireReactDomClient_production() {
       setInitialProperties(singleton, type, props);
       singleton[internalInstanceKey] = finishedWork;
       singleton[internalPropsKey] = props;
-    } catch (error) {
-      captureCommitPhaseError(finishedWork, finishedWork.return, error);
+    } catch (error2) {
+      captureCommitPhaseError(finishedWork, finishedWork.return, error2);
     }
   }
   var offscreenSubtreeIsHidden = false, offscreenSubtreeWasHidden = false, needsFormReset = false, PossiblyWeakSet = "function" === typeof WeakSet ? WeakSet : Set, nextEffect = null;
@@ -7060,11 +7083,11 @@ function requireReactDomClient_production() {
                     focusNode
                   );
                   selection.__reactInternalSnapshotBeforeUpdate = root2;
-                } catch (error) {
+                } catch (error2) {
                   captureCommitPhaseError(
                     JSCompiler_temp,
                     JSCompiler_temp.return,
-                    error
+                    error2
                   );
                 }
               }
@@ -7119,8 +7142,8 @@ function requireReactDomClient_production() {
           if (finishedRoot = finishedWork.stateNode, null === current)
             try {
               finishedRoot.componentDidMount();
-            } catch (error) {
-              captureCommitPhaseError(finishedWork, finishedWork.return, error);
+            } catch (error2) {
+              captureCommitPhaseError(finishedWork, finishedWork.return, error2);
             }
           else {
             var prevProps = resolveClassComponentProps(
@@ -7160,8 +7183,8 @@ function requireReactDomClient_production() {
             }
           try {
             commitCallbacks(finishedRoot, current);
-          } catch (error) {
-            captureCommitPhaseError(finishedWork, finishedWork.return, error);
+          } catch (error2) {
+            captureCommitPhaseError(finishedWork, finishedWork.return, error2);
           }
         }
         break;
@@ -7273,21 +7296,21 @@ function requireReactDomClient_production() {
           if (hostParentIsContainer)
             try {
               (9 === hostParent.nodeType ? hostParent.body : "HTML" === hostParent.nodeName ? hostParent.ownerDocument.body : hostParent).removeChild(deletedFiber.stateNode);
-            } catch (error) {
+            } catch (error2) {
               captureCommitPhaseError(
                 deletedFiber,
                 nearestMountedAncestor,
-                error
+                error2
               );
             }
           else
             try {
               hostParent.removeChild(deletedFiber.stateNode);
-            } catch (error) {
+            } catch (error2) {
               captureCommitPhaseError(
                 deletedFiber,
                 nearestMountedAncestor,
-                error
+                error2
               );
             }
         break;
@@ -7362,8 +7385,8 @@ function requireReactDomClient_production() {
     if (null === finishedWork.memoizedState && (finishedRoot = finishedWork.alternate, null !== finishedRoot && (finishedRoot = finishedRoot.memoizedState, null !== finishedRoot && (finishedRoot = finishedRoot.dehydrated, null !== finishedRoot))))
       try {
         retryIfBlockedOn(finishedRoot);
-      } catch (error) {
-        captureCommitPhaseError(finishedWork, finishedWork.return, error);
+      } catch (error2) {
+        captureCommitPhaseError(finishedWork, finishedWork.return, error2);
       }
   }
   function getRetryCache(finishedWork) {
@@ -7557,8 +7580,8 @@ function requireReactDomClient_production() {
           hoistableRoot = finishedWork.stateNode;
           try {
             setTextContent(hoistableRoot, "");
-          } catch (error) {
-            captureCommitPhaseError(finishedWork, finishedWork.return, error);
+          } catch (error2) {
+            captureCommitPhaseError(finishedWork, finishedWork.return, error2);
           }
         }
         flags & 4 && null != finishedWork.stateNode && (hoistableRoot = finishedWork.memoizedProps, commitHostUpdate(
@@ -7578,8 +7601,8 @@ function requireReactDomClient_production() {
           current = finishedWork.stateNode;
           try {
             current.nodeValue = flags;
-          } catch (error) {
-            captureCommitPhaseError(finishedWork, finishedWork.return, error);
+          } catch (error2) {
+            captureCommitPhaseError(finishedWork, finishedWork.return, error2);
           }
         }
         break;
@@ -7593,8 +7616,8 @@ function requireReactDomClient_production() {
         if (flags & 4 && null !== current && current.memoizedState.isDehydrated)
           try {
             retryIfBlockedOn(root2.containerInfo);
-          } catch (error) {
-            captureCommitPhaseError(finishedWork, finishedWork.return, error);
+          } catch (error2) {
+            captureCommitPhaseError(finishedWork, finishedWork.return, error2);
           }
         needsFormReset && (needsFormReset = false, recursivelyResetForms(finishedWork));
         break;
@@ -7639,8 +7662,8 @@ function requireReactDomClient_production() {
                     var styleProp = wasHidden.memoizedProps.style, display = void 0 !== styleProp && null !== styleProp && styleProp.hasOwnProperty("display") ? styleProp.display : null;
                     i.style.display = null == display || "boolean" === typeof display ? "" : ("" + display).trim();
                   }
-                } catch (error) {
-                  captureCommitPhaseError(wasHidden, wasHidden.return, error);
+                } catch (error2) {
+                  captureCommitPhaseError(wasHidden, wasHidden.return, error2);
                 }
               }
             } else if (6 === root2.tag) {
@@ -7648,8 +7671,8 @@ function requireReactDomClient_production() {
                 wasHidden = root2;
                 try {
                   wasHidden.stateNode.nodeValue = hoistableRoot ? "" : wasHidden.memoizedProps;
-                } catch (error) {
-                  captureCommitPhaseError(wasHidden, wasHidden.return, error);
+                } catch (error2) {
+                  captureCommitPhaseError(wasHidden, wasHidden.return, error2);
                 }
               }
             } else if ((22 !== root2.tag && 23 !== root2.tag || null === root2.memoizedState || root2 === finishedWork) && null !== root2.child) {
@@ -7717,8 +7740,8 @@ function requireReactDomClient_production() {
           default:
             throw Error(formatProdErrorMessage(161));
         }
-      } catch (error) {
-        captureCommitPhaseError(finishedWork, finishedWork.return, error);
+      } catch (error2) {
+        captureCommitPhaseError(finishedWork, finishedWork.return, error2);
       }
       finishedWork.flags &= -3;
     }
@@ -7804,8 +7827,8 @@ function requireReactDomClient_production() {
           if ("function" === typeof finishedRoot.componentDidMount)
             try {
               finishedRoot.componentDidMount();
-            } catch (error) {
-              captureCommitPhaseError(current, current.return, error);
+            } catch (error2) {
+              captureCommitPhaseError(current, current.return, error2);
             }
           current = finishedWork;
           finishedRoot = current.updateQueue;
@@ -7816,8 +7839,8 @@ function requireReactDomClient_production() {
               if (null !== hiddenCallbacks)
                 for (finishedRoot.shared.hiddenCallbacks = null, finishedRoot = 0; finishedRoot < hiddenCallbacks.length; finishedRoot++)
                   callCallback(hiddenCallbacks[finishedRoot], instance);
-            } catch (error) {
-              captureCommitPhaseError(current, current.return, error);
+            } catch (error2) {
+              captureCommitPhaseError(current, current.return, error2);
             }
           }
           includeWorkInProgressEffects && flags & 64 && commitClassCallbacks(finishedWork);
@@ -7941,8 +7964,8 @@ function requireReactDomClient_production() {
               finishedRoot.passiveEffectDuration,
               -0
             );
-          } catch (error) {
-            captureCommitPhaseError(finishedWork, finishedWork.return, error);
+          } catch (error2) {
+            captureCommitPhaseError(finishedWork, finishedWork.return, error2);
           }
         } else
           recursivelyTraversePassiveMountEffects(
@@ -8464,7 +8487,7 @@ function requireReactDomClient_production() {
           check = check.value;
           try {
             if (!objectIs(getSnapshot(), check)) return false;
-          } catch (error) {
+          } catch (error2) {
             return false;
           }
         }
@@ -8782,8 +8805,8 @@ function requireReactDomClient_production() {
         workInProgress = null;
         return;
       }
-    } catch (error) {
-      if (null !== returnFiber) throw workInProgress = returnFiber, error;
+    } catch (error2) {
+      if (null !== returnFiber) throw workInProgress = returnFiber, error2;
       workInProgressRootExitStatus = 1;
       logUncaughtError(
         root2,
@@ -8954,9 +8977,9 @@ function requireReactDomClient_production() {
               });
             "function" === typeof priorFocusedElem.focus && priorFocusedElem.focus();
             for (priorFocusedElem = 0; priorFocusedElem < doc.length; priorFocusedElem++) {
-              var info = doc[priorFocusedElem];
-              info.element.scrollLeft = info.left;
-              info.element.scrollTop = info.top;
+              var info2 = doc[priorFocusedElem];
+              info2.element.scrollLeft = info2.left;
+              info2.element.scrollTop = info2.top;
             }
           }
           _enabled = !!eventsEnabled;
@@ -9077,32 +9100,32 @@ function requireReactDomClient_production() {
       ReactDOMSharedInternals.p = previousPriority, ReactSharedInternals.T = prevTransition, releaseRootPooledCache(root2, remainingLanes);
     }
   }
-  function captureCommitPhaseErrorOnRoot(rootFiber, sourceFiber, error) {
-    sourceFiber = createCapturedValueAtFiber(error, sourceFiber);
+  function captureCommitPhaseErrorOnRoot(rootFiber, sourceFiber, error2) {
+    sourceFiber = createCapturedValueAtFiber(error2, sourceFiber);
     sourceFiber = createRootErrorUpdate(rootFiber.stateNode, sourceFiber, 2);
     rootFiber = enqueueUpdate(rootFiber, sourceFiber, 2);
     null !== rootFiber && (markRootUpdated$1(rootFiber, 2), ensureRootIsScheduled(rootFiber));
   }
-  function captureCommitPhaseError(sourceFiber, nearestMountedAncestor, error) {
+  function captureCommitPhaseError(sourceFiber, nearestMountedAncestor, error2) {
     if (3 === sourceFiber.tag)
-      captureCommitPhaseErrorOnRoot(sourceFiber, sourceFiber, error);
+      captureCommitPhaseErrorOnRoot(sourceFiber, sourceFiber, error2);
     else
       for (; null !== nearestMountedAncestor; ) {
         if (3 === nearestMountedAncestor.tag) {
           captureCommitPhaseErrorOnRoot(
             nearestMountedAncestor,
             sourceFiber,
-            error
+            error2
           );
           break;
         } else if (1 === nearestMountedAncestor.tag) {
           var instance = nearestMountedAncestor.stateNode;
           if ("function" === typeof nearestMountedAncestor.type.getDerivedStateFromError || "function" === typeof instance.componentDidCatch && (null === legacyErrorBoundariesThatAlreadyFailed || !legacyErrorBoundariesThatAlreadyFailed.has(instance))) {
-            sourceFiber = createCapturedValueAtFiber(error, sourceFiber);
-            error = createClassErrorUpdate(2);
-            instance = enqueueUpdate(nearestMountedAncestor, error, 2);
+            sourceFiber = createCapturedValueAtFiber(error2, sourceFiber);
+            error2 = createClassErrorUpdate(2);
+            instance = enqueueUpdate(nearestMountedAncestor, error2, 2);
             null !== instance && (initializeClassErrorUpdate(
-              error,
+              error2,
               instance,
               nearestMountedAncestor,
               sourceFiber
@@ -9433,8 +9456,8 @@ function requireReactDomClient_production() {
             event.currentTarget = currentTarget;
             try {
               previousInstance(event);
-            } catch (error) {
-              reportGlobalError(error);
+            } catch (error2) {
+              reportGlobalError(error2);
             }
             event.currentTarget = null;
             previousInstance = instance;
@@ -9451,8 +9474,8 @@ function requireReactDomClient_production() {
             event.currentTarget = currentTarget;
             try {
               previousInstance(event);
-            } catch (error) {
-              reportGlobalError(error);
+            } catch (error2) {
+              reportGlobalError(error2);
             }
             event.currentTarget = null;
             previousInstance = instance;
@@ -9834,15 +9857,15 @@ function requireReactDomClient_production() {
     };
   }
   function accumulateTwoPhaseListeners(targetFiber, reactName) {
-    for (var captureName = reactName + "Capture", listeners = []; null !== targetFiber; ) {
+    for (var captureName = reactName + "Capture", listeners2 = []; null !== targetFiber; ) {
       var _instance2 = targetFiber, stateNode = _instance2.stateNode;
       _instance2 = _instance2.tag;
-      5 !== _instance2 && 26 !== _instance2 && 27 !== _instance2 || null === stateNode || (_instance2 = getListener(targetFiber, captureName), null != _instance2 && listeners.unshift(
+      5 !== _instance2 && 26 !== _instance2 && 27 !== _instance2 || null === stateNode || (_instance2 = getListener(targetFiber, captureName), null != _instance2 && listeners2.unshift(
         createDispatchListener(targetFiber, _instance2, stateNode)
-      ), _instance2 = getListener(targetFiber, reactName), null != _instance2 && listeners.push(
+      ), _instance2 = getListener(targetFiber, reactName), null != _instance2 && listeners2.push(
         createDispatchListener(targetFiber, _instance2, stateNode)
       ));
-      if (3 === targetFiber.tag) return listeners;
+      if (3 === targetFiber.tag) return listeners2;
       targetFiber = targetFiber.return;
     }
     return [];
@@ -9855,18 +9878,18 @@ function requireReactDomClient_production() {
     return inst ? inst : null;
   }
   function accumulateEnterLeaveListenersForEvent(dispatchQueue, event, target, common, inCapturePhase) {
-    for (var registrationName = event._reactName, listeners = []; null !== target && target !== common; ) {
+    for (var registrationName = event._reactName, listeners2 = []; null !== target && target !== common; ) {
       var _instance3 = target, alternate = _instance3.alternate, stateNode = _instance3.stateNode;
       _instance3 = _instance3.tag;
       if (null !== alternate && alternate === common) break;
-      5 !== _instance3 && 26 !== _instance3 && 27 !== _instance3 || null === stateNode || (alternate = stateNode, inCapturePhase ? (stateNode = getListener(target, registrationName), null != stateNode && listeners.unshift(
+      5 !== _instance3 && 26 !== _instance3 && 27 !== _instance3 || null === stateNode || (alternate = stateNode, inCapturePhase ? (stateNode = getListener(target, registrationName), null != stateNode && listeners2.unshift(
         createDispatchListener(target, stateNode, alternate)
-      )) : inCapturePhase || (stateNode = getListener(target, registrationName), null != stateNode && listeners.push(
+      )) : inCapturePhase || (stateNode = getListener(target, registrationName), null != stateNode && listeners2.push(
         createDispatchListener(target, stateNode, alternate)
       )));
       target = target.return;
     }
-    0 !== listeners.length && dispatchQueue.push({ event, listeners });
+    0 !== listeners2.length && dispatchQueue.push({ event, listeners: listeners2 });
   }
   var NORMALIZE_NEWLINES_REGEX = /\r\n?/g, NORMALIZE_NULL_AND_REPLACEMENT_REGEX = /\u0000|\uFFFD/g;
   function normalizeMarkupForTextOrAttribute(markup) {
@@ -10685,9 +10708,9 @@ function requireReactDomClient_production() {
   var scheduleTimeout = "function" === typeof setTimeout ? setTimeout : void 0, cancelTimeout = "function" === typeof clearTimeout ? clearTimeout : void 0, localPromise = "function" === typeof Promise ? Promise : void 0, scheduleMicrotask = "function" === typeof queueMicrotask ? queueMicrotask : "undefined" !== typeof localPromise ? function(callback) {
     return localPromise.resolve(null).then(callback).catch(handleErrorInNextTick);
   } : scheduleTimeout;
-  function handleErrorInNextTick(error) {
+  function handleErrorInNextTick(error2) {
     setTimeout(function() {
-      throw error;
+      throw error2;
     });
   }
   function isSingletonScope(type) {
@@ -12042,7 +12065,7 @@ function requireClient() {
   return client.exports;
 }
 var clientExports = requireClient();
-const ReactDOM = /* @__PURE__ */ getDefaultExportFromCjs(clientExports);
+const ReactDOM$1 = /* @__PURE__ */ getDefaultExportFromCjs(clientExports);
 /**
  * @license lucide-react v0.516.0 - ISC
  *
@@ -12148,37 +12171,37 @@ const createLucideIcon = (iconName, iconNode) => {
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
  */
-const __iconNode$b = [
+const __iconNode$c = [
   ["circle", { cx: "12", cy: "12", r: "10", key: "1mglay" }],
   ["polyline", { points: "12 6 12 12 16 14", key: "68esgv" }]
 ];
-const Clock = createLucideIcon("clock", __iconNode$b);
+const Clock = createLucideIcon("clock", __iconNode$c);
 /**
  * @license lucide-react v0.516.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
  */
-const __iconNode$a = [
+const __iconNode$b = [
   ["rect", { width: "20", height: "14", x: "2", y: "5", rx: "2", key: "ynyp8z" }],
   ["line", { x1: "2", x2: "22", y1: "10", y2: "10", key: "1b3vmo" }]
 ];
-const CreditCard = createLucideIcon("credit-card", __iconNode$a);
+const CreditCard = createLucideIcon("credit-card", __iconNode$b);
 /**
  * @license lucide-react v0.516.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
  */
-const __iconNode$9 = [["path", { d: "M5 12h14", key: "1ays0h" }]];
-const Minus = createLucideIcon("minus", __iconNode$9);
+const __iconNode$a = [["path", { d: "M5 12h14", key: "1ays0h" }]];
+const Minus = createLucideIcon("minus", __iconNode$a);
 /**
  * @license lucide-react v0.516.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
  */
-const __iconNode$8 = [
+const __iconNode$9 = [
   [
     "path",
     {
@@ -12190,14 +12213,14 @@ const __iconNode$8 = [
   ["polyline", { points: "3.29 7 12 12 20.71 7", key: "ousv84" }],
   ["path", { d: "m7.5 4.27 9 5.15", key: "1c824w" }]
 ];
-const Package = createLucideIcon("package", __iconNode$8);
+const Package = createLucideIcon("package", __iconNode$9);
 /**
  * @license lucide-react v0.516.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
  */
-const __iconNode$7 = [
+const __iconNode$8 = [
   [
     "path",
     {
@@ -12206,7 +12229,18 @@ const __iconNode$7 = [
     }
   ]
 ];
-const Phone = createLucideIcon("phone", __iconNode$7);
+const Phone = createLucideIcon("phone", __iconNode$8);
+/**
+ * @license lucide-react v0.516.0 - ISC
+ *
+ * This source code is licensed under the ISC license.
+ * See the LICENSE file in the root directory of this source tree.
+ */
+const __iconNode$7 = [
+  ["path", { d: "M5 12h14", key: "1ays0h" }],
+  ["path", { d: "M12 5v14", key: "s699le" }]
+];
+const Plus = createLucideIcon("plus", __iconNode$7);
 /**
  * @license lucide-react v0.516.0 - ISC
  *
@@ -12214,10 +12248,12 @@ const Phone = createLucideIcon("phone", __iconNode$7);
  * See the LICENSE file in the root directory of this source tree.
  */
 const __iconNode$6 = [
-  ["path", { d: "M5 12h14", key: "1ays0h" }],
-  ["path", { d: "M12 5v14", key: "s699le" }]
+  ["path", { d: "M3 7V5a2 2 0 0 1 2-2h2", key: "aa7l1z" }],
+  ["path", { d: "M17 3h2a2 2 0 0 1 2 2v2", key: "4qcy5o" }],
+  ["path", { d: "M21 17v2a2 2 0 0 1-2 2h-2", key: "6vwrx8" }],
+  ["path", { d: "M7 21H5a2 2 0 0 1-2-2v-2", key: "ioqczr" }]
 ];
-const Plus = createLucideIcon("plus", __iconNode$6);
+const Scan = createLucideIcon("scan", __iconNode$6);
 /**
  * @license lucide-react v0.516.0 - ISC
  *
@@ -12225,12 +12261,10 @@ const Plus = createLucideIcon("plus", __iconNode$6);
  * See the LICENSE file in the root directory of this source tree.
  */
 const __iconNode$5 = [
-  ["path", { d: "M3 7V5a2 2 0 0 1 2-2h2", key: "aa7l1z" }],
-  ["path", { d: "M17 3h2a2 2 0 0 1 2 2v2", key: "4qcy5o" }],
-  ["path", { d: "M21 17v2a2 2 0 0 1-2 2h-2", key: "6vwrx8" }],
-  ["path", { d: "M7 21H5a2 2 0 0 1-2-2v-2", key: "ioqczr" }]
+  ["path", { d: "m21 21-4.34-4.34", key: "14j7rj" }],
+  ["circle", { cx: "11", cy: "11", r: "8", key: "4ej97u" }]
 ];
-const Scan = createLucideIcon("scan", __iconNode$5);
+const Search = createLucideIcon("search", __iconNode$5);
 /**
  * @license lucide-react v0.516.0 - ISC
  *
@@ -12238,17 +12272,6 @@ const Scan = createLucideIcon("scan", __iconNode$5);
  * See the LICENSE file in the root directory of this source tree.
  */
 const __iconNode$4 = [
-  ["path", { d: "m21 21-4.34-4.34", key: "14j7rj" }],
-  ["circle", { cx: "11", cy: "11", r: "8", key: "4ej97u" }]
-];
-const Search = createLucideIcon("search", __iconNode$4);
-/**
- * @license lucide-react v0.516.0 - ISC
- *
- * This source code is licensed under the ISC license.
- * See the LICENSE file in the root directory of this source tree.
- */
-const __iconNode$3 = [
   [
     "path",
     {
@@ -12258,14 +12281,14 @@ const __iconNode$3 = [
   ],
   ["circle", { cx: "12", cy: "12", r: "3", key: "1v7zrd" }]
 ];
-const Settings = createLucideIcon("settings", __iconNode$3);
+const Settings = createLucideIcon("settings", __iconNode$4);
 /**
  * @license lucide-react v0.516.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
  */
-const __iconNode$2 = [
+const __iconNode$3 = [
   ["circle", { cx: "8", cy: "21", r: "1", key: "jimo8o" }],
   ["circle", { cx: "19", cy: "21", r: "1", key: "13723u" }],
   [
@@ -12276,7 +12299,21 @@ const __iconNode$2 = [
     }
   ]
 ];
-const ShoppingCart$1 = createLucideIcon("shopping-cart", __iconNode$2);
+const ShoppingCart$1 = createLucideIcon("shopping-cart", __iconNode$3);
+/**
+ * @license lucide-react v0.516.0 - ISC
+ *
+ * This source code is licensed under the ISC license.
+ * See the LICENSE file in the root directory of this source tree.
+ */
+const __iconNode$2 = [
+  ["path", { d: "M3 6h18", key: "d0wm0j" }],
+  ["path", { d: "M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6", key: "4alrt4" }],
+  ["path", { d: "M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2", key: "v07s0e" }],
+  ["line", { x1: "10", x2: "10", y1: "11", y2: "17", key: "1uufr5" }],
+  ["line", { x1: "14", x2: "14", y1: "11", y2: "17", key: "xtxkd" }]
+];
+const Trash2 = createLucideIcon("trash-2", __iconNode$2);
 /**
  * @license lucide-react v0.516.0 - ISC
  *
@@ -12284,13 +12321,10 @@ const ShoppingCart$1 = createLucideIcon("shopping-cart", __iconNode$2);
  * See the LICENSE file in the root directory of this source tree.
  */
 const __iconNode$1 = [
-  ["path", { d: "M3 6h18", key: "d0wm0j" }],
-  ["path", { d: "M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6", key: "4alrt4" }],
-  ["path", { d: "M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2", key: "v07s0e" }],
-  ["line", { x1: "10", x2: "10", y1: "11", y2: "17", key: "1uufr5" }],
-  ["line", { x1: "14", x2: "14", y1: "11", y2: "17", key: "xtxkd" }]
+  ["path", { d: "M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2", key: "975kel" }],
+  ["circle", { cx: "12", cy: "7", r: "4", key: "17ys0d" }]
 ];
-const Trash2 = createLucideIcon("trash-2", __iconNode$1);
+const User = createLucideIcon("user", __iconNode$1);
 /**
  * @license lucide-react v0.516.0 - ISC
  *
@@ -12298,10 +12332,10 @@ const Trash2 = createLucideIcon("trash-2", __iconNode$1);
  * See the LICENSE file in the root directory of this source tree.
  */
 const __iconNode = [
-  ["path", { d: "M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2", key: "975kel" }],
-  ["circle", { cx: "12", cy: "7", r: "4", key: "17ys0d" }]
+  ["path", { d: "M18 6 6 18", key: "1bl5f8" }],
+  ["path", { d: "m6 6 12 12", key: "d8bk6v" }]
 ];
-const User = createLucideIcon("user", __iconNode);
+const X = createLucideIcon("x", __iconNode);
 function setRef(ref, value) {
   if (typeof ref === "function") {
     return ref(value);
@@ -12333,6 +12367,9 @@ function composeRefs(...refs) {
     }
   };
 }
+function useComposedRefs(...refs) {
+  return reactExports.useCallback(composeRefs(...refs), refs);
+}
 // @__NO_SIDE_EFFECTS__
 function createSlot(ownerName) {
   const SlotClone = /* @__PURE__ */ createSlotClone(ownerName);
@@ -12363,7 +12400,7 @@ function createSlotClone(ownerName) {
   const SlotClone = reactExports.forwardRef((props, forwardedRef) => {
     const { children, ...slotProps } = props;
     if (reactExports.isValidElement(children)) {
-      const childrenRef = getElementRef(children);
+      const childrenRef = getElementRef$1(children);
       const props2 = mergeProps(slotProps, children.props);
       if (children.type !== reactExports.Fragment) {
         props2.ref = forwardedRef ? composeRefs(forwardedRef, childrenRef) : childrenRef;
@@ -12403,7 +12440,7 @@ function mergeProps(slotProps, childProps) {
   }
   return { ...slotProps, ...overrideProps };
 }
-function getElementRef(element) {
+function getElementRef$1(element) {
   let getter = Object.getOwnPropertyDescriptor(element.props, "ref")?.get;
   let mayWarn = getter && "isReactWarning" in getter && getter.isReactWarning;
   if (mayWarn) {
@@ -15758,20 +15795,20 @@ const categories = [
 ];
 const createStoreImpl = (createState) => {
   let state;
-  const listeners = /* @__PURE__ */ new Set();
+  const listeners2 = /* @__PURE__ */ new Set();
   const setState = (partial, replace) => {
     const nextState = typeof partial === "function" ? partial(state) : partial;
     if (!Object.is(nextState, state)) {
       const previousState = state;
       state = (replace != null ? replace : typeof nextState !== "object" || nextState === null) ? nextState : Object.assign({}, state, nextState);
-      listeners.forEach((listener) => listener(state, previousState));
+      listeners2.forEach((listener) => listener(state, previousState));
     }
   };
   const getState = () => state;
   const getInitialState = () => initialState;
   const subscribe = (listener) => {
-    listeners.add(listener);
-    return () => listeners.delete(listener);
+    listeners2.add(listener);
+    return () => listeners2.delete(listener);
   };
   const api = { setState, getState, getInitialState, subscribe };
   const initialState = state = createState(setState, getState, api);
@@ -15800,6 +15837,9 @@ const useCheckoutStore = create((set, get) => ({
   cart: [],
   customer: null,
   isProcessing: false,
+  // Modal states
+  isPaymentModalOpen: false,
+  isCustomerModalOpen: false,
   // Computed values
   get subtotal() {
     return get().cart.reduce((sum, item) => sum + item.total, 0);
@@ -15869,6 +15909,13 @@ const useCheckoutStore = create((set, get) => ({
   },
   setProcessing: (processing) => {
     set({ isProcessing: processing });
+  },
+  // Modal state actions
+  setPaymentModal: (open) => {
+    set({ isPaymentModalOpen: open });
+  },
+  setCustomerModal: (open) => {
+    set({ isCustomerModalOpen: open });
   },
   // Utility functions
   getCartItem: (productId) => {
@@ -16260,6 +16307,216 @@ function ShoppingCart() {
     )
   ] });
 }
+const TOAST_LIMIT = 1;
+const TOAST_REMOVE_DELAY = 1e6;
+let count = 0;
+function genId() {
+  count = (count + 1) % Number.MAX_SAFE_INTEGER;
+  return count.toString();
+}
+const toastTimeouts = /* @__PURE__ */ new Map();
+const addToRemoveQueue = (toastId) => {
+  if (toastTimeouts.has(toastId)) {
+    return;
+  }
+  const timeout = setTimeout(() => {
+    toastTimeouts.delete(toastId);
+    dispatch({
+      type: "REMOVE_TOAST",
+      toastId
+    });
+  }, TOAST_REMOVE_DELAY);
+  toastTimeouts.set(toastId, timeout);
+};
+const reducer = (state, action) => {
+  switch (action.type) {
+    case "ADD_TOAST":
+      return {
+        ...state,
+        toasts: [action.toast, ...state.toasts].slice(0, TOAST_LIMIT)
+      };
+    case "UPDATE_TOAST":
+      return {
+        ...state,
+        toasts: state.toasts.map(
+          (t) => t.id === action.toast.id ? { ...t, ...action.toast } : t
+        )
+      };
+    case "DISMISS_TOAST": {
+      const { toastId } = action;
+      if (toastId) {
+        addToRemoveQueue(toastId);
+      } else {
+        state.toasts.forEach((toast2) => {
+          addToRemoveQueue(toast2.id);
+        });
+      }
+      return {
+        ...state,
+        toasts: state.toasts.map(
+          (t) => t.id === toastId || toastId === void 0 ? {
+            ...t,
+            open: false
+          } : t
+        )
+      };
+    }
+    case "REMOVE_TOAST":
+      if (action.toastId === void 0) {
+        return {
+          ...state,
+          toasts: []
+        };
+      }
+      return {
+        ...state,
+        toasts: state.toasts.filter((t) => t.id !== action.toastId)
+      };
+  }
+};
+const listeners = [];
+let memoryState = { toasts: [] };
+function dispatch(action) {
+  memoryState = reducer(memoryState, action);
+  listeners.forEach((listener) => {
+    listener(memoryState);
+  });
+}
+function toast({ ...props }) {
+  const id = genId();
+  const update = (props2) => dispatch({
+    type: "UPDATE_TOAST",
+    toast: { ...props2, id }
+  });
+  const dismiss = () => dispatch({ type: "DISMISS_TOAST", toastId: id });
+  dispatch({
+    type: "ADD_TOAST",
+    toast: {
+      ...props,
+      id,
+      open: true,
+      onOpenChange: (open) => {
+        if (!open) dismiss();
+      }
+    }
+  });
+  return {
+    id,
+    dismiss,
+    update
+  };
+}
+function useToast() {
+  const [state, setState] = reactExports.useState(memoryState);
+  reactExports.useEffect(() => {
+    listeners.push(setState);
+    return () => {
+      const index = listeners.indexOf(setState);
+      if (index > -1) {
+        listeners.splice(index, 1);
+      }
+    };
+  }, [state]);
+  return {
+    ...state,
+    toast,
+    dismiss: (toastId) => dispatch({ type: "DISMISS_TOAST", toastId })
+  };
+}
+const success = (message, description) => {
+  return toast({
+    variant: "success",
+    title: message,
+    description,
+    duration: 3e3
+  });
+};
+const error = (message, description) => {
+  return toast({
+    variant: "error",
+    title: message,
+    description,
+    duration: 5e3
+  });
+};
+const info = (message, description) => {
+  return toast({
+    variant: "default",
+    title: message,
+    description,
+    duration: 4e3
+  });
+};
+const enhancedToast = Object.assign(toast, {
+  success,
+  error,
+  info
+});
+class AudioManager {
+  isEnabled = true;
+  constructor() {
+  }
+  /**
+   * Play error sound for failed barcode scans
+   * Critical for cashier workflow - audible feedback needed
+   */
+  playErrorSound() {
+    if (!this.isEnabled) return;
+    try {
+      const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+      const oscillator = audioContext.createOscillator();
+      const gainNode = audioContext.createGain();
+      oscillator.connect(gainNode);
+      gainNode.connect(audioContext.destination);
+      oscillator.frequency.setValueAtTime(800, audioContext.currentTime);
+      gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+      gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.2);
+      oscillator.start(audioContext.currentTime);
+      oscillator.stop(audioContext.currentTime + 0.2);
+    } catch (error2) {
+      console.warn("Error sound playback failed:", error2);
+      console.log("\x07");
+    }
+  }
+  /**
+   * Play success sound for successful scans (optional, subtle)
+   */
+  playSuccessSound() {
+    if (!this.isEnabled) return;
+    try {
+      const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+      const oscillator = audioContext.createOscillator();
+      const gainNode = audioContext.createGain();
+      oscillator.connect(gainNode);
+      gainNode.connect(audioContext.destination);
+      oscillator.frequency.setValueAtTime(400, audioContext.currentTime);
+      gainNode.gain.setValueAtTime(0.1, audioContext.currentTime);
+      gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.1);
+      oscillator.start(audioContext.currentTime);
+      oscillator.stop(audioContext.currentTime + 0.1);
+    } catch (error2) {
+      console.warn("Success sound playback failed:", error2);
+    }
+  }
+  /**
+   * Enable/disable audio feedback
+   */
+  setEnabled(enabled) {
+    this.isEnabled = enabled;
+  }
+  /**
+   * Get current audio status
+   */
+  getStatus() {
+    return {
+      enabled: this.isEnabled
+    };
+  }
+}
+const audioManager = new AudioManager();
+const playErrorSound = () => audioManager.playErrorSound();
+const playSuccessSound = () => audioManager.playSuccessSound();
+const setAudioEnabled = (enabled) => audioManager.setEnabled(enabled);
 function BarcodeInput() {
   const [barcode, setBarcode] = reactExports.useState("");
   const [isScanning, setIsScanning] = reactExports.useState(false);
@@ -16273,8 +16530,10 @@ function BarcodeInput() {
       setBarcode("");
       setIsScanning(true);
       setTimeout(() => setIsScanning(false), 1e3);
+      enhancedToast.success(`Added ${product.name}`);
     } else {
-      alert(`Product not found for barcode: ${code}`);
+      enhancedToast.error("Product not found");
+      playErrorSound();
       setBarcode("");
     }
   };
@@ -16324,9 +16583,1469 @@ function BarcodeInput() {
     /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "mt-2 text-xs text-gray-500", children: "Scan products with barcode scanner or type manually and press Enter" })
   ] });
 }
+function useBarcodeScanner(config) {
+  const {
+    onScan,
+    enabled = true,
+    minLength = 12,
+    timeout = 2e3,
+    shortcuts = {}
+  } = config;
+  const [currentBarcode, setCurrentBarcode] = reactExports.useState("");
+  const [isScanning, setIsScanning] = reactExports.useState(false);
+  const [lastScanTime, setLastScanTime] = reactExports.useState(0);
+  const timeoutRef = reactExports.useRef(null);
+  const enabledRef = reactExports.useRef(enabled);
+  reactExports.useEffect(() => {
+    enabledRef.current = enabled;
+  }, [enabled]);
+  const clearBarcode = reactExports.useCallback(() => {
+    setCurrentBarcode("");
+    setIsScanning(false);
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+      timeoutRef.current = null;
+    }
+  }, []);
+  const simulateScan = reactExports.useCallback((barcode) => {
+    if (!enabledRef.current) return;
+    onScan(barcode, false);
+    clearBarcode();
+  }, [onScan, clearBarcode]);
+  const enableAudio = reactExports.useCallback(() => {
+    setAudioEnabled(true);
+  }, []);
+  const completeScan = reactExports.useCallback(() => {
+    if (currentBarcode.length >= minLength) {
+      onScan(currentBarcode, false);
+      setLastScanTime(Date.now());
+    }
+    clearBarcode();
+  }, [currentBarcode, minLength, onScan, clearBarcode]);
+  const handleShortcut = reactExports.useCallback((key, modifiers) => {
+    if (!enabledRef.current) return false;
+    const shortcutParts = [];
+    if (modifiers.shift) shortcutParts.push("shift");
+    if (modifiers.ctrl) shortcutParts.push("ctrl");
+    if (modifiers.alt) shortcutParts.push("alt");
+    shortcutParts.push(key.toLowerCase());
+    const shortcutKey = shortcutParts.join("+");
+    const barcode = shortcuts[shortcutKey];
+    if (barcode) {
+      onScan(barcode, true);
+      setLastScanTime(Date.now());
+      return true;
+    }
+    return false;
+  }, [shortcuts, onScan]);
+  const handleKeyDown = reactExports.useCallback((event) => {
+    if (!enabledRef.current) return;
+    const target = event.target;
+    if (target.tagName === "INPUT" || target.tagName === "TEXTAREA" || target.contentEditable === "true" || target.closest('[contenteditable="true"]')) {
+      return;
+    }
+    if (event.key.length === 1) {
+      const shortcutHandled = handleShortcut(event.key, {
+        shift: event.shiftKey,
+        ctrl: event.ctrlKey,
+        alt: event.altKey
+      });
+      if (shortcutHandled) {
+        event.preventDefault();
+        return;
+      }
+    }
+    if (event.key >= "0" && event.key <= "9") {
+      event.preventDefault();
+      const now = Date.now();
+      if (now - lastScanTime > timeout) {
+        setCurrentBarcode(event.key);
+      } else {
+        setCurrentBarcode((prev) => prev + event.key);
+      }
+      setIsScanning(true);
+      setLastScanTime(now);
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
+      timeoutRef.current = setTimeout(() => {
+        completeScan();
+      }, timeout);
+    } else if (event.key === "Enter" && currentBarcode.length > 0) {
+      event.preventDefault();
+      completeScan();
+    } else if (event.key === "Escape" && currentBarcode.length > 0) {
+      event.preventDefault();
+      clearBarcode();
+    }
+  }, [handleShortcut, currentBarcode, lastScanTime, timeout, completeScan, clearBarcode]);
+  reactExports.useEffect(() => {
+    if (enabled) {
+      document.addEventListener("keydown", handleKeyDown, { capture: true });
+      return () => {
+        document.removeEventListener("keydown", handleKeyDown, { capture: true });
+        if (timeoutRef.current) {
+          clearTimeout(timeoutRef.current);
+        }
+      };
+    }
+  }, [enabled, handleKeyDown]);
+  reactExports.useEffect(() => {
+    return () => {
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
+    };
+  }, []);
+  return {
+    currentBarcode,
+    isScanning,
+    clearBarcode,
+    simulateScan,
+    enableAudio,
+    playErrorSound
+  };
+}
+const DEFAULT_SCANNER_SHORTCUTS = {
+  "shift+j": "082184090563",
+  // Jack Daniels 750ml
+  "shift+g": "087116010501",
+  // Grey Goose 750ml  
+  "shift+c": "080686035411",
+  // Corona 6-pack
+  "shift+b": "088004014134",
+  // Budweiser 12-pack
+  "shift+w": "085000006405"
+  // Wine example
+};
+var reactDomExports = requireReactDom();
+const ReactDOM = /* @__PURE__ */ getDefaultExportFromCjs(reactDomExports);
+function composeEventHandlers(originalEventHandler, ourEventHandler, { checkForDefaultPrevented = true } = {}) {
+  return function handleEvent(event) {
+    originalEventHandler?.(event);
+    if (checkForDefaultPrevented === false || !event.defaultPrevented) {
+      return ourEventHandler?.(event);
+    }
+  };
+}
+function createContextScope(scopeName, createContextScopeDeps = []) {
+  let defaultContexts = [];
+  function createContext3(rootComponentName, defaultContext) {
+    const BaseContext = reactExports.createContext(defaultContext);
+    const index = defaultContexts.length;
+    defaultContexts = [...defaultContexts, defaultContext];
+    const Provider2 = (props) => {
+      const { scope, children, ...context } = props;
+      const Context = scope?.[scopeName]?.[index] || BaseContext;
+      const value = reactExports.useMemo(() => context, Object.values(context));
+      return /* @__PURE__ */ jsxRuntimeExports.jsx(Context.Provider, { value, children });
+    };
+    Provider2.displayName = rootComponentName + "Provider";
+    function useContext2(consumerName, scope) {
+      const Context = scope?.[scopeName]?.[index] || BaseContext;
+      const context = reactExports.useContext(Context);
+      if (context) return context;
+      if (defaultContext !== void 0) return defaultContext;
+      throw new Error(`\`${consumerName}\` must be used within \`${rootComponentName}\``);
+    }
+    return [Provider2, useContext2];
+  }
+  const createScope = () => {
+    const scopeContexts = defaultContexts.map((defaultContext) => {
+      return reactExports.createContext(defaultContext);
+    });
+    return function useScope(scope) {
+      const contexts = scope?.[scopeName] || scopeContexts;
+      return reactExports.useMemo(
+        () => ({ [`__scope${scopeName}`]: { ...scope, [scopeName]: contexts } }),
+        [scope, contexts]
+      );
+    };
+  };
+  createScope.scopeName = scopeName;
+  return [createContext3, composeContextScopes(createScope, ...createContextScopeDeps)];
+}
+function composeContextScopes(...scopes) {
+  const baseScope = scopes[0];
+  if (scopes.length === 1) return baseScope;
+  const createScope = () => {
+    const scopeHooks = scopes.map((createScope2) => ({
+      useScope: createScope2(),
+      scopeName: createScope2.scopeName
+    }));
+    return function useComposedScopes(overrideScopes) {
+      const nextScopes = scopeHooks.reduce((nextScopes2, { useScope, scopeName }) => {
+        const scopeProps = useScope(overrideScopes);
+        const currentScope = scopeProps[`__scope${scopeName}`];
+        return { ...nextScopes2, ...currentScope };
+      }, {});
+      return reactExports.useMemo(() => ({ [`__scope${baseScope.scopeName}`]: nextScopes }), [nextScopes]);
+    };
+  };
+  createScope.scopeName = baseScope.scopeName;
+  return createScope;
+}
+function createCollection(name) {
+  const PROVIDER_NAME2 = name + "CollectionProvider";
+  const [createCollectionContext, createCollectionScope2] = createContextScope(PROVIDER_NAME2);
+  const [CollectionProviderImpl, useCollectionContext] = createCollectionContext(
+    PROVIDER_NAME2,
+    { collectionRef: { current: null }, itemMap: /* @__PURE__ */ new Map() }
+  );
+  const CollectionProvider = (props) => {
+    const { scope, children } = props;
+    const ref = React.useRef(null);
+    const itemMap = React.useRef(/* @__PURE__ */ new Map()).current;
+    return /* @__PURE__ */ jsxRuntimeExports.jsx(CollectionProviderImpl, { scope, itemMap, collectionRef: ref, children });
+  };
+  CollectionProvider.displayName = PROVIDER_NAME2;
+  const COLLECTION_SLOT_NAME = name + "CollectionSlot";
+  const CollectionSlotImpl = /* @__PURE__ */ createSlot(COLLECTION_SLOT_NAME);
+  const CollectionSlot = React.forwardRef(
+    (props, forwardedRef) => {
+      const { scope, children } = props;
+      const context = useCollectionContext(COLLECTION_SLOT_NAME, scope);
+      const composedRefs = useComposedRefs(forwardedRef, context.collectionRef);
+      return /* @__PURE__ */ jsxRuntimeExports.jsx(CollectionSlotImpl, { ref: composedRefs, children });
+    }
+  );
+  CollectionSlot.displayName = COLLECTION_SLOT_NAME;
+  const ITEM_SLOT_NAME = name + "CollectionItemSlot";
+  const ITEM_DATA_ATTR = "data-radix-collection-item";
+  const CollectionItemSlotImpl = /* @__PURE__ */ createSlot(ITEM_SLOT_NAME);
+  const CollectionItemSlot = React.forwardRef(
+    (props, forwardedRef) => {
+      const { scope, children, ...itemData } = props;
+      const ref = React.useRef(null);
+      const composedRefs = useComposedRefs(forwardedRef, ref);
+      const context = useCollectionContext(ITEM_SLOT_NAME, scope);
+      React.useEffect(() => {
+        context.itemMap.set(ref, { ref, ...itemData });
+        return () => void context.itemMap.delete(ref);
+      });
+      return /* @__PURE__ */ jsxRuntimeExports.jsx(CollectionItemSlotImpl, { ...{ [ITEM_DATA_ATTR]: "" }, ref: composedRefs, children });
+    }
+  );
+  CollectionItemSlot.displayName = ITEM_SLOT_NAME;
+  function useCollection2(scope) {
+    const context = useCollectionContext(name + "CollectionConsumer", scope);
+    const getItems = React.useCallback(() => {
+      const collectionNode = context.collectionRef.current;
+      if (!collectionNode) return [];
+      const orderedNodes = Array.from(collectionNode.querySelectorAll(`[${ITEM_DATA_ATTR}]`));
+      const items = Array.from(context.itemMap.values());
+      const orderedItems = items.sort(
+        (a, b) => orderedNodes.indexOf(a.ref.current) - orderedNodes.indexOf(b.ref.current)
+      );
+      return orderedItems;
+    }, [context.collectionRef, context.itemMap]);
+    return getItems;
+  }
+  return [
+    { Provider: CollectionProvider, Slot: CollectionSlot, ItemSlot: CollectionItemSlot },
+    useCollection2,
+    createCollectionScope2
+  ];
+}
+var NODES = [
+  "a",
+  "button",
+  "div",
+  "form",
+  "h2",
+  "h3",
+  "img",
+  "input",
+  "label",
+  "li",
+  "nav",
+  "ol",
+  "p",
+  "select",
+  "span",
+  "svg",
+  "ul"
+];
+var Primitive = NODES.reduce((primitive, node) => {
+  const Slot2 = /* @__PURE__ */ createSlot(`Primitive.${node}`);
+  const Node = reactExports.forwardRef((props, forwardedRef) => {
+    const { asChild, ...primitiveProps } = props;
+    const Comp = asChild ? Slot2 : node;
+    if (typeof window !== "undefined") {
+      window[Symbol.for("radix-ui")] = true;
+    }
+    return /* @__PURE__ */ jsxRuntimeExports.jsx(Comp, { ...primitiveProps, ref: forwardedRef });
+  });
+  Node.displayName = `Primitive.${node}`;
+  return { ...primitive, [node]: Node };
+}, {});
+function dispatchDiscreteCustomEvent(target, event) {
+  if (target) reactDomExports.flushSync(() => target.dispatchEvent(event));
+}
+function useCallbackRef(callback) {
+  const callbackRef = reactExports.useRef(callback);
+  reactExports.useEffect(() => {
+    callbackRef.current = callback;
+  });
+  return reactExports.useMemo(() => (...args) => callbackRef.current?.(...args), []);
+}
+function useEscapeKeydown(onEscapeKeyDownProp, ownerDocument = globalThis?.document) {
+  const onEscapeKeyDown = useCallbackRef(onEscapeKeyDownProp);
+  reactExports.useEffect(() => {
+    const handleKeyDown = (event) => {
+      if (event.key === "Escape") {
+        onEscapeKeyDown(event);
+      }
+    };
+    ownerDocument.addEventListener("keydown", handleKeyDown, { capture: true });
+    return () => ownerDocument.removeEventListener("keydown", handleKeyDown, { capture: true });
+  }, [onEscapeKeyDown, ownerDocument]);
+}
+var DISMISSABLE_LAYER_NAME = "DismissableLayer";
+var CONTEXT_UPDATE = "dismissableLayer.update";
+var POINTER_DOWN_OUTSIDE = "dismissableLayer.pointerDownOutside";
+var FOCUS_OUTSIDE = "dismissableLayer.focusOutside";
+var originalBodyPointerEvents;
+var DismissableLayerContext = reactExports.createContext({
+  layers: /* @__PURE__ */ new Set(),
+  layersWithOutsidePointerEventsDisabled: /* @__PURE__ */ new Set(),
+  branches: /* @__PURE__ */ new Set()
+});
+var DismissableLayer = reactExports.forwardRef(
+  (props, forwardedRef) => {
+    const {
+      disableOutsidePointerEvents = false,
+      onEscapeKeyDown,
+      onPointerDownOutside,
+      onFocusOutside,
+      onInteractOutside,
+      onDismiss,
+      ...layerProps
+    } = props;
+    const context = reactExports.useContext(DismissableLayerContext);
+    const [node, setNode] = reactExports.useState(null);
+    const ownerDocument = node?.ownerDocument ?? globalThis?.document;
+    const [, force] = reactExports.useState({});
+    const composedRefs = useComposedRefs(forwardedRef, (node2) => setNode(node2));
+    const layers = Array.from(context.layers);
+    const [highestLayerWithOutsidePointerEventsDisabled] = [...context.layersWithOutsidePointerEventsDisabled].slice(-1);
+    const highestLayerWithOutsidePointerEventsDisabledIndex = layers.indexOf(highestLayerWithOutsidePointerEventsDisabled);
+    const index = node ? layers.indexOf(node) : -1;
+    const isBodyPointerEventsDisabled = context.layersWithOutsidePointerEventsDisabled.size > 0;
+    const isPointerEventsEnabled = index >= highestLayerWithOutsidePointerEventsDisabledIndex;
+    const pointerDownOutside = usePointerDownOutside((event) => {
+      const target = event.target;
+      const isPointerDownOnBranch = [...context.branches].some((branch) => branch.contains(target));
+      if (!isPointerEventsEnabled || isPointerDownOnBranch) return;
+      onPointerDownOutside?.(event);
+      onInteractOutside?.(event);
+      if (!event.defaultPrevented) onDismiss?.();
+    }, ownerDocument);
+    const focusOutside = useFocusOutside((event) => {
+      const target = event.target;
+      const isFocusInBranch = [...context.branches].some((branch) => branch.contains(target));
+      if (isFocusInBranch) return;
+      onFocusOutside?.(event);
+      onInteractOutside?.(event);
+      if (!event.defaultPrevented) onDismiss?.();
+    }, ownerDocument);
+    useEscapeKeydown((event) => {
+      const isHighestLayer = index === context.layers.size - 1;
+      if (!isHighestLayer) return;
+      onEscapeKeyDown?.(event);
+      if (!event.defaultPrevented && onDismiss) {
+        event.preventDefault();
+        onDismiss();
+      }
+    }, ownerDocument);
+    reactExports.useEffect(() => {
+      if (!node) return;
+      if (disableOutsidePointerEvents) {
+        if (context.layersWithOutsidePointerEventsDisabled.size === 0) {
+          originalBodyPointerEvents = ownerDocument.body.style.pointerEvents;
+          ownerDocument.body.style.pointerEvents = "none";
+        }
+        context.layersWithOutsidePointerEventsDisabled.add(node);
+      }
+      context.layers.add(node);
+      dispatchUpdate();
+      return () => {
+        if (disableOutsidePointerEvents && context.layersWithOutsidePointerEventsDisabled.size === 1) {
+          ownerDocument.body.style.pointerEvents = originalBodyPointerEvents;
+        }
+      };
+    }, [node, ownerDocument, disableOutsidePointerEvents, context]);
+    reactExports.useEffect(() => {
+      return () => {
+        if (!node) return;
+        context.layers.delete(node);
+        context.layersWithOutsidePointerEventsDisabled.delete(node);
+        dispatchUpdate();
+      };
+    }, [node, context]);
+    reactExports.useEffect(() => {
+      const handleUpdate = () => force({});
+      document.addEventListener(CONTEXT_UPDATE, handleUpdate);
+      return () => document.removeEventListener(CONTEXT_UPDATE, handleUpdate);
+    }, []);
+    return /* @__PURE__ */ jsxRuntimeExports.jsx(
+      Primitive.div,
+      {
+        ...layerProps,
+        ref: composedRefs,
+        style: {
+          pointerEvents: isBodyPointerEventsDisabled ? isPointerEventsEnabled ? "auto" : "none" : void 0,
+          ...props.style
+        },
+        onFocusCapture: composeEventHandlers(props.onFocusCapture, focusOutside.onFocusCapture),
+        onBlurCapture: composeEventHandlers(props.onBlurCapture, focusOutside.onBlurCapture),
+        onPointerDownCapture: composeEventHandlers(
+          props.onPointerDownCapture,
+          pointerDownOutside.onPointerDownCapture
+        )
+      }
+    );
+  }
+);
+DismissableLayer.displayName = DISMISSABLE_LAYER_NAME;
+var BRANCH_NAME = "DismissableLayerBranch";
+var DismissableLayerBranch = reactExports.forwardRef((props, forwardedRef) => {
+  const context = reactExports.useContext(DismissableLayerContext);
+  const ref = reactExports.useRef(null);
+  const composedRefs = useComposedRefs(forwardedRef, ref);
+  reactExports.useEffect(() => {
+    const node = ref.current;
+    if (node) {
+      context.branches.add(node);
+      return () => {
+        context.branches.delete(node);
+      };
+    }
+  }, [context.branches]);
+  return /* @__PURE__ */ jsxRuntimeExports.jsx(Primitive.div, { ...props, ref: composedRefs });
+});
+DismissableLayerBranch.displayName = BRANCH_NAME;
+function usePointerDownOutside(onPointerDownOutside, ownerDocument = globalThis?.document) {
+  const handlePointerDownOutside = useCallbackRef(onPointerDownOutside);
+  const isPointerInsideReactTreeRef = reactExports.useRef(false);
+  const handleClickRef = reactExports.useRef(() => {
+  });
+  reactExports.useEffect(() => {
+    const handlePointerDown = (event) => {
+      if (event.target && !isPointerInsideReactTreeRef.current) {
+        let handleAndDispatchPointerDownOutsideEvent2 = function() {
+          handleAndDispatchCustomEvent$1(
+            POINTER_DOWN_OUTSIDE,
+            handlePointerDownOutside,
+            eventDetail,
+            { discrete: true }
+          );
+        };
+        const eventDetail = { originalEvent: event };
+        if (event.pointerType === "touch") {
+          ownerDocument.removeEventListener("click", handleClickRef.current);
+          handleClickRef.current = handleAndDispatchPointerDownOutsideEvent2;
+          ownerDocument.addEventListener("click", handleClickRef.current, { once: true });
+        } else {
+          handleAndDispatchPointerDownOutsideEvent2();
+        }
+      } else {
+        ownerDocument.removeEventListener("click", handleClickRef.current);
+      }
+      isPointerInsideReactTreeRef.current = false;
+    };
+    const timerId = window.setTimeout(() => {
+      ownerDocument.addEventListener("pointerdown", handlePointerDown);
+    }, 0);
+    return () => {
+      window.clearTimeout(timerId);
+      ownerDocument.removeEventListener("pointerdown", handlePointerDown);
+      ownerDocument.removeEventListener("click", handleClickRef.current);
+    };
+  }, [ownerDocument, handlePointerDownOutside]);
+  return {
+    // ensures we check React component tree (not just DOM tree)
+    onPointerDownCapture: () => isPointerInsideReactTreeRef.current = true
+  };
+}
+function useFocusOutside(onFocusOutside, ownerDocument = globalThis?.document) {
+  const handleFocusOutside = useCallbackRef(onFocusOutside);
+  const isFocusInsideReactTreeRef = reactExports.useRef(false);
+  reactExports.useEffect(() => {
+    const handleFocus = (event) => {
+      if (event.target && !isFocusInsideReactTreeRef.current) {
+        const eventDetail = { originalEvent: event };
+        handleAndDispatchCustomEvent$1(FOCUS_OUTSIDE, handleFocusOutside, eventDetail, {
+          discrete: false
+        });
+      }
+    };
+    ownerDocument.addEventListener("focusin", handleFocus);
+    return () => ownerDocument.removeEventListener("focusin", handleFocus);
+  }, [ownerDocument, handleFocusOutside]);
+  return {
+    onFocusCapture: () => isFocusInsideReactTreeRef.current = true,
+    onBlurCapture: () => isFocusInsideReactTreeRef.current = false
+  };
+}
+function dispatchUpdate() {
+  const event = new CustomEvent(CONTEXT_UPDATE);
+  document.dispatchEvent(event);
+}
+function handleAndDispatchCustomEvent$1(name, handler, detail, { discrete }) {
+  const target = detail.originalEvent.target;
+  const event = new CustomEvent(name, { bubbles: false, cancelable: true, detail });
+  if (handler) target.addEventListener(name, handler, { once: true });
+  if (discrete) {
+    dispatchDiscreteCustomEvent(target, event);
+  } else {
+    target.dispatchEvent(event);
+  }
+}
+var Root = DismissableLayer;
+var Branch = DismissableLayerBranch;
+var useLayoutEffect2 = globalThis?.document ? reactExports.useLayoutEffect : () => {
+};
+var PORTAL_NAME = "Portal";
+var Portal = reactExports.forwardRef((props, forwardedRef) => {
+  const { container: containerProp, ...portalProps } = props;
+  const [mounted, setMounted] = reactExports.useState(false);
+  useLayoutEffect2(() => setMounted(true), []);
+  const container = containerProp || mounted && globalThis?.document?.body;
+  return container ? ReactDOM.createPortal(/* @__PURE__ */ jsxRuntimeExports.jsx(Primitive.div, { ...portalProps, ref: forwardedRef }), container) : null;
+});
+Portal.displayName = PORTAL_NAME;
+function useStateMachine(initialState, machine) {
+  return reactExports.useReducer((state, event) => {
+    const nextState = machine[state][event];
+    return nextState ?? state;
+  }, initialState);
+}
+var Presence = (props) => {
+  const { present, children } = props;
+  const presence = usePresence(present);
+  const child = typeof children === "function" ? children({ present: presence.isPresent }) : reactExports.Children.only(children);
+  const ref = useComposedRefs(presence.ref, getElementRef(child));
+  const forceMount = typeof children === "function";
+  return forceMount || presence.isPresent ? reactExports.cloneElement(child, { ref }) : null;
+};
+Presence.displayName = "Presence";
+function usePresence(present) {
+  const [node, setNode] = reactExports.useState();
+  const stylesRef = reactExports.useRef(null);
+  const prevPresentRef = reactExports.useRef(present);
+  const prevAnimationNameRef = reactExports.useRef("none");
+  const initialState = present ? "mounted" : "unmounted";
+  const [state, send] = useStateMachine(initialState, {
+    mounted: {
+      UNMOUNT: "unmounted",
+      ANIMATION_OUT: "unmountSuspended"
+    },
+    unmountSuspended: {
+      MOUNT: "mounted",
+      ANIMATION_END: "unmounted"
+    },
+    unmounted: {
+      MOUNT: "mounted"
+    }
+  });
+  reactExports.useEffect(() => {
+    const currentAnimationName = getAnimationName(stylesRef.current);
+    prevAnimationNameRef.current = state === "mounted" ? currentAnimationName : "none";
+  }, [state]);
+  useLayoutEffect2(() => {
+    const styles = stylesRef.current;
+    const wasPresent = prevPresentRef.current;
+    const hasPresentChanged = wasPresent !== present;
+    if (hasPresentChanged) {
+      const prevAnimationName = prevAnimationNameRef.current;
+      const currentAnimationName = getAnimationName(styles);
+      if (present) {
+        send("MOUNT");
+      } else if (currentAnimationName === "none" || styles?.display === "none") {
+        send("UNMOUNT");
+      } else {
+        const isAnimating = prevAnimationName !== currentAnimationName;
+        if (wasPresent && isAnimating) {
+          send("ANIMATION_OUT");
+        } else {
+          send("UNMOUNT");
+        }
+      }
+      prevPresentRef.current = present;
+    }
+  }, [present, send]);
+  useLayoutEffect2(() => {
+    if (node) {
+      let timeoutId;
+      const ownerWindow = node.ownerDocument.defaultView ?? window;
+      const handleAnimationEnd = (event) => {
+        const currentAnimationName = getAnimationName(stylesRef.current);
+        const isCurrentAnimation = currentAnimationName.includes(event.animationName);
+        if (event.target === node && isCurrentAnimation) {
+          send("ANIMATION_END");
+          if (!prevPresentRef.current) {
+            const currentFillMode = node.style.animationFillMode;
+            node.style.animationFillMode = "forwards";
+            timeoutId = ownerWindow.setTimeout(() => {
+              if (node.style.animationFillMode === "forwards") {
+                node.style.animationFillMode = currentFillMode;
+              }
+            });
+          }
+        }
+      };
+      const handleAnimationStart = (event) => {
+        if (event.target === node) {
+          prevAnimationNameRef.current = getAnimationName(stylesRef.current);
+        }
+      };
+      node.addEventListener("animationstart", handleAnimationStart);
+      node.addEventListener("animationcancel", handleAnimationEnd);
+      node.addEventListener("animationend", handleAnimationEnd);
+      return () => {
+        ownerWindow.clearTimeout(timeoutId);
+        node.removeEventListener("animationstart", handleAnimationStart);
+        node.removeEventListener("animationcancel", handleAnimationEnd);
+        node.removeEventListener("animationend", handleAnimationEnd);
+      };
+    } else {
+      send("ANIMATION_END");
+    }
+  }, [node, send]);
+  return {
+    isPresent: ["mounted", "unmountSuspended"].includes(state),
+    ref: reactExports.useCallback((node2) => {
+      stylesRef.current = node2 ? getComputedStyle(node2) : null;
+      setNode(node2);
+    }, [])
+  };
+}
+function getAnimationName(styles) {
+  return styles?.animationName || "none";
+}
+function getElementRef(element) {
+  let getter = Object.getOwnPropertyDescriptor(element.props, "ref")?.get;
+  let mayWarn = getter && "isReactWarning" in getter && getter.isReactWarning;
+  if (mayWarn) {
+    return element.ref;
+  }
+  getter = Object.getOwnPropertyDescriptor(element, "ref")?.get;
+  mayWarn = getter && "isReactWarning" in getter && getter.isReactWarning;
+  if (mayWarn) {
+    return element.props.ref;
+  }
+  return element.props.ref || element.ref;
+}
+var useInsertionEffect = React$1[" useInsertionEffect ".trim().toString()] || useLayoutEffect2;
+function useControllableState({
+  prop,
+  defaultProp,
+  onChange = () => {
+  },
+  caller
+}) {
+  const [uncontrolledProp, setUncontrolledProp, onChangeRef] = useUncontrolledState({
+    defaultProp,
+    onChange
+  });
+  const isControlled = prop !== void 0;
+  const value = isControlled ? prop : uncontrolledProp;
+  {
+    const isControlledRef = reactExports.useRef(prop !== void 0);
+    reactExports.useEffect(() => {
+      const wasControlled = isControlledRef.current;
+      if (wasControlled !== isControlled) {
+        const from = wasControlled ? "controlled" : "uncontrolled";
+        const to = isControlled ? "controlled" : "uncontrolled";
+        console.warn(
+          `${caller} is changing from ${from} to ${to}. Components should not switch from controlled to uncontrolled (or vice versa). Decide between using a controlled or uncontrolled value for the lifetime of the component.`
+        );
+      }
+      isControlledRef.current = isControlled;
+    }, [isControlled, caller]);
+  }
+  const setValue = reactExports.useCallback(
+    (nextValue) => {
+      if (isControlled) {
+        const value2 = isFunction(nextValue) ? nextValue(prop) : nextValue;
+        if (value2 !== prop) {
+          onChangeRef.current?.(value2);
+        }
+      } else {
+        setUncontrolledProp(nextValue);
+      }
+    },
+    [isControlled, prop, setUncontrolledProp, onChangeRef]
+  );
+  return [value, setValue];
+}
+function useUncontrolledState({
+  defaultProp,
+  onChange
+}) {
+  const [value, setValue] = reactExports.useState(defaultProp);
+  const prevValueRef = reactExports.useRef(value);
+  const onChangeRef = reactExports.useRef(onChange);
+  useInsertionEffect(() => {
+    onChangeRef.current = onChange;
+  }, [onChange]);
+  reactExports.useEffect(() => {
+    if (prevValueRef.current !== value) {
+      onChangeRef.current?.(value);
+      prevValueRef.current = value;
+    }
+  }, [value, prevValueRef]);
+  return [value, setValue, onChangeRef];
+}
+function isFunction(value) {
+  return typeof value === "function";
+}
+var VISUALLY_HIDDEN_STYLES = Object.freeze({
+  // See: https://github.com/twbs/bootstrap/blob/main/scss/mixins/_visually-hidden.scss
+  position: "absolute",
+  border: 0,
+  width: 1,
+  height: 1,
+  padding: 0,
+  margin: -1,
+  overflow: "hidden",
+  clip: "rect(0, 0, 0, 0)",
+  whiteSpace: "nowrap",
+  wordWrap: "normal"
+});
+var NAME = "VisuallyHidden";
+var VisuallyHidden = reactExports.forwardRef(
+  (props, forwardedRef) => {
+    return /* @__PURE__ */ jsxRuntimeExports.jsx(
+      Primitive.span,
+      {
+        ...props,
+        ref: forwardedRef,
+        style: { ...VISUALLY_HIDDEN_STYLES, ...props.style }
+      }
+    );
+  }
+);
+VisuallyHidden.displayName = NAME;
+var PROVIDER_NAME = "ToastProvider";
+var [Collection, useCollection, createCollectionScope] = createCollection("Toast");
+var [createToastContext, createToastScope] = createContextScope("Toast", [createCollectionScope]);
+var [ToastProviderProvider, useToastProviderContext] = createToastContext(PROVIDER_NAME);
+var ToastProvider$1 = (props) => {
+  const {
+    __scopeToast,
+    label = "Notification",
+    duration = 5e3,
+    swipeDirection = "right",
+    swipeThreshold = 50,
+    children
+  } = props;
+  const [viewport, setViewport] = reactExports.useState(null);
+  const [toastCount, setToastCount] = reactExports.useState(0);
+  const isFocusedToastEscapeKeyDownRef = reactExports.useRef(false);
+  const isClosePausedRef = reactExports.useRef(false);
+  if (!label.trim()) {
+    console.error(
+      `Invalid prop \`label\` supplied to \`${PROVIDER_NAME}\`. Expected non-empty \`string\`.`
+    );
+  }
+  return /* @__PURE__ */ jsxRuntimeExports.jsx(Collection.Provider, { scope: __scopeToast, children: /* @__PURE__ */ jsxRuntimeExports.jsx(
+    ToastProviderProvider,
+    {
+      scope: __scopeToast,
+      label,
+      duration,
+      swipeDirection,
+      swipeThreshold,
+      toastCount,
+      viewport,
+      onViewportChange: setViewport,
+      onToastAdd: reactExports.useCallback(() => setToastCount((prevCount) => prevCount + 1), []),
+      onToastRemove: reactExports.useCallback(() => setToastCount((prevCount) => prevCount - 1), []),
+      isFocusedToastEscapeKeyDownRef,
+      isClosePausedRef,
+      children
+    }
+  ) });
+};
+ToastProvider$1.displayName = PROVIDER_NAME;
+var VIEWPORT_NAME = "ToastViewport";
+var VIEWPORT_DEFAULT_HOTKEY = ["F8"];
+var VIEWPORT_PAUSE = "toast.viewportPause";
+var VIEWPORT_RESUME = "toast.viewportResume";
+var ToastViewport$1 = reactExports.forwardRef(
+  (props, forwardedRef) => {
+    const {
+      __scopeToast,
+      hotkey = VIEWPORT_DEFAULT_HOTKEY,
+      label = "Notifications ({hotkey})",
+      ...viewportProps
+    } = props;
+    const context = useToastProviderContext(VIEWPORT_NAME, __scopeToast);
+    const getItems = useCollection(__scopeToast);
+    const wrapperRef = reactExports.useRef(null);
+    const headFocusProxyRef = reactExports.useRef(null);
+    const tailFocusProxyRef = reactExports.useRef(null);
+    const ref = reactExports.useRef(null);
+    const composedRefs = useComposedRefs(forwardedRef, ref, context.onViewportChange);
+    const hotkeyLabel = hotkey.join("+").replace(/Key/g, "").replace(/Digit/g, "");
+    const hasToasts = context.toastCount > 0;
+    reactExports.useEffect(() => {
+      const handleKeyDown = (event) => {
+        const isHotkeyPressed = hotkey.length !== 0 && hotkey.every((key) => event[key] || event.code === key);
+        if (isHotkeyPressed) ref.current?.focus();
+      };
+      document.addEventListener("keydown", handleKeyDown);
+      return () => document.removeEventListener("keydown", handleKeyDown);
+    }, [hotkey]);
+    reactExports.useEffect(() => {
+      const wrapper = wrapperRef.current;
+      const viewport = ref.current;
+      if (hasToasts && wrapper && viewport) {
+        const handlePause = () => {
+          if (!context.isClosePausedRef.current) {
+            const pauseEvent = new CustomEvent(VIEWPORT_PAUSE);
+            viewport.dispatchEvent(pauseEvent);
+            context.isClosePausedRef.current = true;
+          }
+        };
+        const handleResume = () => {
+          if (context.isClosePausedRef.current) {
+            const resumeEvent = new CustomEvent(VIEWPORT_RESUME);
+            viewport.dispatchEvent(resumeEvent);
+            context.isClosePausedRef.current = false;
+          }
+        };
+        const handleFocusOutResume = (event) => {
+          const isFocusMovingOutside = !wrapper.contains(event.relatedTarget);
+          if (isFocusMovingOutside) handleResume();
+        };
+        const handlePointerLeaveResume = () => {
+          const isFocusInside = wrapper.contains(document.activeElement);
+          if (!isFocusInside) handleResume();
+        };
+        wrapper.addEventListener("focusin", handlePause);
+        wrapper.addEventListener("focusout", handleFocusOutResume);
+        wrapper.addEventListener("pointermove", handlePause);
+        wrapper.addEventListener("pointerleave", handlePointerLeaveResume);
+        window.addEventListener("blur", handlePause);
+        window.addEventListener("focus", handleResume);
+        return () => {
+          wrapper.removeEventListener("focusin", handlePause);
+          wrapper.removeEventListener("focusout", handleFocusOutResume);
+          wrapper.removeEventListener("pointermove", handlePause);
+          wrapper.removeEventListener("pointerleave", handlePointerLeaveResume);
+          window.removeEventListener("blur", handlePause);
+          window.removeEventListener("focus", handleResume);
+        };
+      }
+    }, [hasToasts, context.isClosePausedRef]);
+    const getSortedTabbableCandidates = reactExports.useCallback(
+      ({ tabbingDirection }) => {
+        const toastItems = getItems();
+        const tabbableCandidates = toastItems.map((toastItem) => {
+          const toastNode = toastItem.ref.current;
+          const toastTabbableCandidates = [toastNode, ...getTabbableCandidates(toastNode)];
+          return tabbingDirection === "forwards" ? toastTabbableCandidates : toastTabbableCandidates.reverse();
+        });
+        return (tabbingDirection === "forwards" ? tabbableCandidates.reverse() : tabbableCandidates).flat();
+      },
+      [getItems]
+    );
+    reactExports.useEffect(() => {
+      const viewport = ref.current;
+      if (viewport) {
+        const handleKeyDown = (event) => {
+          const isMetaKey = event.altKey || event.ctrlKey || event.metaKey;
+          const isTabKey = event.key === "Tab" && !isMetaKey;
+          if (isTabKey) {
+            const focusedElement = document.activeElement;
+            const isTabbingBackwards = event.shiftKey;
+            const targetIsViewport = event.target === viewport;
+            if (targetIsViewport && isTabbingBackwards) {
+              headFocusProxyRef.current?.focus();
+              return;
+            }
+            const tabbingDirection = isTabbingBackwards ? "backwards" : "forwards";
+            const sortedCandidates = getSortedTabbableCandidates({ tabbingDirection });
+            const index = sortedCandidates.findIndex((candidate) => candidate === focusedElement);
+            if (focusFirst(sortedCandidates.slice(index + 1))) {
+              event.preventDefault();
+            } else {
+              isTabbingBackwards ? headFocusProxyRef.current?.focus() : tailFocusProxyRef.current?.focus();
+            }
+          }
+        };
+        viewport.addEventListener("keydown", handleKeyDown);
+        return () => viewport.removeEventListener("keydown", handleKeyDown);
+      }
+    }, [getItems, getSortedTabbableCandidates]);
+    return /* @__PURE__ */ jsxRuntimeExports.jsxs(
+      Branch,
+      {
+        ref: wrapperRef,
+        role: "region",
+        "aria-label": label.replace("{hotkey}", hotkeyLabel),
+        tabIndex: -1,
+        style: { pointerEvents: hasToasts ? void 0 : "none" },
+        children: [
+          hasToasts && /* @__PURE__ */ jsxRuntimeExports.jsx(
+            FocusProxy,
+            {
+              ref: headFocusProxyRef,
+              onFocusFromOutsideViewport: () => {
+                const tabbableCandidates = getSortedTabbableCandidates({
+                  tabbingDirection: "forwards"
+                });
+                focusFirst(tabbableCandidates);
+              }
+            }
+          ),
+          /* @__PURE__ */ jsxRuntimeExports.jsx(Collection.Slot, { scope: __scopeToast, children: /* @__PURE__ */ jsxRuntimeExports.jsx(Primitive.ol, { tabIndex: -1, ...viewportProps, ref: composedRefs }) }),
+          hasToasts && /* @__PURE__ */ jsxRuntimeExports.jsx(
+            FocusProxy,
+            {
+              ref: tailFocusProxyRef,
+              onFocusFromOutsideViewport: () => {
+                const tabbableCandidates = getSortedTabbableCandidates({
+                  tabbingDirection: "backwards"
+                });
+                focusFirst(tabbableCandidates);
+              }
+            }
+          )
+        ]
+      }
+    );
+  }
+);
+ToastViewport$1.displayName = VIEWPORT_NAME;
+var FOCUS_PROXY_NAME = "ToastFocusProxy";
+var FocusProxy = reactExports.forwardRef(
+  (props, forwardedRef) => {
+    const { __scopeToast, onFocusFromOutsideViewport, ...proxyProps } = props;
+    const context = useToastProviderContext(FOCUS_PROXY_NAME, __scopeToast);
+    return /* @__PURE__ */ jsxRuntimeExports.jsx(
+      VisuallyHidden,
+      {
+        "aria-hidden": true,
+        tabIndex: 0,
+        ...proxyProps,
+        ref: forwardedRef,
+        style: { position: "fixed" },
+        onFocus: (event) => {
+          const prevFocusedElement = event.relatedTarget;
+          const isFocusFromOutsideViewport = !context.viewport?.contains(prevFocusedElement);
+          if (isFocusFromOutsideViewport) onFocusFromOutsideViewport();
+        }
+      }
+    );
+  }
+);
+FocusProxy.displayName = FOCUS_PROXY_NAME;
+var TOAST_NAME = "Toast";
+var TOAST_SWIPE_START = "toast.swipeStart";
+var TOAST_SWIPE_MOVE = "toast.swipeMove";
+var TOAST_SWIPE_CANCEL = "toast.swipeCancel";
+var TOAST_SWIPE_END = "toast.swipeEnd";
+var Toast$1 = reactExports.forwardRef(
+  (props, forwardedRef) => {
+    const { forceMount, open: openProp, defaultOpen, onOpenChange, ...toastProps } = props;
+    const [open, setOpen] = useControllableState({
+      prop: openProp,
+      defaultProp: defaultOpen ?? true,
+      onChange: onOpenChange,
+      caller: TOAST_NAME
+    });
+    return /* @__PURE__ */ jsxRuntimeExports.jsx(Presence, { present: forceMount || open, children: /* @__PURE__ */ jsxRuntimeExports.jsx(
+      ToastImpl,
+      {
+        open,
+        ...toastProps,
+        ref: forwardedRef,
+        onClose: () => setOpen(false),
+        onPause: useCallbackRef(props.onPause),
+        onResume: useCallbackRef(props.onResume),
+        onSwipeStart: composeEventHandlers(props.onSwipeStart, (event) => {
+          event.currentTarget.setAttribute("data-swipe", "start");
+        }),
+        onSwipeMove: composeEventHandlers(props.onSwipeMove, (event) => {
+          const { x, y } = event.detail.delta;
+          event.currentTarget.setAttribute("data-swipe", "move");
+          event.currentTarget.style.setProperty("--radix-toast-swipe-move-x", `${x}px`);
+          event.currentTarget.style.setProperty("--radix-toast-swipe-move-y", `${y}px`);
+        }),
+        onSwipeCancel: composeEventHandlers(props.onSwipeCancel, (event) => {
+          event.currentTarget.setAttribute("data-swipe", "cancel");
+          event.currentTarget.style.removeProperty("--radix-toast-swipe-move-x");
+          event.currentTarget.style.removeProperty("--radix-toast-swipe-move-y");
+          event.currentTarget.style.removeProperty("--radix-toast-swipe-end-x");
+          event.currentTarget.style.removeProperty("--radix-toast-swipe-end-y");
+        }),
+        onSwipeEnd: composeEventHandlers(props.onSwipeEnd, (event) => {
+          const { x, y } = event.detail.delta;
+          event.currentTarget.setAttribute("data-swipe", "end");
+          event.currentTarget.style.removeProperty("--radix-toast-swipe-move-x");
+          event.currentTarget.style.removeProperty("--radix-toast-swipe-move-y");
+          event.currentTarget.style.setProperty("--radix-toast-swipe-end-x", `${x}px`);
+          event.currentTarget.style.setProperty("--radix-toast-swipe-end-y", `${y}px`);
+          setOpen(false);
+        })
+      }
+    ) });
+  }
+);
+Toast$1.displayName = TOAST_NAME;
+var [ToastInteractiveProvider, useToastInteractiveContext] = createToastContext(TOAST_NAME, {
+  onClose() {
+  }
+});
+var ToastImpl = reactExports.forwardRef(
+  (props, forwardedRef) => {
+    const {
+      __scopeToast,
+      type = "foreground",
+      duration: durationProp,
+      open,
+      onClose,
+      onEscapeKeyDown,
+      onPause,
+      onResume,
+      onSwipeStart,
+      onSwipeMove,
+      onSwipeCancel,
+      onSwipeEnd,
+      ...toastProps
+    } = props;
+    const context = useToastProviderContext(TOAST_NAME, __scopeToast);
+    const [node, setNode] = reactExports.useState(null);
+    const composedRefs = useComposedRefs(forwardedRef, (node2) => setNode(node2));
+    const pointerStartRef = reactExports.useRef(null);
+    const swipeDeltaRef = reactExports.useRef(null);
+    const duration = durationProp || context.duration;
+    const closeTimerStartTimeRef = reactExports.useRef(0);
+    const closeTimerRemainingTimeRef = reactExports.useRef(duration);
+    const closeTimerRef = reactExports.useRef(0);
+    const { onToastAdd, onToastRemove } = context;
+    const handleClose = useCallbackRef(() => {
+      const isFocusInToast = node?.contains(document.activeElement);
+      if (isFocusInToast) context.viewport?.focus();
+      onClose();
+    });
+    const startTimer = reactExports.useCallback(
+      (duration2) => {
+        if (!duration2 || duration2 === Infinity) return;
+        window.clearTimeout(closeTimerRef.current);
+        closeTimerStartTimeRef.current = (/* @__PURE__ */ new Date()).getTime();
+        closeTimerRef.current = window.setTimeout(handleClose, duration2);
+      },
+      [handleClose]
+    );
+    reactExports.useEffect(() => {
+      const viewport = context.viewport;
+      if (viewport) {
+        const handleResume = () => {
+          startTimer(closeTimerRemainingTimeRef.current);
+          onResume?.();
+        };
+        const handlePause = () => {
+          const elapsedTime = (/* @__PURE__ */ new Date()).getTime() - closeTimerStartTimeRef.current;
+          closeTimerRemainingTimeRef.current = closeTimerRemainingTimeRef.current - elapsedTime;
+          window.clearTimeout(closeTimerRef.current);
+          onPause?.();
+        };
+        viewport.addEventListener(VIEWPORT_PAUSE, handlePause);
+        viewport.addEventListener(VIEWPORT_RESUME, handleResume);
+        return () => {
+          viewport.removeEventListener(VIEWPORT_PAUSE, handlePause);
+          viewport.removeEventListener(VIEWPORT_RESUME, handleResume);
+        };
+      }
+    }, [context.viewport, duration, onPause, onResume, startTimer]);
+    reactExports.useEffect(() => {
+      if (open && !context.isClosePausedRef.current) startTimer(duration);
+    }, [open, duration, context.isClosePausedRef, startTimer]);
+    reactExports.useEffect(() => {
+      onToastAdd();
+      return () => onToastRemove();
+    }, [onToastAdd, onToastRemove]);
+    const announceTextContent = reactExports.useMemo(() => {
+      return node ? getAnnounceTextContent(node) : null;
+    }, [node]);
+    if (!context.viewport) return null;
+    return /* @__PURE__ */ jsxRuntimeExports.jsxs(jsxRuntimeExports.Fragment, { children: [
+      announceTextContent && /* @__PURE__ */ jsxRuntimeExports.jsx(
+        ToastAnnounce,
+        {
+          __scopeToast,
+          role: "status",
+          "aria-live": type === "foreground" ? "assertive" : "polite",
+          "aria-atomic": true,
+          children: announceTextContent
+        }
+      ),
+      /* @__PURE__ */ jsxRuntimeExports.jsx(ToastInteractiveProvider, { scope: __scopeToast, onClose: handleClose, children: reactDomExports.createPortal(
+        /* @__PURE__ */ jsxRuntimeExports.jsx(Collection.ItemSlot, { scope: __scopeToast, children: /* @__PURE__ */ jsxRuntimeExports.jsx(
+          Root,
+          {
+            asChild: true,
+            onEscapeKeyDown: composeEventHandlers(onEscapeKeyDown, () => {
+              if (!context.isFocusedToastEscapeKeyDownRef.current) handleClose();
+              context.isFocusedToastEscapeKeyDownRef.current = false;
+            }),
+            children: /* @__PURE__ */ jsxRuntimeExports.jsx(
+              Primitive.li,
+              {
+                role: "status",
+                "aria-live": "off",
+                "aria-atomic": true,
+                tabIndex: 0,
+                "data-state": open ? "open" : "closed",
+                "data-swipe-direction": context.swipeDirection,
+                ...toastProps,
+                ref: composedRefs,
+                style: { userSelect: "none", touchAction: "none", ...props.style },
+                onKeyDown: composeEventHandlers(props.onKeyDown, (event) => {
+                  if (event.key !== "Escape") return;
+                  onEscapeKeyDown?.(event.nativeEvent);
+                  if (!event.nativeEvent.defaultPrevented) {
+                    context.isFocusedToastEscapeKeyDownRef.current = true;
+                    handleClose();
+                  }
+                }),
+                onPointerDown: composeEventHandlers(props.onPointerDown, (event) => {
+                  if (event.button !== 0) return;
+                  pointerStartRef.current = { x: event.clientX, y: event.clientY };
+                }),
+                onPointerMove: composeEventHandlers(props.onPointerMove, (event) => {
+                  if (!pointerStartRef.current) return;
+                  const x = event.clientX - pointerStartRef.current.x;
+                  const y = event.clientY - pointerStartRef.current.y;
+                  const hasSwipeMoveStarted = Boolean(swipeDeltaRef.current);
+                  const isHorizontalSwipe = ["left", "right"].includes(context.swipeDirection);
+                  const clamp = ["left", "up"].includes(context.swipeDirection) ? Math.min : Math.max;
+                  const clampedX = isHorizontalSwipe ? clamp(0, x) : 0;
+                  const clampedY = !isHorizontalSwipe ? clamp(0, y) : 0;
+                  const moveStartBuffer = event.pointerType === "touch" ? 10 : 2;
+                  const delta = { x: clampedX, y: clampedY };
+                  const eventDetail = { originalEvent: event, delta };
+                  if (hasSwipeMoveStarted) {
+                    swipeDeltaRef.current = delta;
+                    handleAndDispatchCustomEvent(TOAST_SWIPE_MOVE, onSwipeMove, eventDetail, {
+                      discrete: false
+                    });
+                  } else if (isDeltaInDirection(delta, context.swipeDirection, moveStartBuffer)) {
+                    swipeDeltaRef.current = delta;
+                    handleAndDispatchCustomEvent(TOAST_SWIPE_START, onSwipeStart, eventDetail, {
+                      discrete: false
+                    });
+                    event.target.setPointerCapture(event.pointerId);
+                  } else if (Math.abs(x) > moveStartBuffer || Math.abs(y) > moveStartBuffer) {
+                    pointerStartRef.current = null;
+                  }
+                }),
+                onPointerUp: composeEventHandlers(props.onPointerUp, (event) => {
+                  const delta = swipeDeltaRef.current;
+                  const target = event.target;
+                  if (target.hasPointerCapture(event.pointerId)) {
+                    target.releasePointerCapture(event.pointerId);
+                  }
+                  swipeDeltaRef.current = null;
+                  pointerStartRef.current = null;
+                  if (delta) {
+                    const toast2 = event.currentTarget;
+                    const eventDetail = { originalEvent: event, delta };
+                    if (isDeltaInDirection(delta, context.swipeDirection, context.swipeThreshold)) {
+                      handleAndDispatchCustomEvent(TOAST_SWIPE_END, onSwipeEnd, eventDetail, {
+                        discrete: true
+                      });
+                    } else {
+                      handleAndDispatchCustomEvent(
+                        TOAST_SWIPE_CANCEL,
+                        onSwipeCancel,
+                        eventDetail,
+                        {
+                          discrete: true
+                        }
+                      );
+                    }
+                    toast2.addEventListener("click", (event2) => event2.preventDefault(), {
+                      once: true
+                    });
+                  }
+                })
+              }
+            )
+          }
+        ) }),
+        context.viewport
+      ) })
+    ] });
+  }
+);
+var ToastAnnounce = (props) => {
+  const { __scopeToast, children, ...announceProps } = props;
+  const context = useToastProviderContext(TOAST_NAME, __scopeToast);
+  const [renderAnnounceText, setRenderAnnounceText] = reactExports.useState(false);
+  const [isAnnounced, setIsAnnounced] = reactExports.useState(false);
+  useNextFrame(() => setRenderAnnounceText(true));
+  reactExports.useEffect(() => {
+    const timer = window.setTimeout(() => setIsAnnounced(true), 1e3);
+    return () => window.clearTimeout(timer);
+  }, []);
+  return isAnnounced ? null : /* @__PURE__ */ jsxRuntimeExports.jsx(Portal, { asChild: true, children: /* @__PURE__ */ jsxRuntimeExports.jsx(VisuallyHidden, { ...announceProps, children: renderAnnounceText && /* @__PURE__ */ jsxRuntimeExports.jsxs(jsxRuntimeExports.Fragment, { children: [
+    context.label,
+    " ",
+    children
+  ] }) }) });
+};
+var TITLE_NAME = "ToastTitle";
+var ToastTitle$1 = reactExports.forwardRef(
+  (props, forwardedRef) => {
+    const { __scopeToast, ...titleProps } = props;
+    return /* @__PURE__ */ jsxRuntimeExports.jsx(Primitive.div, { ...titleProps, ref: forwardedRef });
+  }
+);
+ToastTitle$1.displayName = TITLE_NAME;
+var DESCRIPTION_NAME = "ToastDescription";
+var ToastDescription$1 = reactExports.forwardRef(
+  (props, forwardedRef) => {
+    const { __scopeToast, ...descriptionProps } = props;
+    return /* @__PURE__ */ jsxRuntimeExports.jsx(Primitive.div, { ...descriptionProps, ref: forwardedRef });
+  }
+);
+ToastDescription$1.displayName = DESCRIPTION_NAME;
+var ACTION_NAME = "ToastAction";
+var ToastAction$1 = reactExports.forwardRef(
+  (props, forwardedRef) => {
+    const { altText, ...actionProps } = props;
+    if (!altText.trim()) {
+      console.error(
+        `Invalid prop \`altText\` supplied to \`${ACTION_NAME}\`. Expected non-empty \`string\`.`
+      );
+      return null;
+    }
+    return /* @__PURE__ */ jsxRuntimeExports.jsx(ToastAnnounceExclude, { altText, asChild: true, children: /* @__PURE__ */ jsxRuntimeExports.jsx(ToastClose$1, { ...actionProps, ref: forwardedRef }) });
+  }
+);
+ToastAction$1.displayName = ACTION_NAME;
+var CLOSE_NAME = "ToastClose";
+var ToastClose$1 = reactExports.forwardRef(
+  (props, forwardedRef) => {
+    const { __scopeToast, ...closeProps } = props;
+    const interactiveContext = useToastInteractiveContext(CLOSE_NAME, __scopeToast);
+    return /* @__PURE__ */ jsxRuntimeExports.jsx(ToastAnnounceExclude, { asChild: true, children: /* @__PURE__ */ jsxRuntimeExports.jsx(
+      Primitive.button,
+      {
+        type: "button",
+        ...closeProps,
+        ref: forwardedRef,
+        onClick: composeEventHandlers(props.onClick, interactiveContext.onClose)
+      }
+    ) });
+  }
+);
+ToastClose$1.displayName = CLOSE_NAME;
+var ToastAnnounceExclude = reactExports.forwardRef((props, forwardedRef) => {
+  const { __scopeToast, altText, ...announceExcludeProps } = props;
+  return /* @__PURE__ */ jsxRuntimeExports.jsx(
+    Primitive.div,
+    {
+      "data-radix-toast-announce-exclude": "",
+      "data-radix-toast-announce-alt": altText || void 0,
+      ...announceExcludeProps,
+      ref: forwardedRef
+    }
+  );
+});
+function getAnnounceTextContent(container) {
+  const textContent = [];
+  const childNodes = Array.from(container.childNodes);
+  childNodes.forEach((node) => {
+    if (node.nodeType === node.TEXT_NODE && node.textContent) textContent.push(node.textContent);
+    if (isHTMLElement(node)) {
+      const isHidden = node.ariaHidden || node.hidden || node.style.display === "none";
+      const isExcluded = node.dataset.radixToastAnnounceExclude === "";
+      if (!isHidden) {
+        if (isExcluded) {
+          const altText = node.dataset.radixToastAnnounceAlt;
+          if (altText) textContent.push(altText);
+        } else {
+          textContent.push(...getAnnounceTextContent(node));
+        }
+      }
+    }
+  });
+  return textContent;
+}
+function handleAndDispatchCustomEvent(name, handler, detail, { discrete }) {
+  const currentTarget = detail.originalEvent.currentTarget;
+  const event = new CustomEvent(name, { bubbles: true, cancelable: true, detail });
+  if (handler) currentTarget.addEventListener(name, handler, { once: true });
+  if (discrete) {
+    dispatchDiscreteCustomEvent(currentTarget, event);
+  } else {
+    currentTarget.dispatchEvent(event);
+  }
+}
+var isDeltaInDirection = (delta, direction, threshold = 0) => {
+  const deltaX = Math.abs(delta.x);
+  const deltaY = Math.abs(delta.y);
+  const isDeltaX = deltaX > deltaY;
+  if (direction === "left" || direction === "right") {
+    return isDeltaX && deltaX > threshold;
+  } else {
+    return !isDeltaX && deltaY > threshold;
+  }
+};
+function useNextFrame(callback = () => {
+}) {
+  const fn = useCallbackRef(callback);
+  useLayoutEffect2(() => {
+    let raf1 = 0;
+    let raf2 = 0;
+    raf1 = window.requestAnimationFrame(() => raf2 = window.requestAnimationFrame(fn));
+    return () => {
+      window.cancelAnimationFrame(raf1);
+      window.cancelAnimationFrame(raf2);
+    };
+  }, [fn]);
+}
+function isHTMLElement(node) {
+  return node.nodeType === node.ELEMENT_NODE;
+}
+function getTabbableCandidates(container) {
+  const nodes = [];
+  const walker = document.createTreeWalker(container, NodeFilter.SHOW_ELEMENT, {
+    acceptNode: (node) => {
+      const isHiddenInput = node.tagName === "INPUT" && node.type === "hidden";
+      if (node.disabled || node.hidden || isHiddenInput) return NodeFilter.FILTER_SKIP;
+      return node.tabIndex >= 0 ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_SKIP;
+    }
+  });
+  while (walker.nextNode()) nodes.push(walker.currentNode);
+  return nodes;
+}
+function focusFirst(candidates) {
+  const previouslyFocusedElement = document.activeElement;
+  return candidates.some((candidate) => {
+    if (candidate === previouslyFocusedElement) return true;
+    candidate.focus();
+    return document.activeElement !== previouslyFocusedElement;
+  });
+}
+var Provider = ToastProvider$1;
+var Viewport = ToastViewport$1;
+var Root2 = Toast$1;
+var Title = ToastTitle$1;
+var Description = ToastDescription$1;
+var Action = ToastAction$1;
+var Close = ToastClose$1;
+const ToastProvider = Provider;
+const ToastViewport = reactExports.forwardRef(({ className, ...props }, ref) => /* @__PURE__ */ jsxRuntimeExports.jsx(
+  Viewport,
+  {
+    ref,
+    className: cn(
+      "fixed top-0 z-[100] flex max-h-screen w-full flex-col-reverse p-4 sm:bottom-0 sm:right-0 sm:top-auto sm:flex-col md:max-w-[420px]",
+      className
+    ),
+    ...props
+  }
+));
+ToastViewport.displayName = Viewport.displayName;
+const toastVariants = cva(
+  "group pointer-events-auto relative flex w-full items-center justify-between space-x-4 overflow-hidden rounded-md border p-6 pr-8 shadow-lg transition-all data-[swipe=cancel]:translate-x-0 data-[swipe=end]:translate-x-[var(--radix-toast-swipe-end-x)] data-[swipe=move]:translate-x-[var(--radix-toast-swipe-move-x)] data-[swipe=move]:transition-none data-[state=open]:animate-in data-[state=closed]:animate-out data-[swipe=end]:animate-out data-[state=closed]:fade-out-80 data-[state=closed]:slide-out-to-right-full data-[state=open]:slide-in-from-top-full data-[state=open]:sm:slide-in-from-bottom-full",
+  {
+    variants: {
+      variant: {
+        default: "border bg-background text-foreground",
+        destructive: "destructive group border-destructive bg-destructive text-destructive-foreground",
+        success: "border-green-200 bg-green-50 text-green-800",
+        error: "border-red-200 bg-red-50 text-red-800"
+      }
+    },
+    defaultVariants: {
+      variant: "default"
+    }
+  }
+);
+const Toast = reactExports.forwardRef(({ className, variant, ...props }, ref) => {
+  return /* @__PURE__ */ jsxRuntimeExports.jsx(
+    Root2,
+    {
+      ref,
+      className: cn(toastVariants({ variant }), className),
+      ...props
+    }
+  );
+});
+Toast.displayName = Root2.displayName;
+const ToastAction = reactExports.forwardRef(({ className, ...props }, ref) => /* @__PURE__ */ jsxRuntimeExports.jsx(
+  Action,
+  {
+    ref,
+    className: cn(
+      "inline-flex h-8 shrink-0 items-center justify-center rounded-md border bg-transparent px-3 text-sm font-medium ring-offset-background transition-colors hover:bg-secondary focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 group-[.destructive]:border-muted/40 group-[.destructive]:hover:border-destructive/30 group-[.destructive]:hover:bg-destructive group-[.destructive]:hover:text-destructive-foreground group-[.destructive]:focus:ring-destructive",
+      className
+    ),
+    ...props
+  }
+));
+ToastAction.displayName = Action.displayName;
+const ToastClose = reactExports.forwardRef(({ className, ...props }, ref) => /* @__PURE__ */ jsxRuntimeExports.jsx(
+  Close,
+  {
+    ref,
+    className: cn(
+      "absolute right-2 top-2 rounded-md p-1 text-foreground/50 opacity-0 transition-opacity hover:text-foreground focus:opacity-100 focus:outline-none focus:ring-2 group-hover:opacity-100 group-[.destructive]:text-red-300 group-[.destructive]:hover:text-red-50 group-[.destructive]:focus:ring-red-400 group-[.destructive]:focus:ring-offset-red-600",
+      className
+    ),
+    "toast-close": "",
+    ...props,
+    children: /* @__PURE__ */ jsxRuntimeExports.jsx(X, { className: "h-4 w-4" })
+  }
+));
+ToastClose.displayName = Close.displayName;
+const ToastTitle = reactExports.forwardRef(({ className, ...props }, ref) => /* @__PURE__ */ jsxRuntimeExports.jsx(
+  Title,
+  {
+    ref,
+    className: cn("text-sm font-semibold", className),
+    ...props
+  }
+));
+ToastTitle.displayName = Title.displayName;
+const ToastDescription = reactExports.forwardRef(({ className, ...props }, ref) => /* @__PURE__ */ jsxRuntimeExports.jsx(
+  Description,
+  {
+    ref,
+    className: cn("text-sm opacity-90", className),
+    ...props
+  }
+));
+ToastDescription.displayName = Description.displayName;
+function Toaster() {
+  const { toasts } = useToast();
+  return /* @__PURE__ */ jsxRuntimeExports.jsxs(ToastProvider, { children: [
+    toasts.map(function({ id, title, description, action, ...props }) {
+      return /* @__PURE__ */ jsxRuntimeExports.jsxs(Toast, { ...props, children: [
+        /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "grid gap-1", children: [
+          title && /* @__PURE__ */ jsxRuntimeExports.jsx(ToastTitle, { children: title }),
+          description && /* @__PURE__ */ jsxRuntimeExports.jsx(ToastDescription, { children: description })
+        ] }),
+        action,
+        /* @__PURE__ */ jsxRuntimeExports.jsx(ToastClose, {})
+      ] }, id);
+    }),
+    /* @__PURE__ */ jsxRuntimeExports.jsx(ToastViewport, {})
+  ] });
+}
 function App() {
   const [selectedCategory, setSelectedCategory] = reactExports.useState(null);
   const [searchTerm, setSearchTerm] = reactExports.useState("");
+  const { addItem, isPaymentModalOpen, isCustomerModalOpen } = useCheckoutStore();
   const filteredProducts = reactExports.useMemo(() => {
     let filtered = mockProducts;
     if (selectedCategory) {
@@ -16340,26 +18059,56 @@ function App() {
     }
     return filtered;
   }, [selectedCategory, searchTerm]);
-  return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "h-screen flex flex-col bg-gray-100", children: [
-    /* @__PURE__ */ jsxRuntimeExports.jsx(TopBar, {}),
-    /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex-1 flex overflow-hidden", children: [
-      /* @__PURE__ */ jsxRuntimeExports.jsx(
-        Sidebar,
-        {
-          selectedCategory,
-          onCategorySelect: setSelectedCategory,
-          searchTerm,
-          onSearchChange: setSearchTerm
-        }
-      ),
-      /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex-1 flex flex-col", children: [
-        /* @__PURE__ */ jsxRuntimeExports.jsx(BarcodeInput, {}),
-        /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "flex-1 overflow-y-auto bg-gray-50", children: /* @__PURE__ */ jsxRuntimeExports.jsx(ProductGrid, { products: filteredProducts }) })
-      ] }),
-      /* @__PURE__ */ jsxRuntimeExports.jsx(ShoppingCart, {})
-    ] })
+  const findProductByBarcode = (barcode) => {
+    return mockProducts.find((product) => product.barcode === barcode);
+  };
+  const { enableAudio } = useBarcodeScanner({
+    onScan: (barcode, isShortcut = false) => {
+      const product = findProductByBarcode(barcode);
+      if (product) {
+        addItem(product);
+        const shortcutIcon = isShortcut ? "🎯 " : "📟 ";
+        enhancedToast.success(`${shortcutIcon}Added ${product.name}`);
+        playSuccessSound();
+      } else {
+        enhancedToast.error("Product not found");
+        playErrorSound();
+      }
+    },
+    enabled: !isPaymentModalOpen && !isCustomerModalOpen,
+    shortcuts: DEFAULT_SCANNER_SHORTCUTS
+  });
+  reactExports.useEffect(() => {
+    const handleFirstClick = () => {
+      enableAudio();
+      document.removeEventListener("click", handleFirstClick);
+    };
+    document.addEventListener("click", handleFirstClick);
+    return () => document.removeEventListener("click", handleFirstClick);
+  }, [enableAudio]);
+  return /* @__PURE__ */ jsxRuntimeExports.jsxs(jsxRuntimeExports.Fragment, { children: [
+    /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "h-screen flex flex-col bg-gray-100", children: [
+      /* @__PURE__ */ jsxRuntimeExports.jsx(TopBar, {}),
+      /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex-1 flex overflow-hidden", children: [
+        /* @__PURE__ */ jsxRuntimeExports.jsx(
+          Sidebar,
+          {
+            selectedCategory,
+            onCategorySelect: setSelectedCategory,
+            searchTerm,
+            onSearchChange: setSearchTerm
+          }
+        ),
+        /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex-1 flex flex-col", children: [
+          /* @__PURE__ */ jsxRuntimeExports.jsx(BarcodeInput, {}),
+          /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "flex-1 overflow-y-auto bg-gray-50", children: /* @__PURE__ */ jsxRuntimeExports.jsx(ProductGrid, { products: filteredProducts }) })
+        ] }),
+        /* @__PURE__ */ jsxRuntimeExports.jsx(ShoppingCart, {})
+      ] })
+    ] }),
+    /* @__PURE__ */ jsxRuntimeExports.jsx(Toaster, {})
   ] });
 }
-ReactDOM.createRoot(document.getElementById("root")).render(
+ReactDOM$1.createRoot(document.getElementById("root")).render(
   /* @__PURE__ */ jsxRuntimeExports.jsx(React.StrictMode, { children: /* @__PURE__ */ jsxRuntimeExports.jsx(App, {}) })
 );

@@ -7,6 +7,10 @@ interface CheckoutStore {
   customer: Customer | null
   isProcessing: boolean
   
+  // Modal states for scanner control
+  isPaymentModalOpen: boolean
+  isCustomerModalOpen: boolean
+  
   // Computed values
   get subtotal(): number
   get tax(): number
@@ -21,6 +25,10 @@ interface CheckoutStore {
   setCustomer: (customer: Customer | null) => void
   setProcessing: (processing: boolean) => void
   
+  // Modal state actions
+  setPaymentModal: (open: boolean) => void
+  setCustomerModal: (open: boolean) => void
+  
   // Utility functions
   getCartItem: (productId: string) => CartItem | undefined
   hasItem: (productId: string) => boolean
@@ -31,6 +39,10 @@ export const useCheckoutStore = create<CheckoutStore>((set, get) => ({
   cart: [],
   customer: null,
   isProcessing: false,
+  
+  // Modal states
+  isPaymentModalOpen: false,
+  isCustomerModalOpen: false,
   
   // Computed values
   get subtotal() {
@@ -118,6 +130,15 @@ export const useCheckoutStore = create<CheckoutStore>((set, get) => ({
   
   setProcessing: (processing: boolean) => {
     set({ isProcessing: processing })
+  },
+  
+  // Modal state actions
+  setPaymentModal: (open: boolean) => {
+    set({ isPaymentModalOpen: open })
+  },
+  
+  setCustomerModal: (open: boolean) => {
+    set({ isCustomerModalOpen: open })
   },
   
   // Utility functions
