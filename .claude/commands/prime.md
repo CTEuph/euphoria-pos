@@ -2,4 +2,4 @@
 
 
 READ:
-    .rules/codebase-rules.md
+    _rules/codebase-rules.md

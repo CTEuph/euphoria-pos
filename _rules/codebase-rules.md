@@ -72,6 +72,8 @@ You are working on a Point of Sale (POS) system for a liquor store built with El
    /features/checkout/hooks/useCart.ts
    /features/checkout/services/cartService.ts
    ```
+4. ** AVOID useEffect as much as possible**
+
 
 ## IPC Communication Patterns
 
