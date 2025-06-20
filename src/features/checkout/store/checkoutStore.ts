@@ -11,11 +11,11 @@ interface CheckoutStore {
   isPaymentModalOpen: boolean
   isCustomerModalOpen: boolean
   
-  // Computed values
-  get subtotal(): number
-  get tax(): number
-  get total(): number
-  get itemCount(): number
+  // Computed values (as regular properties)
+  subtotal: number
+  tax: number
+  total: number
+  itemCount: number
   
   // Actions
   addItem: (product: Product) => void
@@ -34,6 +34,16 @@ interface CheckoutStore {
   hasItem: (productId: string) => boolean
 }
 
+// Helper function to calculate derived values
+const calculateDerivedValues = (cart: CartItem[]) => {
+  const subtotal = cart.reduce((sum, item) => sum + item.total, 0)
+  const tax = subtotal * TAX_RATE
+  const total = subtotal + tax
+  const itemCount = cart.reduce((sum, item) => sum + item.quantity, 0)
+  
+  return { subtotal, tax, total, itemCount }
+}
+
 export const useCheckoutStore = create<CheckoutStore>((set, get) => ({
   // Initial state
   cart: [],
@@ -45,40 +55,29 @@ export const useCheckoutStore = create<CheckoutStore>((set, get) => ({
   isCustomerModalOpen: false,
   
   // Computed values
-  get subtotal() {
-    return get().cart.reduce((sum, item) => sum + item.total, 0)
-  },
-  
-  get tax() {
-    return get().subtotal * TAX_RATE
-  },
-  
-  get total() {
-    return get().subtotal + get().tax
-  },
-  
-  get itemCount() {
-    return get().cart.reduce((sum, item) => sum + item.quantity, 0)
-  },
+  subtotal: 0,
+  tax: 0,
+  total: 0,
+  itemCount: 0,
   
   // Actions
   addItem: (product: Product) => {
     const currentCart = get().cart
     const existingItem = currentCart.find(item => item.id === product.id)
     
+    let newCart: CartItem[]
+    
     if (existingItem) {
       // Update quantity if item already exists
-      set({
-        cart: currentCart.map(item =>
-          item.id === product.id
-            ? { 
-                ...item, 
-                quantity: item.quantity + 1, 
-                total: (item.quantity + 1) * item.price 
-              }
-            : item
-        )
-      })
+      newCart = currentCart.map(item =>
+        item.id === product.id
+          ? { 
+              ...item, 
+              quantity: item.quantity + 1, 
+              total: (item.quantity + 1) * item.price 
+            }
+          : item
+      )
     } else {
       // Add new item to cart
       const cartItem: CartItem = {
@@ -86,16 +85,17 @@ export const useCheckoutStore = create<CheckoutStore>((set, get) => ({
         quantity: 1,
         total: product.price
       }
-      set({
-        cart: [...currentCart, cartItem]
-      })
+      newCart = [...currentCart, cartItem]
     }
+    
+    const derived = calculateDerivedValues(newCart)
+    set({ cart: newCart, ...derived })
   },
   
   removeItem: (productId: string) => {
-    set({
-      cart: get().cart.filter(item => item.id !== productId)
-    })
+    const newCart = get().cart.filter(item => item.id !== productId)
+    const derived = calculateDerivedValues(newCart)
+    set({ cart: newCart, ...derived })
   },
   
   updateQuantity: (productId: string, quantity: number) => {
@@ -104,23 +104,26 @@ export const useCheckoutStore = create<CheckoutStore>((set, get) => ({
       return
     }
     
-    set({
-      cart: get().cart.map(item =>
-        item.id === productId
-          ? { 
-              ...item, 
-              quantity, 
-              total: quantity * item.price 
-            }
-          : item
-      )
-    })
+    const newCart = get().cart.map(item =>
+      item.id === productId
+        ? { 
+            ...item, 
+            quantity, 
+            total: quantity * item.price 
+          }
+        : item
+    )
+    
+    const derived = calculateDerivedValues(newCart)
+    set({ cart: newCart, ...derived })
   },
   
   clearCart: () => {
+    const derived = calculateDerivedValues([])
     set({
       cart: [],
-      customer: null
+      customer: null,
+      ...derived
     })
   },
   

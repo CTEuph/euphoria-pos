@@ -101,13 +101,20 @@ scanner: {
   }
 }
 
-// In React component
-useEffect(() => {
-  const unsubscribe = window.electron.scanner.onScan((barcode) => {
-    // Handle scan
-  })
-  return unsubscribe
-}, [])
+// In React component - use custom hook instead of useEffect
+function useBarcodeScan(onScan: (barcode: string) => void) {
+  useSyncExternalStore(
+    (callback) => window.electron.scanner.onScan(callback),
+    () => null, // No snapshot needed for events
+    () => null  // Server snapshot
+  )
+  
+  // Or even better - direct event handler on component mount
+  const handleScan = useCallback(onScan, [onScan])
+  
+  // Subscribe on render, cleanup automatic
+  window.electron.scanner.onScan?.(handleScan)
+}
 ```
 
 ## State Management Rules

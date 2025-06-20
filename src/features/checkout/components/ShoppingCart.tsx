@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useRef, useCallback } from 'react'
 import { Minus, Plus, Trash2, User, CreditCard } from 'lucide-react'
 import { useCheckoutStore } from '../store/checkoutStore'
 import { CustomerSearch } from '@/features/customer/components/CustomerSearch'

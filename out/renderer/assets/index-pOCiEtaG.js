@@ -15855,13 +15855,19 @@ const useCheckoutStore = create((set, get) => ({
   isCustomerModalOpen: false,
   // Computed values
   get subtotal() {
-    return get().cart.reduce((sum, item) => sum + item.total, 0);
+    const state = get();
+    return state.cart.reduce((sum, item) => sum + item.total, 0);
   },
   get tax() {
-    return get().subtotal * TAX_RATE;
+    const state = get();
+    const subtotal = state.cart.reduce((sum, item) => sum + item.total, 0);
+    return subtotal * TAX_RATE;
   },
   get total() {
-    return get().subtotal + get().tax;
+    const state = get();
+    const subtotal = state.cart.reduce((sum, item) => sum + item.total, 0);
+    const tax = subtotal * TAX_RATE;
+    return subtotal + tax;
   },
   get itemCount() {
     return get().cart.reduce((sum, item) => sum + item.quantity, 0);
