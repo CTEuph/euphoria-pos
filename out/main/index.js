@@ -8,6 +8,7 @@ import path from "node:path";
 import { v4 } from "uuid";
 import { migrate } from "drizzle-orm/better-sqlite3/migrator";
 import bcrypt from "bcrypt";
+import WebSocket, { WebSocketServer } from "ws";
 import __cjs_mod__ from "node:module";
 const __filename = import.meta.filename;
 const __dirname = import.meta.dirname;
@@ -488,60 +489,289 @@ function setupAuthHandlers() {
     return currentEmployee !== null;
   });
 }
-async function publish(topic, payload, _options = {}) {
-  const db2 = getDb();
-  const id = generateId();
-  const timestamp = now();
-  const message = {
-    id,
-    topic,
-    payload,
-    status: "pending",
-    retryCount: 0,
-    createdAt: timestamp,
-    peerAckedAt: null,
-    cloudAckedAt: null
-  };
-  await db2.insert(outbox).values(message);
-  console.log(`Published message ${id} to outbox:`, { topic, payload });
-  return id;
+let wss = null;
+const connectedPeers = /* @__PURE__ */ new Map();
+function startPeerServer(port) {
+  if (wss) {
+    console.log("WebSocket server already running");
+    return;
+  }
+  try {
+    wss = new WebSocketServer({ port });
+    wss.on("listening", () => {
+      console.log(`WebSocket server listening on port ${port}`);
+    });
+    wss.on("connection", (ws, req) => {
+      const clientIp = req.socket.remoteAddress;
+      console.log(`New peer connection from ${clientIp}`);
+      ws.on("message", async (data) => {
+        try {
+          const message = JSON.parse(data.toString());
+          console.log(`Received message from peer:`, message);
+          const db2 = getDb();
+          const existing = await db2.select().from(inboxProcessed).where(eq(inboxProcessed.messageId, message.id)).limit(1);
+          if (existing.length > 0) {
+            console.log(`Message ${message.id} already processed, skipping`);
+            ws.send(JSON.stringify({ type: "ack", messageId: message.id }));
+            return;
+          }
+          await processIncomingMessage(message);
+          await db2.insert(inboxProcessed).values({
+            messageId: message.id,
+            fromTerminal: message.fromTerminal,
+            topic: message.topic,
+            payload: message.payload,
+            processedAt: now()
+          });
+          ws.send(JSON.stringify({ type: "ack", messageId: message.id }));
+        } catch (error) {
+          console.error("Error processing peer message:", error);
+          ws.send(JSON.stringify({ type: "error", error: "Failed to process message" }));
+        }
+      });
+      ws.on("close", () => {
+        console.log(`Peer connection closed from ${clientIp}`);
+      });
+      ws.on("error", (error) => {
+        console.error(`WebSocket error from ${clientIp}:`, error);
+      });
+    });
+    wss.on("error", (error) => {
+      console.error("WebSocket server error:", error);
+    });
+  } catch (error) {
+    console.error("Failed to start WebSocket server:", error);
+    throw error;
+  }
+}
+function stopPeerServer() {
+  if (wss) {
+    wss.close(() => {
+      console.log("WebSocket server stopped");
+    });
+    wss = null;
+  }
+  connectedPeers.clear();
+}
+async function processIncomingMessage(message) {
+  console.log(`Processing ${message.topic} message from ${message.fromTerminal}`);
+  switch (message.topic) {
+    case "transaction":
+      console.log("Transaction sync:", message.payload);
+      break;
+    case "inventory":
+      console.log("Inventory sync:", message.payload);
+      break;
+    case "customer":
+      console.log("Customer sync:", message.payload);
+      break;
+    default:
+      console.log(`Unknown message topic: ${message.topic}`);
+  }
 }
 async function markSent(messageId, stage) {
   const db2 = getDb();
   const timestamp = now();
-  if (stage === "peer_ack") {
+  {
     await db2.update(outbox).set({
       status: "peer_ack",
       peerAckedAt: timestamp
     }).where(eq(outbox.id, messageId));
     console.log(`Message ${messageId} acknowledged by peer`);
-  } else if (stage === "cloud_ack") {
-    await db2.update(outbox).set({
-      status: "cloud_ack",
-      cloudAckedAt: timestamp
-    }).where(eq(outbox.id, messageId));
-    console.log(`Message ${messageId} acknowledged by cloud`);
   }
 }
 async function getPendingMessages(status = "pending", limit = 100) {
   const db2 = getDb();
   return await db2.select().from(outbox).where(eq(outbox.status, status)).limit(limit).orderBy(outbox.createdAt);
 }
-async function testOutbox() {
-  console.log("Testing outbox functionality...");
-  initializeDatabase();
-  const messageId = await publish("test", { foo: 1, bar: "test" });
-  console.log("Published message:", messageId);
-  const pending = await getPendingMessages();
-  console.log("Pending messages:", pending.length);
-  console.log("First message:", pending[0]);
-  await markSent(messageId, "peer_ack");
-  const peerAcked = await getPendingMessages("peer_ack");
-  console.log("Peer acknowledged messages:", peerAcked.length);
-  await markSent(messageId, "cloud_ack");
-  const stillPending = await getPendingMessages();
-  console.log("Still pending messages:", stillPending.length);
-  console.log("Outbox tests completed successfully!");
+async function incrementRetryCount(messageId) {
+  const db2 = getDb();
+  const [message] = await db2.select().from(outbox).where(eq(outbox.id, messageId)).limit(1);
+  if (message) {
+    await db2.update(outbox).set({
+      retryCount: (message.retryCount || 0) + 1
+    }).where(eq(outbox.id, messageId));
+  }
+}
+const peers = /* @__PURE__ */ new Map();
+const pendingAcks = /* @__PURE__ */ new Map();
+const RECONNECT_DELAY = 5e3;
+const ACK_TIMEOUT = 1e4;
+function connectToPeers(peerUrls, terminalId) {
+  for (const url of peerUrls) {
+    if (!peers.has(url)) {
+      peers.set(url, {
+        url,
+        ws: null,
+        isConnected: false
+      });
+    }
+    connectToPeer(url, terminalId);
+  }
+}
+function connectToPeer(url, terminalId) {
+  const peer = peers.get(url);
+  if (!peer) return;
+  try {
+    console.log(`Connecting to peer: ${url}`);
+    const ws = new WebSocket(url);
+    peer.ws = ws;
+    ws.on("open", () => {
+      console.log(`Connected to peer: ${url}`);
+      peer.isConnected = true;
+      if (peer.reconnectTimer) {
+        clearTimeout(peer.reconnectTimer);
+        peer.reconnectTimer = void 0;
+      }
+      sendPendingMessagesToPeer(peer, terminalId);
+    });
+    ws.on("message", (data) => {
+      try {
+        const response = JSON.parse(data.toString());
+        if (response.type === "ack" && response.messageId) {
+          const pending = pendingAcks.get(response.messageId);
+          if (pending) {
+            pending.resolve();
+            pendingAcks.delete(response.messageId);
+            markSent(response.messageId, "peer_ack");
+          }
+        }
+      } catch (error) {
+        console.error("Error parsing peer response:", error);
+      }
+    });
+    ws.on("close", () => {
+      console.log(`Disconnected from peer: ${url}`);
+      peer.isConnected = false;
+      peer.ws = null;
+      scheduleReconnect(url, terminalId);
+    });
+    ws.on("error", (error) => {
+      console.error(`WebSocket client error for ${url}:`, error);
+      peer.isConnected = false;
+    });
+  } catch (error) {
+    console.error(`Failed to connect to peer ${url}:`, error);
+    scheduleReconnect(url, terminalId);
+  }
+}
+function scheduleReconnect(url, terminalId) {
+  const peer = peers.get(url);
+  if (!peer) return;
+  if (peer.reconnectTimer) {
+    clearTimeout(peer.reconnectTimer);
+  }
+  peer.reconnectTimer = setTimeout(() => {
+    console.log(`Attempting to reconnect to peer: ${url}`);
+    connectToPeer(url, terminalId);
+  }, RECONNECT_DELAY);
+}
+async function sendPendingMessagesToPeer(peer, terminalId) {
+  if (!peer.ws || !peer.isConnected) return;
+  try {
+    const pendingMessages = await getPendingMessages("pending", 100);
+    for (const message of pendingMessages) {
+      await sendMessageToPeer(peer, message, terminalId);
+    }
+  } catch (error) {
+    console.error("Error sending pending messages:", error);
+  }
+}
+async function sendMessageToPeer(peer, message, terminalId) {
+  if (!peer.ws || !peer.isConnected) return;
+  const peerMessage = {
+    id: message.id,
+    fromTerminal: terminalId,
+    topic: message.topic,
+    payload: message.payload,
+    timestamp: message.createdAt.toISOString()
+  };
+  return new Promise((resolve, reject) => {
+    const timeoutId = setTimeout(() => {
+      pendingAcks.delete(message.id);
+      incrementRetryCount(message.id);
+      reject(new Error(`ACK timeout for message ${message.id}`));
+    }, ACK_TIMEOUT);
+    pendingAcks.set(message.id, {
+      messageId: message.id,
+      resolve: () => {
+        clearTimeout(timeoutId);
+        resolve();
+      },
+      reject
+    });
+    peer.ws.send(JSON.stringify(peerMessage), (error) => {
+      if (error) {
+        clearTimeout(timeoutId);
+        pendingAcks.delete(message.id);
+        reject(error);
+      }
+    });
+  });
+}
+function disconnectFromPeers() {
+  for (const [url, peer] of peers) {
+    if (peer.reconnectTimer) {
+      clearTimeout(peer.reconnectTimer);
+    }
+    if (peer.ws) {
+      peer.ws.close();
+    }
+  }
+  peers.clear();
+  pendingAcks.clear();
+}
+let syncInterval = null;
+const SYNC_INTERVAL = 5e3;
+function getConfig() {
+  let terminalId = process.env.TERMINAL_ID || "L1";
+  let terminalPort = parseInt(process.env.TERMINAL_PORT || "8123");
+  try {
+    const settings = require2("../../settings.local.json");
+    if (settings.terminalId) terminalId = settings.terminalId;
+    if (settings.terminalPort) terminalPort = settings.terminalPort;
+  } catch (error) {
+  }
+  const peerTerminals = process.env.PEER_TERMINALS ? process.env.PEER_TERMINALS.split(",").map((url) => url.trim()) : [];
+  return { terminalId, terminalPort, peerTerminals };
+}
+function startLaneSync() {
+  const { terminalId, terminalPort, peerTerminals } = getConfig();
+  console.log(`Starting lane sync for terminal ${terminalId} on port ${terminalPort}`);
+  console.log(`Peer terminals: ${peerTerminals.join(", ") || "none"}`);
+  try {
+    startPeerServer(terminalPort);
+  } catch (error) {
+    console.error("Failed to start peer server:", error);
+    try {
+      console.log(`Port ${terminalPort} in use, trying ${terminalPort + 1}`);
+      startPeerServer(terminalPort + 1);
+    } catch (error2) {
+      console.error("Failed to start peer server on alternate port:", error2);
+    }
+  }
+  if (peerTerminals.length > 0) {
+    connectToPeers(peerTerminals, terminalId);
+  }
+  syncInterval = setInterval(async () => {
+    try {
+      const pendingMessages = await getPendingMessages("pending", 50);
+      if (pendingMessages.length > 0) {
+        console.log(`Found ${pendingMessages.length} pending messages to sync`);
+      }
+    } catch (error) {
+      console.error("Error in sync interval:", error);
+    }
+  }, SYNC_INTERVAL);
+}
+function stopLaneSync() {
+  console.log("Stopping lane sync");
+  if (syncInterval) {
+    clearInterval(syncInterval);
+    syncInterval = null;
+  }
+  disconnectFromPeers();
+  stopPeerServer();
 }
 let mainWindow = null;
 function createWindow() {
@@ -564,7 +794,7 @@ app.whenReady().then(async () => {
   initializeDatabase();
   await seedInitialData();
   setupAuthHandlers();
-  await testOutbox();
+  startLaneSync();
   createWindow();
 });
 app.on("window-all-closed", () => {
@@ -573,5 +803,6 @@ app.on("window-all-closed", () => {
   }
 });
 app.on("before-quit", () => {
+  stopLaneSync();
   closeDatabase();
 });

@@ -3,6 +3,7 @@ import { join } from 'path'
 import { initializeDatabase, closeDatabase } from './services/localDb'
 import { seedInitialData } from './services/seedInitialData'
 import { setupAuthHandlers } from './ipc/handlers/auth'
+import { startLaneSync, stopLaneSync } from './services/sync'
 
 let mainWindow: BrowserWindow | null = null
 
@@ -34,6 +35,9 @@ app.whenReady().then(async () => {
   // Setup IPC handlers
   setupAuthHandlers()
   
+  // Start lane sync
+  startLaneSync()
+  
   // Create window
   createWindow()
 })
@@ -45,6 +49,9 @@ app.on('window-all-closed', () => {
 })
 
 app.on('before-quit', () => {
+  // Stop lane sync
+  stopLaneSync()
+  
   // Close database connection
   closeDatabase()
 })
