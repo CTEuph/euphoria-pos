@@ -488,6 +488,61 @@ function setupAuthHandlers() {
     return currentEmployee !== null;
   });
 }
+async function publish(topic, payload, _options = {}) {
+  const db2 = getDb();
+  const id = generateId();
+  const timestamp = now();
+  const message = {
+    id,
+    topic,
+    payload,
+    status: "pending",
+    retryCount: 0,
+    createdAt: timestamp,
+    peerAckedAt: null,
+    cloudAckedAt: null
+  };
+  await db2.insert(outbox).values(message);
+  console.log(`Published message ${id} to outbox:`, { topic, payload });
+  return id;
+}
+async function markSent(messageId, stage) {
+  const db2 = getDb();
+  const timestamp = now();
+  if (stage === "peer_ack") {
+    await db2.update(outbox).set({
+      status: "peer_ack",
+      peerAckedAt: timestamp
+    }).where(eq(outbox.id, messageId));
+    console.log(`Message ${messageId} acknowledged by peer`);
+  } else if (stage === "cloud_ack") {
+    await db2.update(outbox).set({
+      status: "cloud_ack",
+      cloudAckedAt: timestamp
+    }).where(eq(outbox.id, messageId));
+    console.log(`Message ${messageId} acknowledged by cloud`);
+  }
+}
+async function getPendingMessages(status = "pending", limit = 100) {
+  const db2 = getDb();
+  return await db2.select().from(outbox).where(eq(outbox.status, status)).limit(limit).orderBy(outbox.createdAt);
+}
+async function testOutbox() {
+  console.log("Testing outbox functionality...");
+  initializeDatabase();
+  const messageId = await publish("test", { foo: 1, bar: "test" });
+  console.log("Published message:", messageId);
+  const pending = await getPendingMessages();
+  console.log("Pending messages:", pending.length);
+  console.log("First message:", pending[0]);
+  await markSent(messageId, "peer_ack");
+  const peerAcked = await getPendingMessages("peer_ack");
+  console.log("Peer acknowledged messages:", peerAcked.length);
+  await markSent(messageId, "cloud_ack");
+  const stillPending = await getPendingMessages();
+  console.log("Still pending messages:", stillPending.length);
+  console.log("Outbox tests completed successfully!");
+}
 let mainWindow = null;
 function createWindow() {
   mainWindow = new BrowserWindow({
@@ -509,6 +564,7 @@ app.whenReady().then(async () => {
   initializeDatabase();
   await seedInitialData();
   setupAuthHandlers();
+  await testOutbox();
   createWindow();
 });
 app.on("window-all-closed", () => {

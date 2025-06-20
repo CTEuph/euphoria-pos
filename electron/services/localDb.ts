@@ -88,3 +88,10 @@ export function generateId(): string {
 export function now(): Date {
   return new Date()
 }
+
+/**
+ * Helper to check if database is initialized
+ */
+export function isDatabaseInitialized(): boolean {
+  return db !== null
+}
