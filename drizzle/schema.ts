@@ -231,8 +231,8 @@ export const giftCards = pgTable('gift_cards', {
   lastUsedAt: timestamp('last_used_at')
 })
 
-// Case discount rules (configured from backend)
-export const caseDiscountRules = pgTable('case_discount_rules', {
+// Discount rules (configured from backend)
+export const discounts = pgTable('discounts', {
   id: uuid('id').defaultRandom().primaryKey(),
   name: text('name').notNull(),
   category: productCategoryEnum('category').notNull(),

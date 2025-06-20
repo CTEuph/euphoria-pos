@@ -1,5 +1,8 @@
 import { app, BrowserWindow } from 'electron'
 import { join } from 'path'
+import { initializeDatabase, closeDatabase } from './services/localDb'
+import { seedInitialData } from './services/seedInitialData'
+import { setupAuthHandlers } from './ipc/handlers/auth'
 
 let mainWindow: BrowserWindow | null = null
 
@@ -8,7 +11,7 @@ function createWindow(): void {
     width: 1400,
     height: 900,
     webPreferences: {
-      preload: join(__dirname, 'preload.js'),
+      preload: join(__dirname, '../preload/index.cjs'),
       contextIsolation: true,
       nodeIntegration: false
     }
@@ -21,10 +24,27 @@ function createWindow(): void {
   }
 }
 
-app.whenReady().then(createWindow)
+app.whenReady().then(async () => {
+  // Initialize database
+  initializeDatabase()
+  
+  // Seed initial data
+  await seedInitialData()
+  
+  // Setup IPC handlers
+  setupAuthHandlers()
+  
+  // Create window
+  createWindow()
+})
 
 app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') {
     app.quit()
   }
+})
+
+app.on('before-quit', () => {
+  // Close database connection
+  closeDatabase()
 })
