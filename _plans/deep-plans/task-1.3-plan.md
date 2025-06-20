@@ -10,7 +10,7 @@
 
 ```
 PHASE 0 – FOUNDATION
-0.1  Create git branch `feat/offline-auth‐lane-sync`.
+0.1  Create git branch `feat/offline-auth‐lane-sync-v2`.
 0.2  Enable WAL on SQLite in all dev machines.
 
 PHASE 1 – DEPENDENCIES & CONFIG
