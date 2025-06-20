@@ -106,3 +106,6 @@ export function getSyncStatus() {
     isRunning: syncInterval !== null
   }
 }
+
+// Re-export cloud sync functions
+export { startCloudSync, stopCloudSync, getCloudSyncStatus, triggerCloudSync } from './cloudSync'
