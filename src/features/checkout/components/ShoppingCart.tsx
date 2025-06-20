@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button'
 
 export function ShoppingCart() {
   const [showCustomerSearch, setShowCustomerSearch] = useState(false)
+  const cartScrollRef = useRef<HTMLDivElement>(null)
   const { 
     cart, 
     customer, 
@@ -17,6 +18,20 @@ export function ShoppingCart() {
     removeItem, 
     clearCart 
   } = useCheckoutStore()
+
+  // Scroll to bottom when cart changes (new items added)
+  const scrollToBottom = useCallback(() => {
+    if (cartScrollRef.current) {
+      cartScrollRef.current.scrollTop = cartScrollRef.current.scrollHeight
+    }
+  }, [])
+
+  // Use a ref callback to scroll when cart length changes
+  const prevCartLength = useRef(cart.length)
+  if (cart.length > prevCartLength.current) {
+    setTimeout(scrollToBottom, 50) // Small delay to ensure DOM is updated
+  }
+  prevCartLength.current = cart.length
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-US', {
@@ -82,7 +97,7 @@ export function ShoppingCart() {
       </div>
 
       {/* Cart Items */}
-      <div className="flex-1 overflow-y-auto">
+      <div ref={cartScrollRef} className="flex-1 overflow-y-auto">
         {cart.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full text-gray-500">
             <div className="text-4xl mb-2">🛒</div>
