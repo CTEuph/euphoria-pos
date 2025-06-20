@@ -1,4 +1,5 @@
 import { WebSocketServer } from 'ws'
+import { eq, sql } from 'drizzle-orm'
 import { db, withTxn } from '../localDb'
 import * as schema from '../../../drizzle/sqlite-schema'
 import { v4 as uuidv4 } from 'uuid'
@@ -24,7 +25,7 @@ export function startWebSocketServer(port: number) {
         const processed = await db
           .select()
           .from(schema.inboxProcessed)
-          .where(schema.inboxProcessed.id.eq(message.id))
+          .where(eq(schema.inboxProcessed.id, message.id))
           .limit(1)
 
         if (processed.length > 0) {
@@ -118,7 +119,7 @@ async function upsertTransaction(tx: any, data: any) {
   const existing = await tx
     .select()
     .from(schema.transactions)
-    .where(schema.transactions.id.eq(data.id))
+    .where(eq(schema.transactions.id, data.id))
     .limit(1)
 
   if (existing.length === 0) {
