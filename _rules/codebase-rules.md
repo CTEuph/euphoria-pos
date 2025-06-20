@@ -459,11 +459,13 @@ if (typeof window !== 'undefined') {
 ```
 
 ### Common IPC channels
+- `auth:*` - Authentication operations
 - `db:*` - Database operations
 - `scanner:*` - Barcode scanner events
 - `printer:*` - Receipt printer commands
 - `payment:*` - Payment terminal operations
 - `sync:*` - Cloud synchronization
+- `config:*` - Terminal/business configuration
 
 ### File naming
 - Components: PascalCase.tsx

@@ -2,9 +2,13 @@ import { app, BrowserWindow } from 'electron'
 import { join } from 'path'
 import { initializeDatabase } from './services/localDb'
 import { seedEmployees } from './services/employeeService'
+import { seedInitialData } from './services/seedInitialData'
 import { setupAuthHandlers } from './ipc/handlers/auth'
+import { setupDatabaseHandlers } from './ipc/handlers/database'
+import { setupConfigHandlers } from './ipc/handlers/config'
 import { startLaneSync } from './services/sync'
 import { startCloudSync } from './services/sync/cloudSync'
+import { validateConfig } from './services/configValidator'
 import type { SyncHandle } from './services/sync'
 
 let mainWindow: BrowserWindow | null = null
@@ -31,14 +35,20 @@ function createWindow(): void {
 
 app.whenReady().then(async () => {
   try {
+    // Validate configuration
+    validateConfig()
+    
     // Initialize database
     initializeDatabase()
     
     // Seed initial data
     await seedEmployees()
+    await seedInitialData()
     
     // Set up IPC handlers
     setupAuthHandlers()
+    setupDatabaseHandlers()
+    setupConfigHandlers()
     
     // Start sync services
     laneSync = startLaneSync()

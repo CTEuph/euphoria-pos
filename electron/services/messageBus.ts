@@ -1,4 +1,5 @@
 import { v4 as uuidv4 } from 'uuid'
+import { eq, and, lt, sql } from 'drizzle-orm'
 import { db } from './localDb'
 import * as schema from '../../drizzle/sqlite-schema'
 
@@ -40,7 +41,7 @@ export async function markSent(id: string, peer?: 'lane' | 'cloud'): Promise<voi
   await db
     .update(schema.outbox)
     .set({ status })
-    .where(schema.outbox.id.eq(id))
+    .where(eq(schema.outbox.id, id))
 }
 
 // Mark a message as error
@@ -48,7 +49,7 @@ export async function markError(id: string): Promise<void> {
   await db
     .update(schema.outbox)
     .set({ status: 'error' })
-    .where(schema.outbox.id.eq(id))
+    .where(eq(schema.outbox.id, id))
 }
 
 // Increment retry count
@@ -56,9 +57,9 @@ export async function incrementRetries(id: string): Promise<void> {
   await db
     .update(schema.outbox)
     .set({ 
-      retries: schema.outbox.retries.plus(1) 
+      retries: sql`${schema.outbox.retries} + 1`
     })
-    .where(schema.outbox.id.eq(id))
+    .where(eq(schema.outbox.id, id))
 }
 
 // Get pending messages for sync
@@ -66,7 +67,7 @@ export async function getPendingMessages(status: string = 'pending') {
   return await db
     .select()
     .from(schema.outbox)
-    .where(schema.outbox.status.eq(status))
+    .where(eq(schema.outbox.status, status))
     .orderBy(schema.outbox.createdAt)
 }
 
@@ -78,7 +79,9 @@ export async function cleanupOldMessages(daysOld: number = 30): Promise<void> {
   await db
     .delete(schema.outbox)
     .where(
-      schema.outbox.status.eq('cloud_ack')
-        .and(schema.outbox.createdAt.lt(cutoffDate.toISOString()))
+      and(
+        eq(schema.outbox.status, 'cloud_ack'),
+        lt(schema.outbox.createdAt, cutoffDate.toISOString())
+      )
     )
 }
