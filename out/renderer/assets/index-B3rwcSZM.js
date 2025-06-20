@@ -15845,6 +15845,13 @@ const createImpl = (createState) => {
   return useBoundStore;
 };
 const create = (createState) => createState ? createImpl(createState) : createImpl;
+const calculateDerivedValues = (cart) => {
+  const subtotal = cart.reduce((sum, item) => sum + item.total, 0);
+  const tax = subtotal * TAX_RATE;
+  const total = subtotal + tax;
+  const itemCount = cart.reduce((sum, item) => sum + item.quantity, 0);
+  return { subtotal, tax, total, itemCount };
+};
 const useCheckoutStore = create((set, get) => ({
   // Initial state
   cart: [],
@@ -15854,73 +15861,60 @@ const useCheckoutStore = create((set, get) => ({
   isPaymentModalOpen: false,
   isCustomerModalOpen: false,
   // Computed values
-  get subtotal() {
-    const state = get();
-    return state.cart.reduce((sum, item) => sum + item.total, 0);
-  },
-  get tax() {
-    const state = get();
-    const subtotal = state.cart.reduce((sum, item) => sum + item.total, 0);
-    return subtotal * TAX_RATE;
-  },
-  get total() {
-    const state = get();
-    const subtotal = state.cart.reduce((sum, item) => sum + item.total, 0);
-    const tax = subtotal * TAX_RATE;
-    return subtotal + tax;
-  },
-  get itemCount() {
-    return get().cart.reduce((sum, item) => sum + item.quantity, 0);
-  },
+  subtotal: 0,
+  tax: 0,
+  total: 0,
+  itemCount: 0,
   // Actions
   addItem: (product) => {
     const currentCart = get().cart;
     const existingItem = currentCart.find((item) => item.id === product.id);
+    let newCart;
     if (existingItem) {
-      set({
-        cart: currentCart.map(
-          (item) => item.id === product.id ? {
-            ...item,
-            quantity: item.quantity + 1,
-            total: (item.quantity + 1) * item.price
-          } : item
-        )
-      });
+      newCart = currentCart.map(
+        (item) => item.id === product.id ? {
+          ...item,
+          quantity: item.quantity + 1,
+          total: (item.quantity + 1) * item.price
+        } : item
+      );
     } else {
       const cartItem = {
         ...product,
         quantity: 1,
         total: product.price
       };
-      set({
-        cart: [...currentCart, cartItem]
-      });
+      newCart = [...currentCart, cartItem];
     }
+    const derived = calculateDerivedValues(newCart);
+    set({ cart: newCart, ...derived });
   },
   removeItem: (productId) => {
-    set({
-      cart: get().cart.filter((item) => item.id !== productId)
-    });
+    const newCart = get().cart.filter((item) => item.id !== productId);
+    const derived = calculateDerivedValues(newCart);
+    set({ cart: newCart, ...derived });
   },
   updateQuantity: (productId, quantity) => {
     if (quantity <= 0) {
       get().removeItem(productId);
       return;
     }
-    set({
-      cart: get().cart.map(
-        (item) => item.id === productId ? {
-          ...item,
-          quantity,
-          total: quantity * item.price
-        } : item
-      )
-    });
+    const newCart = get().cart.map(
+      (item) => item.id === productId ? {
+        ...item,
+        quantity,
+        total: quantity * item.price
+      } : item
+    );
+    const derived = calculateDerivedValues(newCart);
+    set({ cart: newCart, ...derived });
   },
   clearCart: () => {
+    const derived = calculateDerivedValues([]);
     set({
       cart: [],
-      customer: null
+      customer: null,
+      ...derived
     });
   },
   setCustomer: (customer) => {
@@ -16173,6 +16167,7 @@ function ProductGrid({ products, loading = false }) {
 }
 function ShoppingCart() {
   const [showCustomerSearch, setShowCustomerSearch] = reactExports.useState(false);
+  const cartScrollRef = reactExports.useRef(null);
   const {
     cart,
     customer,
@@ -16184,6 +16179,16 @@ function ShoppingCart() {
     removeItem,
     clearCart
   } = useCheckoutStore();
+  const scrollToBottom = reactExports.useCallback(() => {
+    if (cartScrollRef.current) {
+      cartScrollRef.current.scrollTop = cartScrollRef.current.scrollHeight;
+    }
+  }, []);
+  const prevCartLength = reactExports.useRef(cart.length);
+  if (cart.length > prevCartLength.current) {
+    setTimeout(scrollToBottom, 50);
+  }
+  prevCartLength.current = cart.length;
   const formatCurrency = (amount) => {
     return new Intl.NumberFormat("en-US", {
       style: "currency",
@@ -16242,7 +16247,7 @@ function ShoppingCart() {
         ]
       }
     ) }),
-    /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "flex-1 overflow-y-auto", children: cart.length === 0 ? /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex flex-col items-center justify-center h-full text-gray-500", children: [
+    /* @__PURE__ */ jsxRuntimeExports.jsx("div", { ref: cartScrollRef, className: "flex-1 overflow-y-auto", children: cart.length === 0 ? /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex flex-col items-center justify-center h-full text-gray-500", children: [
       /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "text-4xl mb-2", children: "🛒" }),
       /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "text-sm", children: "Cart is empty" }),
       /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "text-xs", children: "Scan or add products to get started" })
