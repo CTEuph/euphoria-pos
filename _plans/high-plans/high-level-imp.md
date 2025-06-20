@@ -73,16 +73,43 @@
 
 **✅ COMPLETED**: Full product search with intelligent substring matching, keyboard navigation, and seamless scanner integration. Local state management with useMemo (no useEffect complexity). Comprehensive testing with 19 unit tests covering business logic. Ready for USB scanner hardware testing.
 
-### Task 1.3: Case Discount Engine ⏳
-**Goal**: Automatic discounts per PRD requirements
+### Task 1.3: Advanced Discount System ⏳
+**Goal**: Professional discount management with authorization and audit
 
 **Requirements**:
-- Detect qualifying quantities in cart
-- Apply discount automatically
-- Show discount line item
-- Handle mixed sizes correctly
+- Item-level discount modal (click cart item)
+- Order-level discount modal (apply to whole order)
+- Employee discount limits with manager approval
+- Preapproved discount library
+- Custom discount entry
+- Full audit trail with reasons
 
-**Business Rules**:
+**System Architecture**:
+```typescript
+// POS Discount Modals
+- ItemDiscountModal: Apply discounts to specific products
+- OrderDiscountModal: Apply discounts to entire order
+- ManagerApprovalModal: PIN + reason for over-limit discounts
+
+// Employee Authorization Levels
+- Regular Employee: Limited discount amounts
+- Manager: Unlimited discounts + approval rights
+- Custom limits per employee configurable
+
+// Preapproved Discount Library
+- Military Discount (10% with ID verification)
+- Senior Discount (5% for 65+)
+- Damaged Item Discount (manager only)
+- Employee Friends Discount (manager approval)
+```
+
+**Web Admin Features**:
+- Create/edit discount rules engine
+- Set employee discount limits
+- View discount analytics and audit reports
+- Push discount rules to POS terminals
+
+**Automatic Discount Rules**:
 ```
 Wine/Liquor 750ml or 1L: 12 bottles = 10% off
 Wine/Liquor 1.5L or 1.75L: 6 bottles = 10% off
@@ -90,10 +117,13 @@ Must be same category (wine OR liquor, not mixed)
 ```
 
 **Acceptance Criteria**:
-- [ ] 12x Jack Daniels 750ml shows $29.99 discount
-- [ ] 6x Wine 750ml + 6x Liquor 750ml = NO discount
-- [ ] Discount appears as separate line in cart
-- [ ] Removing items updates discount
+- [ ] Click cart item opens discount modal with preapproved options
+- [ ] Custom discount over employee limit triggers manager approval
+- [ ] Manager enters PIN + reason for discount authorization
+- [ ] All discounts saved with employee ID, manager approval, and reason
+- [ ] 12x Jack Daniels 750ml shows automatic $29.99 discount
+- [ ] Preapproved discounts available as one-click buttons
+- [ ] Discount audit trail available for compliance review
 
 ### Task 1.4: Customer Management ⏳
 **Goal**: Loyalty points and customer history
@@ -277,6 +307,31 @@ Thank you!
 - Special pricing rules
 - Tab management
 - Shift management
+
+### Task 4.4: Web Admin Dashboard
+**Goal**: Centralized management for discount rules and employee permissions
+
+**Features**:
+- Discount rules engine with visual builder
+- Employee discount limit configuration
+- Real-time discount analytics and reporting
+- Audit trail viewer with search/filter
+- Preapproved discount library management
+- Push configuration updates to POS terminals
+- Revenue impact analysis by discount type
+- Employee discount usage monitoring
+
+### Task 4.5: Advanced Discount Analytics
+**Goal**: Business intelligence for discount optimization
+
+**Features**:
+- Discount ROI analysis
+- Customer response to discount campaigns
+- Employee discount usage patterns
+- Manager approval frequency tracking
+- Revenue impact by discount type
+- Compliance reporting for accounting
+- Automated alerts for unusual discount patterns
 
 ## Testing Checklist
 

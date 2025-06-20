@@ -98,18 +98,27 @@ A reliable, fast, and extensible POS system that maintains perfect inventory acc
 ### Product Features
 - Barcode scanning with multi-barcode support
 - Manual SKU/name search
-- Automatic case discounts:
-  - **Wine/Liquor 750ml/1L**: 12 bottles = case discount
-  - **Wine/Liquor 1.5L/1.75L**: 6 bottles = case discount
-  - Must be same product category (no mixing wine & liquor)
+- Advanced discount management system:
+  - **Item-level discounts**: Click cart item to open discount modal
+  - **Order-level discounts**: Apply discounts to entire transaction
+  - **Automatic case discounts**: 12 bottles wine/liquor 750ml/1L, 6 bottles 1.5L/1.75L
+  - **Preapproved discounts**: Military (10%), Senior (5%), Damaged Item, etc.
+  - **Employee authorization**: Discount limits with manager approval over threshold
+  - **Manager PIN approval**: Required for discounts exceeding employee limits
+  - **Full audit trail**: Every discount tracked with employee, reason, and approval
 - Linked products (single can ↔ 4-pack)
 - Price override with manager approval
 
 ### Employee Features
-- Employee login/identification
+- Employee login/identification with discount authorization levels
 - Special employee pricing (cost + round up to nearest dollar)
 - Deferred payment tracking
 - Separate reporting channel for employee purchases
+- **Discount permissions**: Configurable limits per employee
+  - Maximum item discount (percent and fixed amount)
+  - Maximum order discount (percent and fixed amount)
+  - Manager approval required for over-limit discounts
+- **Manager capabilities**: PIN approval for employee discount overrides
 
 ### Payment Types
 - Cash (with change calculation)
@@ -143,7 +152,10 @@ A reliable, fast, and extensible POS system that maintains perfect inventory acc
 - Age verification automation
 
 ### Handled by Backend System
-- Complex discount rules
+- Complex discount rules configuration and management
+- Employee discount permission settings
+- Preapproved discount library management
+- Discount analytics and audit reporting
 - Inventory reorder points
 - Product categorization/tagging
 - Pricing updates
@@ -239,6 +251,12 @@ A reliable, fast, and extensible POS system that maintains perfect inventory acc
 - Payment method(s) and amounts
 - Sales channel (Regular/Third-party/Employee)
 - Total with tax breakdown
+- **Discount audit data**:
+  - Applied discounts with amounts and types
+  - Employee who applied each discount
+  - Manager approvals with PIN verification
+  - Discount reasons and justifications
+  - Timestamp for each discount application
 
 ### Customer Data
 - Customer ID
@@ -249,3 +267,16 @@ A reliable, fast, and extensible POS system that maintains perfect inventory acc
 - Loyalty points balance
 - RFID/NFC identifier
 - Purchase history reference
+
+### Employee Data
+- Employee ID
+- Name
+- PIN for authentication
+- Role (Cashier/Manager/Owner)
+- **Discount authorization limits**:
+  - Maximum item discount percentage
+  - Maximum item discount fixed amount
+  - Maximum order discount percentage
+  - Maximum order discount fixed amount
+  - Manager approval required threshold
+- Active status and permissions
