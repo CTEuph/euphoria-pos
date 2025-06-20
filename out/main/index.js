@@ -3,7 +3,7 @@ import { join } from "path";
 import { drizzle } from "drizzle-orm/better-sqlite3";
 import Database from "better-sqlite3";
 import { sqliteTable, integer, text, index, primaryKey } from "drizzle-orm/sqlite-core";
-import { relations, eq } from "drizzle-orm";
+import { relations, eq, sql } from "drizzle-orm";
 import path from "node:path";
 import { v4 } from "uuid";
 import { migrate } from "drizzle-orm/better-sqlite3/migrator";
@@ -322,6 +322,12 @@ function getDb() {
   }
   return db;
 }
+async function withTxn(fn) {
+  const database = getDb();
+  return database.transaction((tx) => {
+    return fn(tx);
+  })();
+}
 function closeDatabase() {
   if (sqliteDb) {
     sqliteDb.close();
@@ -430,6 +436,38 @@ const mockEmployees = [
     isManager: false
   }
 ];
+const mockProducts = [
+  {
+    id: generateId(),
+    sku: "JD750",
+    name: "Jack Daniels 750ml",
+    category: "liquor",
+    size: "750ml",
+    cost: "15.00",
+    retailPrice: "24.99",
+    barcode: "082184090563"
+  },
+  {
+    id: generateId(),
+    sku: "GREY750",
+    name: "Grey Goose Vodka 750ml",
+    category: "liquor",
+    size: "750ml",
+    cost: "22.00",
+    retailPrice: "34.99",
+    barcode: "080480280017"
+  },
+  {
+    id: generateId(),
+    sku: "BUD6PK",
+    name: "Budweiser 6-Pack",
+    category: "beer",
+    size: "other",
+    cost: "5.00",
+    retailPrice: "8.99",
+    barcode: "018200001963"
+  }
+];
 async function seedInitialData() {
   try {
     const db2 = getDb();
@@ -444,11 +482,55 @@ async function seedInitialData() {
     } else {
       console.log("Employee data already exists, skipping seed");
     }
+    const existingProducts = await db2.select().from(products).limit(1);
+    if (existingProducts.length === 0) {
+      console.log("Seeding initial product data...");
+      const timestamp = now();
+      for (const product of mockProducts) {
+        await db2.insert(products).values({
+          ...product,
+          parentProductId: null,
+          unitsInParent: 1,
+          loyaltyPointMultiplier: "1.0",
+          isActive: true,
+          createdAt: timestamp,
+          updatedAt: timestamp
+        });
+        await db2.insert(productBarcodes).values({
+          id: generateId(),
+          productId: product.id,
+          barcode: product.barcode,
+          isPrimary: true,
+          createdAt: timestamp
+        });
+        await db2.insert(inventory).values({
+          productId: product.id,
+          currentStock: 100,
+          // Start with 100 units
+          reservedStock: 0,
+          lastUpdated: timestamp,
+          lastSyncedAt: null
+        });
+        console.log(`Created product: ${product.name}`);
+      }
+      console.log("Initial product data seeded successfully");
+    } else {
+      console.log("Product data already exists, skipping seed");
+    }
   } catch (error) {
     console.error("Error seeding initial data:", error);
   }
 }
 let currentEmployee = null;
+function assertAuthenticated() {
+  if (!currentEmployee) {
+    throw new Error("Not authenticated");
+  }
+  return currentEmployee;
+}
+function getCurrentEmployee() {
+  return currentEmployee;
+}
 function setupAuthHandlers() {
   ipcMain.handle("auth:verify-pin", async (event, pin) => {
     try {
@@ -487,6 +569,294 @@ function setupAuthHandlers() {
   });
   ipcMain.handle("auth:check-authenticated", async () => {
     return currentEmployee !== null;
+  });
+}
+async function markSent(messageId, stage) {
+  const db2 = getDb();
+  const timestamp = now();
+  {
+    await db2.update(outbox).set({
+      status: "peer_ack",
+      peerAckedAt: timestamp
+    }).where(eq(outbox.id, messageId));
+    console.log(`Message ${messageId} acknowledged by peer`);
+  }
+}
+async function getPendingMessages(status = "pending", limit = 100) {
+  const db2 = getDb();
+  return await db2.select().from(outbox).where(eq(outbox.status, status)).limit(limit).orderBy(outbox.createdAt);
+}
+async function incrementRetryCount(messageId) {
+  const db2 = getDb();
+  const [message] = await db2.select().from(outbox).where(eq(outbox.id, messageId)).limit(1);
+  if (message) {
+    await db2.update(outbox).set({
+      retryCount: (message.retryCount || 0) + 1
+    }).where(eq(outbox.id, messageId));
+  }
+}
+async function publishBatch(messages) {
+  return await withTxn(async (tx) => {
+    const ids = [];
+    const timestamp = now();
+    for (const msg of messages) {
+      const id = generateId();
+      const message = {
+        id,
+        topic: msg.topic,
+        payload: msg.payload,
+        status: "pending",
+        retryCount: 0,
+        createdAt: timestamp,
+        peerAckedAt: null,
+        cloudAckedAt: null
+      };
+      await tx.insert(outbox).values(message);
+      ids.push(id);
+    }
+    console.log(`Published ${messages.length} messages to outbox`);
+    return ids;
+  });
+}
+async function completeSale(dto) {
+  const employee = getCurrentEmployee();
+  if (!employee) {
+    throw new Error("No employee authenticated");
+  }
+  const transactionId = generateId();
+  const timestamp = now();
+  const terminalId = process.env.TERMINAL_ID || "L1";
+  const transactionNumber = `${terminalId}-${Date.now()}`;
+  return await withTxn(async (tx) => {
+    const newTransaction = {
+      id: transactionId,
+      transactionNumber,
+      customerId: dto.customerId || null,
+      employeeId: employee.id,
+      subtotal: dto.subtotal.toFixed(2),
+      taxAmount: dto.taxAmount.toFixed(2),
+      discountAmount: dto.discountAmount.toFixed(2),
+      totalAmount: dto.totalAmount.toFixed(2),
+      pointsEarned: calculatePointsEarned(dto),
+      pointsRedeemed: calculatePointsRedeemed(dto),
+      status: "completed",
+      salesChannel: dto.salesChannel,
+      originalTransactionId: null,
+      terminalId,
+      syncStatus: "pending",
+      zinreloSyncStatus: "pending",
+      zinreloSyncedAt: null,
+      createdAt: timestamp,
+      completedAt: timestamp,
+      metadata: dto.metadata || null
+    };
+    await tx.insert(transactions).values(newTransaction);
+    const inventoryUpdates = [];
+    for (const item of dto.items) {
+      const itemId = generateId();
+      const newItem = {
+        id: itemId,
+        transactionId,
+        productId: item.productId,
+        quantity: item.quantity,
+        unitPrice: item.unitPrice.toFixed(2),
+        discountAmount: (item.discountAmount || 0).toFixed(2),
+        totalPrice: (item.unitPrice * item.quantity - (item.discountAmount || 0)).toFixed(2),
+        discountReason: item.discountReason || null,
+        pointsEarned: calculateItemPoints(item),
+        isReturned: false,
+        returnedAt: null
+      };
+      await tx.insert(transactionItems).values(newItem);
+      const [currentInventory] = await tx.select().from(inventory).where(eq(inventory.productId, item.productId)).limit(1);
+      if (currentInventory) {
+        const newStock = currentInventory.currentStock - item.quantity;
+        await tx.update(inventory).set({
+          currentStock: newStock,
+          lastUpdated: timestamp
+        }).where(eq(inventory.productId, item.productId));
+        inventoryUpdates.push({
+          productId: item.productId,
+          changeAmount: -item.quantity,
+          newStock
+        });
+        await tx.insert(inventoryChanges).values({
+          id: generateId(),
+          productId: item.productId,
+          changeType: "sale",
+          changeAmount: -item.quantity,
+          newStockLevel: newStock,
+          transactionId,
+          transactionItemId: itemId,
+          terminalId,
+          employeeId: employee.id,
+          notes: null,
+          createdAt: timestamp
+        });
+      }
+    }
+    for (const payment of dto.payments) {
+      const newPayment = {
+        id: generateId(),
+        transactionId,
+        paymentMethod: payment.method,
+        amount: payment.amount.toFixed(2),
+        cardLastFour: payment.cardLastFour || null,
+        cardType: payment.cardType || null,
+        authorizationCode: payment.authorizationCode || null,
+        tenderedAmount: payment.tenderedAmount?.toFixed(2) || null,
+        changeAmount: payment.changeAmount?.toFixed(2) || null,
+        giftCardId: payment.giftCardId || null,
+        pointsUsed: payment.pointsUsed || null,
+        createdAt: timestamp
+      };
+      await tx.insert(payments).values(newPayment);
+    }
+    const messages = [
+      {
+        topic: "transaction",
+        payload: {
+          transaction: newTransaction,
+          items: dto.items,
+          payments: dto.payments
+        }
+      },
+      ...inventoryUpdates.map((update) => ({
+        topic: "inventory",
+        payload: update
+      }))
+    ];
+    if (dto.customerId) {
+      messages.push({
+        topic: "customer",
+        payload: {
+          customerId: dto.customerId,
+          lastPurchase: timestamp,
+          pointsEarned: calculatePointsEarned(dto),
+          pointsRedeemed: calculatePointsRedeemed(dto)
+        }
+      });
+    }
+    await publishBatch(messages);
+    console.log(`Transaction ${transactionNumber} completed successfully`);
+    return transactionId;
+  });
+}
+function calculatePointsEarned(dto) {
+  let points = 0;
+  for (const item of dto.items) {
+    points += calculateItemPoints(item);
+  }
+  return Math.floor(points);
+}
+function calculateItemPoints(item) {
+  const basePoints = item.unitPrice * item.quantity;
+  const multiplier = parseFloat(item.product?.loyaltyPointMultiplier || "1.0");
+  return Math.floor(basePoints * multiplier);
+}
+function calculatePointsRedeemed(dto) {
+  let pointsUsed = 0;
+  for (const payment of dto.payments) {
+    if (payment.method === "loyalty_points" && payment.pointsUsed) {
+      pointsUsed += payment.pointsUsed;
+    }
+  }
+  return pointsUsed;
+}
+async function getTransactionById(transactionId) {
+  const db2 = getDb();
+  const [transaction] = await db2.select().from(transactions).where(eq(transactions.id, transactionId)).limit(1);
+  if (!transaction) return null;
+  const items = await db2.select().from(transactionItems).where(eq(transactionItems.transactionId, transactionId));
+  const paymentRecords = await db2.select().from(payments).where(eq(payments.transactionId, transactionId));
+  return {
+    transaction,
+    items,
+    payments: paymentRecords
+  };
+}
+async function getRecentTransactions(limit = 10) {
+  const db2 = getDb();
+  return await db2.select().from(transactions).orderBy(sql`${transactions.createdAt} DESC`).limit(limit);
+}
+function setupTransactionHandlers() {
+  ipcMain.handle("transaction:complete", async (event, dto) => {
+    try {
+      const employee = assertAuthenticated();
+      console.log(`Processing transaction for employee: ${employee.firstName} ${employee.lastName}`);
+      if (!dto.items || dto.items.length === 0) {
+        throw new Error("Transaction must have at least one item");
+      }
+      if (!dto.payments || dto.payments.length === 0) {
+        throw new Error("Transaction must have at least one payment");
+      }
+      const totalPayments = dto.payments.reduce((sum, p) => sum + p.amount, 0);
+      if (Math.abs(totalPayments - dto.totalAmount) > 0.01) {
+        throw new Error(`Payment total (${totalPayments}) does not match transaction total (${dto.totalAmount})`);
+      }
+      const transactionId = await completeSale(dto);
+      return {
+        success: true,
+        transactionId
+      };
+    } catch (error) {
+      console.error("Transaction completion error:", error);
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : "Transaction failed"
+      };
+    }
+  });
+  ipcMain.handle("transaction:get", async (event, transactionId) => {
+    try {
+      assertAuthenticated();
+      const transaction = await getTransactionById(transactionId);
+      return {
+        success: true,
+        transaction
+      };
+    } catch (error) {
+      console.error("Get transaction error:", error);
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : "Failed to get transaction"
+      };
+    }
+  });
+  ipcMain.handle("transaction:recent", async (event, limit) => {
+    try {
+      assertAuthenticated();
+      const transactions2 = await getRecentTransactions(limit);
+      return {
+        success: true,
+        transactions: transactions2
+      };
+    } catch (error) {
+      console.error("Get recent transactions error:", error);
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : "Failed to get recent transactions"
+      };
+    }
+  });
+  ipcMain.handle("transaction:void", async (event, transactionId, reason) => {
+    try {
+      const employee = assertAuthenticated();
+      if (!employee.canVoidTransaction && !employee.isManager) {
+        throw new Error("You do not have permission to void transactions");
+      }
+      console.log(`Voiding transaction ${transactionId} - Reason: ${reason}`);
+      return {
+        success: true,
+        message: "Transaction void not yet implemented"
+      };
+    } catch (error) {
+      console.error("Void transaction error:", error);
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : "Failed to void transaction"
+      };
+    }
   });
 }
 let wss = null;
@@ -567,30 +937,6 @@ async function processIncomingMessage(message) {
       break;
     default:
       console.log(`Unknown message topic: ${message.topic}`);
-  }
-}
-async function markSent(messageId, stage) {
-  const db2 = getDb();
-  const timestamp = now();
-  {
-    await db2.update(outbox).set({
-      status: "peer_ack",
-      peerAckedAt: timestamp
-    }).where(eq(outbox.id, messageId));
-    console.log(`Message ${messageId} acknowledged by peer`);
-  }
-}
-async function getPendingMessages(status = "pending", limit = 100) {
-  const db2 = getDb();
-  return await db2.select().from(outbox).where(eq(outbox.status, status)).limit(limit).orderBy(outbox.createdAt);
-}
-async function incrementRetryCount(messageId) {
-  const db2 = getDb();
-  const [message] = await db2.select().from(outbox).where(eq(outbox.id, messageId)).limit(1);
-  if (message) {
-    await db2.update(outbox).set({
-      retryCount: (message.retryCount || 0) + 1
-    }).where(eq(outbox.id, messageId));
   }
 }
 const peers = /* @__PURE__ */ new Map();
@@ -794,6 +1140,7 @@ app.whenReady().then(async () => {
   initializeDatabase();
   await seedInitialData();
   setupAuthHandlers();
+  setupTransactionHandlers();
   startLaneSync();
   createWindow();
 });

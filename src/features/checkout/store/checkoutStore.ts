@@ -32,6 +32,9 @@ interface CheckoutStore {
   // Utility functions
   getCartItem: (productId: string) => CartItem | undefined
   hasItem: (productId: string) => boolean
+  
+  // Transaction completion
+  completeTransaction: (payments: any[]) => Promise<{ success: boolean; transactionId?: string; error?: string }>
 }
 
 // Helper function to calculate derived values
@@ -151,5 +154,61 @@ export const useCheckoutStore = create<CheckoutStore>((set, get) => ({
   
   hasItem: (productId: string) => {
     return get().cart.some(item => item.id === productId)
+  },
+  
+  // Transaction completion
+  completeTransaction: async (payments: any[]) => {
+    const state = get()
+    
+    // Build transaction DTO
+    const transactionDTO = {
+      customerId: state.customer?.id,
+      items: state.cart.map(item => ({
+        productId: item.id,
+        product: item as any, // In real app, would have full product data
+        quantity: item.quantity,
+        unitPrice: item.price,
+        discountAmount: 0, // TODO: Implement discounts
+        discountReason: null
+      })),
+      payments,
+      subtotal: state.subtotal,
+      taxAmount: state.tax,
+      discountAmount: 0, // TODO: Implement discounts
+      totalAmount: state.total,
+      salesChannel: 'pos' as const,
+      metadata: {
+        terminalId: window.electron ? await window.electron.auth.getCurrentEmployee().then(e => e?.employeeCode) : 'DEMO'
+      }
+    }
+    
+    try {
+      set({ isProcessing: true })
+      
+      // Call Electron IPC to complete transaction
+      if (window.electron) {
+        const result = await window.electron.transaction.complete(transactionDTO)
+        
+        if (result.success) {
+          // Clear cart on success
+          get().clearCart()
+        }
+        
+        return result
+      } else {
+        // Demo mode
+        console.log('Demo transaction:', transactionDTO)
+        get().clearCart()
+        return { success: true, transactionId: 'DEMO-' + Date.now() }
+      }
+    } catch (error) {
+      console.error('Transaction error:', error)
+      return { 
+        success: false, 
+        error: error instanceof Error ? error.message : 'Transaction failed' 
+      }
+    } finally {
+      set({ isProcessing: false })
+    }
   }
 }))

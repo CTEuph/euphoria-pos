@@ -3,6 +3,7 @@ import { join } from 'path'
 import { initializeDatabase, closeDatabase } from './services/localDb'
 import { seedInitialData } from './services/seedInitialData'
 import { setupAuthHandlers } from './ipc/handlers/auth'
+import { setupTransactionHandlers } from './ipc/handlers/transaction'
 import { startLaneSync, stopLaneSync } from './services/sync'
 
 let mainWindow: BrowserWindow | null = null
@@ -34,6 +35,7 @@ app.whenReady().then(async () => {
   
   // Setup IPC handlers
   setupAuthHandlers()
+  setupTransactionHandlers()
   
   // Start lane sync
   startLaneSync()

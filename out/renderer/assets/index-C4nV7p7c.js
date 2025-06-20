@@ -15936,6 +15936,55 @@ const useCheckoutStore = create((set, get) => ({
   },
   hasItem: (productId) => {
     return get().cart.some((item) => item.id === productId);
+  },
+  // Transaction completion
+  completeTransaction: async (payments) => {
+    const state = get();
+    const transactionDTO = {
+      customerId: state.customer?.id,
+      items: state.cart.map((item) => ({
+        productId: item.id,
+        product: item,
+        // In real app, would have full product data
+        quantity: item.quantity,
+        unitPrice: item.price,
+        discountAmount: 0,
+        // TODO: Implement discounts
+        discountReason: null
+      })),
+      payments,
+      subtotal: state.subtotal,
+      taxAmount: state.tax,
+      discountAmount: 0,
+      // TODO: Implement discounts
+      totalAmount: state.total,
+      salesChannel: "pos",
+      metadata: {
+        terminalId: window.electron ? await window.electron.auth.getCurrentEmployee().then((e) => e?.employeeCode) : "DEMO"
+      }
+    };
+    try {
+      set({ isProcessing: true });
+      if (window.electron) {
+        const result = await window.electron.transaction.complete(transactionDTO);
+        if (result.success) {
+          get().clearCart();
+        }
+        return result;
+      } else {
+        console.log("Demo transaction:", transactionDTO);
+        get().clearCart();
+        return { success: true, transactionId: "DEMO-" + Date.now() };
+      }
+    } catch (error2) {
+      console.error("Transaction error:", error2);
+      return {
+        success: false,
+        error: error2 instanceof Error ? error2.message : "Transaction failed"
+      };
+    } finally {
+      set({ isProcessing: false });
+    }
   }
 }));
 function CustomerSearch({ isOpen, onClose }) {

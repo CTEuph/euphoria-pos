@@ -16,7 +16,7 @@ interface CloudSyncResponse {
   error?: string
 }
 
-let syncInterval: NodeJS.Timeout | null = null
+let syncIntervalTimer: NodeJS.Timeout | null = null
 let isRunning = false
 const DEFAULT_SYNC_INTERVAL = 30000 // 30 seconds
 const DEFAULT_BATCH_SIZE = 50
@@ -60,7 +60,7 @@ export function startCloudSync(config: CloudSyncConfig): void {
   syncToCloud(config)
   
   // Schedule periodic sync
-  syncInterval = setInterval(() => {
+  syncIntervalTimer = setInterval(() => {
     syncToCloud(config)
   }, syncInterval)
 }
@@ -69,9 +69,9 @@ export function startCloudSync(config: CloudSyncConfig): void {
  * Stop cloud sync process
  */
 export function stopCloudSync(): void {
-  if (syncInterval) {
-    clearInterval(syncInterval)
-    syncInterval = null
+  if (syncIntervalTimer) {
+    clearInterval(syncIntervalTimer)
+    syncIntervalTimer = null
   }
   isRunning = false
   console.log('Cloud sync stopped')
@@ -193,7 +193,7 @@ async function sendToCloud(
 export function getCloudSyncStatus() {
   return {
     isRunning,
-    hasInterval: syncInterval !== null
+    hasInterval: syncIntervalTimer !== null
   }
 }
 
