@@ -19,7 +19,7 @@
     "test:watch": "vitest --watch",
     "test:coverage": "vitest --coverage",
     "test:ui": "vitest --ui",
-    "db:generate:sqlite": "drizzle-kit generate:sqlite"
+    "db:generate:sqlite": "drizzle-kit generate --config drizzle.config.sqlite.ts"
   },
   "keywords": [
     "pos",
@@ -33,9 +33,11 @@
     "@hookform/resolvers": "^5.1.1",
     "@supabase/supabase-js": "^2.50.0",
     "@tanstack/react-query": "^5.80.7",
+    "@types/bcryptjs": "^2.4.6",
     "@types/better-sqlite3": "^7.6.13",
     "@types/uuid": "^10.0.0",
     "@types/ws": "^8.18.1",
+    "bcryptjs": "^3.0.2",
     "better-sqlite3": "^11.10.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
