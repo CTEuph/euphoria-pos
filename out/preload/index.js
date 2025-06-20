@@ -1,4 +1,7 @@
-import { contextBridge, ipcRenderer } from "electron";
+"use strict";
+console.log("=== Preload script starting ===");
+const { contextBridge, ipcRenderer } = require("electron");
+console.log("Electron modules imported successfully");
 const electronAPI = {
   auth: {
     verifyPin: (pin) => ipcRenderer.invoke("auth:verify-pin", pin),
@@ -23,4 +26,10 @@ const electronAPI = {
     }
   }
 };
-contextBridge.exposeInMainWorld("electron", electronAPI);
+try {
+  contextBridge.exposeInMainWorld("electron", electronAPI);
+  console.log("=== API exposed successfully ===");
+  console.log("Available methods:", Object.keys(electronAPI));
+} catch (error) {
+  console.error("=== Failed to expose API ===", error);
+}

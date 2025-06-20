@@ -11,6 +11,7 @@ import { DEFAULT_SCANNER_SHORTCUTS } from '@/features/checkout/types'
 import { toast } from '@/shared/hooks/useToast'
 import { Toaster } from '@/shared/components/Toaster'
 import { playErrorSound, playSuccessSound } from '@/shared/lib/audio'
+import { TestAuth } from '@/components/TestAuth'
 
 function App() {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null)
@@ -84,6 +85,9 @@ function App() {
   return (
     <>
       <div className="h-screen flex flex-col bg-gray-100">
+        {/* Test Auth Component - TEMPORARY */}
+        <TestAuth />
+        
         {/* Top Bar */}
         <TopBar />
         

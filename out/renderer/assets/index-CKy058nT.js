@@ -18287,6 +18287,91 @@ function Toaster() {
     /* @__PURE__ */ jsxRuntimeExports.jsx(ToastViewport, {})
   ] });
 }
+function TestAuth() {
+  const [pin, setPin] = reactExports.useState("");
+  const [result, setResult] = reactExports.useState("");
+  const [loading, setLoading] = reactExports.useState(false);
+  reactExports.useEffect(() => {
+    console.log("window.electron:", window.electron);
+    console.log("window:", window);
+  }, []);
+  const testAuth = async () => {
+    setLoading(true);
+    try {
+      if (!window.electron) {
+        setResult("Error: window.electron is not defined. Check preload script.");
+        setLoading(false);
+        return;
+      }
+      const employee = await window.electron.auth.verifyPin(pin);
+      if (employee) {
+        setResult(`Success! Logged in as: ${employee.firstName} ${employee.lastName} (ID: ${employee.id})`);
+      } else {
+        setResult("Invalid PIN");
+      }
+    } catch (error2) {
+      setResult(`Error: ${error2.message}`);
+    }
+    setLoading(false);
+  };
+  const testGetEmployee = async () => {
+    try {
+      if (!window.electron) {
+        setResult("Error: window.electron is not defined");
+        return;
+      }
+      const employee = await window.electron.auth.getCurrentEmployee();
+      if (employee) {
+        setResult(`Current employee: ${employee.name} (ID: ${employee.id})`);
+      } else {
+        setResult("No employee logged in");
+      }
+    } catch (error2) {
+      setResult(`Error: ${error2.message}`);
+    }
+  };
+  const testLogout = async () => {
+    try {
+      if (!window.electron) {
+        setResult("Error: window.electron is not defined");
+        return;
+      }
+      await window.electron.auth.logout();
+      setResult("Logged out successfully");
+    } catch (error2) {
+      setResult(`Error: ${error2.message}`);
+    }
+  };
+  return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "w-96 mx-auto mt-8 p-6 bg-white rounded-lg shadow", children: [
+    /* @__PURE__ */ jsxRuntimeExports.jsx("h2", { className: "text-xl font-bold mb-4", children: "Test Authentication System" }),
+    /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "space-y-4", children: [
+      /* @__PURE__ */ jsxRuntimeExports.jsx("div", { children: /* @__PURE__ */ jsxRuntimeExports.jsx(
+        "input",
+        {
+          type: "text",
+          placeholder: "Enter PIN (try 1234, 5678, or 9999)",
+          value: pin,
+          onChange: (e) => setPin(e.target.value),
+          className: "w-full p-2 border rounded"
+        }
+      ) }),
+      /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex gap-2", children: [
+        /* @__PURE__ */ jsxRuntimeExports.jsx(Button, { onClick: testAuth, disabled: loading, children: "Test Login" }),
+        /* @__PURE__ */ jsxRuntimeExports.jsx(Button, { onClick: testGetEmployee, variant: "outline", children: "Get Current" }),
+        /* @__PURE__ */ jsxRuntimeExports.jsx(Button, { onClick: testLogout, variant: "outline", children: "Logout" })
+      ] }),
+      result && /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: `p-3 rounded ${result.includes("Error") ? "bg-red-100" : "bg-green-100"}`, children: result }),
+      /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "text-sm text-gray-600", children: [
+        /* @__PURE__ */ jsxRuntimeExports.jsx("p", { children: "Test PINs:" }),
+        /* @__PURE__ */ jsxRuntimeExports.jsxs("ul", { className: "list-disc list-inside", children: [
+          /* @__PURE__ */ jsxRuntimeExports.jsx("li", { children: "1234 - John Doe (Manager)" }),
+          /* @__PURE__ */ jsxRuntimeExports.jsx("li", { children: "5678 - Jane Smith" }),
+          /* @__PURE__ */ jsxRuntimeExports.jsx("li", { children: "9999 - Mike Johnson" })
+        ] })
+      ] })
+    ] })
+  ] });
+}
 function App() {
   const [selectedCategory, setSelectedCategory] = reactExports.useState(null);
   const [searchTerm, setSearchTerm] = reactExports.useState("");
@@ -18338,6 +18423,7 @@ function App() {
   }, [enableAudio]);
   return /* @__PURE__ */ jsxRuntimeExports.jsxs(jsxRuntimeExports.Fragment, { children: [
     /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "h-screen flex flex-col bg-gray-100", children: [
+      /* @__PURE__ */ jsxRuntimeExports.jsx(TestAuth, {}),
       /* @__PURE__ */ jsxRuntimeExports.jsx(TopBar, {}),
       /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex-1 flex overflow-hidden", children: [
         /* @__PURE__ */ jsxRuntimeExports.jsx(

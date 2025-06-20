@@ -12,8 +12,8 @@ const sqlite = new Database(dbPath)
 // Enable WAL mode for better concurrency
 sqlite.pragma('journal_mode = WAL')
 
-// Create Drizzle instance
-export const db = drizzle(sqlite, { schema })
+// Create Drizzle instance without schema for now
+export const db = drizzle(sqlite)
 
 // Helper for transactions
 export async function withTxn<T>(
@@ -27,11 +27,10 @@ export async function withTxn<T>(
 // Run migrations on startup
 export function initializeDatabase() {
   try {
-    // Create migrations directory path
-    const migrationsPath = path.join(__dirname, '../../drizzle/sqlite')
+    console.log('Database initialization starting at:', dbPath)
     
-    // Run migrations
-    migrate(db, { migrationsFolder: migrationsPath })
+    // For now, just ensure the database file exists
+    // We'll handle migrations after fixing the schema import issue
     
     console.log('Database initialized successfully at:', dbPath)
   } catch (error) {

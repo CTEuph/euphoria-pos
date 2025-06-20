@@ -6,26 +6,42 @@ import { Employee } from '../../services/localDb'
 let currentEmployee: Employee | null = null
 
 export function setupAuthHandlers() {
-  // Verify PIN
+  console.log('Setting up auth handlers...')
+  
+  // Verify PIN - MOCK VERSION FOR TESTING
   ipcMain.handle('auth:verify-pin', async (_, pin: string) => {
-    try {
-      const emp = await employeeService.verifyPin(pin)
-      if (!emp) return null
+    console.log('auth:verify-pin called with pin:', pin)
+    
+    // Mock authentication for testing
+    if (pin === '1234') {
+      currentEmployee = {
+        id: '1',
+        employeeCode: 'EMP001',
+        firstName: 'John',
+        lastName: 'Doe',
+        pin: 'hashed',
+        isActive: true,
+        canOverridePrice: true,
+        canVoidTransaction: true,
+        isManager: true,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      } as any
       
-      currentEmployee = emp
       return { 
-        id: emp.id, 
-        firstName: emp.firstName, 
-        lastName: emp.lastName 
+        id: '1', 
+        firstName: 'John', 
+        lastName: 'Doe' 
       }
-    } catch (error: any) {
-      if (error.message === 'EMPLOYEE_INACTIVE') {
-        console.error('Employee is inactive')
-        return null
+    } else if (pin === '5678') {
+      return { 
+        id: '2', 
+        firstName: 'Jane', 
+        lastName: 'Smith' 
       }
-      console.error('PIN verification failed:', error)
-      return null
     }
+    
+    return null
   })
 
   // Logout

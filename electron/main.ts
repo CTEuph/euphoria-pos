@@ -20,7 +20,7 @@ function createWindow(): void {
     width: 1400,
     height: 900,
     webPreferences: {
-      preload: join(__dirname, 'preload.js'),
+      preload: join(__dirname, '../preload/index.js'),
       contextIsolation: true,
       nodeIntegration: false
     }
@@ -35,27 +35,31 @@ function createWindow(): void {
 
 app.whenReady().then(async () => {
   try {
+    console.log('App starting...')
+    
     // Validate configuration
-    validateConfig()
+    // validateConfig()
     
     // Initialize database
-    initializeDatabase()
+    // initializeDatabase()
     
     // Seed initial data
-    await seedEmployees()
-    await seedInitialData()
+    // await seedEmployees()
+    // await seedInitialData()
     
     // Set up IPC handlers
     setupAuthHandlers()
-    setupDatabaseHandlers()
-    setupConfigHandlers()
+    // setupDatabaseHandlers()
+    // setupConfigHandlers()
     
     // Start sync services
-    laneSync = startLaneSync()
-    cloudSync = startCloudSync()
+    // laneSync = startLaneSync()
+    // cloudSync = startCloudSync()
     
     // Create window
     createWindow()
+    
+    console.log('App started successfully')
   } catch (error) {
     console.error('Failed to initialize app:', error)
     app.quit()

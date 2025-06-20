@@ -1,26 +1,11 @@
-import { contextBridge, ipcRenderer } from 'electron'
+console.log('=== Preload script starting ===')
 
-// Type-safe IPC API
-export interface IElectronAPI {
-  auth: {
-    verifyPin: (pin: string) => Promise<{ id: string; firstName: string; lastName: string } | null>
-    logout: () => Promise<void>
-    getCurrentEmployee: () => Promise<{ id: string; name: string } | null>
-  }
-  database: {
-    getProducts: () => Promise<any[]>
-    getProduct: (barcode: string) => Promise<any | null>
-    getDiscountRules: () => Promise<any[]>
-  }
-  config: {
-    get: (key: string) => Promise<any>
-  }
-  scanner: {
-    onScan: (callback: (barcode: string) => void) => () => void
-  }
-}
+const { contextBridge, ipcRenderer } = require('electron')
 
-const electronAPI: IElectronAPI = {
+console.log('Electron modules imported successfully')
+
+// Define the API
+const electronAPI = {
   auth: {
     verifyPin: (pin) => ipcRenderer.invoke('auth:verify-pin', pin),
     logout: () => ipcRenderer.invoke('auth:logout'),
@@ -36,7 +21,7 @@ const electronAPI: IElectronAPI = {
   },
   scanner: {
     onScan: (callback) => {
-      const subscription = (_event: any, barcode: string) => callback(barcode)
+      const subscription = (_event, barcode) => callback(barcode)
       ipcRenderer.on('scanner:data', subscription)
       return () => {
         ipcRenderer.removeListener('scanner:data', subscription)
@@ -45,4 +30,10 @@ const electronAPI: IElectronAPI = {
   }
 }
 
-contextBridge.exposeInMainWorld('electron', electronAPI)
+try {
+  contextBridge.exposeInMainWorld('electron', electronAPI)
+  console.log('=== API exposed successfully ===')
+  console.log('Available methods:', Object.keys(electronAPI))
+} catch (error) {
+  console.error('=== Failed to expose API ===', error)
+}
