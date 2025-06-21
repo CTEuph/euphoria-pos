@@ -1,5 +1,6 @@
 import WebSocket from 'ws'
 import { getPendingMessages, markSent, incrementRetryCount } from '../messageBus'
+import { getInventorySnapshot, performInventoryReconciliation } from './reconcile'
 import type { Outbox } from '../../../drizzle/sqlite-schema'
 
 interface PeerConnection {
@@ -71,6 +72,23 @@ function connectToPeer(url: string, terminalId: string): void {
             
             // Mark message as peer acknowledged
             markSent(response.messageId, 'peer_ack')
+          }
+        } else if (response.type === 'inventory_request') {
+          // Handle inventory reconciliation request
+          console.log('Received inventory request from peer')
+          const inventorySnapshot = getInventorySnapshot()
+          
+          ws.send(JSON.stringify({
+            type: 'inventory_response',
+            requestId: response.requestId,
+            inventory: inventorySnapshot,
+            timestamp: new Date().toISOString()
+          }))
+        } else if (response.type === 'inventory_response') {
+          // Handle inventory reconciliation response
+          console.log('Received inventory response from peer')
+          if (response.inventory) {
+            performInventoryReconciliation(response.inventory)
           }
         }
       } catch (error) {
@@ -211,4 +229,22 @@ export async function broadcastToPeers(message: Outbox, terminalId: string): Pro
   }
   
   await Promise.allSettled(promises)
+}
+
+/**
+ * Request inventory from all connected peers
+ */
+export async function requestInventoryFromAllPeers(): Promise<void> {
+  const requestId = Math.random().toString(36).substring(7)
+  
+  for (const [url, peer] of peers) {
+    if (peer.isConnected && peer.ws) {
+      console.log(`Requesting inventory from peer: ${url}`)
+      peer.ws.send(JSON.stringify({
+        type: 'inventory_request',
+        requestId,
+        timestamp: new Date().toISOString()
+      }))
+    }
+  }
 }

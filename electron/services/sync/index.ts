@@ -1,10 +1,13 @@
 import { startPeerServer, stopPeerServer } from './wsServer'
 import { connectToPeers, disconnectFromPeers } from './wsClient'
 import { getPendingMessages } from '../messageBus'
+import { requestInventoryFromPeers } from './reconcile'
 import type { Outbox } from '../../../drizzle/sqlite-schema'
 
 let syncInterval: NodeJS.Timeout | null = null
+let reconcileInterval: NodeJS.Timeout | null = null
 const SYNC_INTERVAL = 5000 // 5 seconds
+const RECONCILE_INTERVAL = 600000 // 10 minutes
 
 /**
  * Get configuration from environment and settings
@@ -72,6 +75,26 @@ export function startLaneSync(): void {
       console.error('Error in sync interval:', error)
     }
   }, SYNC_INTERVAL)
+  
+  // Start periodic inventory reconciliation
+  reconcileInterval = setInterval(async () => {
+    try {
+      console.log('Starting scheduled inventory reconciliation')
+      await requestInventoryFromPeers()
+    } catch (error) {
+      console.error('Error in reconciliation interval:', error)
+    }
+  }, RECONCILE_INTERVAL)
+  
+  // Run initial reconciliation after 30 seconds
+  setTimeout(async () => {
+    try {
+      console.log('Running initial inventory reconciliation')
+      await requestInventoryFromPeers()
+    } catch (error) {
+      console.error('Error in initial reconciliation:', error)
+    }
+  }, 30000)
 }
 
 /**
@@ -84,6 +107,12 @@ export function stopLaneSync(): void {
   if (syncInterval) {
     clearInterval(syncInterval)
     syncInterval = null
+  }
+  
+  // Stop reconciliation interval
+  if (reconcileInterval) {
+    clearInterval(reconcileInterval)
+    reconcileInterval = null
   }
   
   // Disconnect from peers

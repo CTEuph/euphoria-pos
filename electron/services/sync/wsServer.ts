@@ -2,6 +2,7 @@ import { WebSocketServer, type WebSocket } from 'ws'
 import { inboxProcessed } from '../../../drizzle/sqlite-schema'
 import { getDb, generateId, now } from '../localDb'
 import { markSent } from '../messageBus'
+import { getInventorySnapshot, performInventoryReconciliation } from './reconcile'
 import { eq } from 'drizzle-orm'
 
 interface PeerMessage {
@@ -38,7 +39,30 @@ export function startPeerServer(port: number): void {
       // Handle incoming messages
       ws.on('message', async (data: Buffer) => {
         try {
-          const message: PeerMessage = JSON.parse(data.toString())
+          const parsedData = JSON.parse(data.toString())
+          
+          // Handle inventory reconciliation requests/responses
+          if (parsedData.type === 'inventory_request') {
+            console.log('Received inventory request from peer')
+            const inventorySnapshot = getInventorySnapshot()
+            
+            ws.send(JSON.stringify({
+              type: 'inventory_response',
+              requestId: parsedData.requestId,
+              inventory: inventorySnapshot,
+              timestamp: new Date().toISOString()
+            }))
+            return
+          } else if (parsedData.type === 'inventory_response') {
+            console.log('Received inventory response from peer')
+            if (parsedData.inventory) {
+              await performInventoryReconciliation(parsedData.inventory)
+            }
+            return
+          }
+          
+          // Handle regular peer messages
+          const message: PeerMessage = parsedData
           console.log(`Received message from peer:`, message)
           
           // Check if we've already processed this message

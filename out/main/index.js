@@ -9,6 +9,7 @@ import { v4 } from "uuid";
 import { migrate } from "drizzle-orm/better-sqlite3/migrator";
 import bcrypt from "bcrypt";
 import WebSocket, { WebSocketServer } from "ws";
+import * as crypto from "crypto";
 import __cjs_mod__ from "node:module";
 const __filename = import.meta.filename;
 const __dirname = import.meta.dirname;
@@ -571,6 +572,24 @@ function setupAuthHandlers() {
     return currentEmployee !== null;
   });
 }
+async function publish(topic, payload, _options = {}) {
+  const db2 = getDb();
+  const id = generateId();
+  const timestamp = now();
+  const message = {
+    id,
+    topic,
+    payload,
+    status: "pending",
+    retryCount: 0,
+    createdAt: timestamp,
+    peerAckedAt: null,
+    cloudAckedAt: null
+  };
+  await db2.insert(outbox).values(message);
+  console.log(`Published message ${id} to outbox:`, { topic, payload });
+  return id;
+}
 async function markSent(messageId, stage) {
   const db2 = getDb();
   const timestamp = now();
@@ -859,6 +878,125 @@ function setupTransactionHandlers() {
     }
   });
 }
+function compareInventory(localInventory, remoteInventory) {
+  const diffs = [];
+  const remoteMap = new Map(
+    remoteInventory.map((item) => [item.productId, item])
+  );
+  for (const localItem of localInventory) {
+    const remoteItem = remoteMap.get(localItem.productId);
+    if (!remoteItem) {
+      diffs.push({
+        productId: localItem.productId,
+        localStock: localItem.currentStock,
+        remoteStock: 0,
+        difference: localItem.currentStock
+      });
+    } else if (localItem.currentStock !== remoteItem.currentStock) {
+      diffs.push({
+        productId: localItem.productId,
+        localStock: localItem.currentStock,
+        remoteStock: remoteItem.currentStock,
+        difference: localItem.currentStock - remoteItem.currentStock
+      });
+    }
+    remoteMap.delete(localItem.productId);
+  }
+  for (const [productId, remoteItem] of remoteMap) {
+    diffs.push({
+      productId,
+      localStock: 0,
+      remoteStock: remoteItem.currentStock,
+      difference: -remoteItem.currentStock
+    });
+  }
+  return diffs;
+}
+async function reconcileInventory(diffs, remoteInventory) {
+  if (diffs.length === 0) {
+    console.log("Inventory reconciliation: No differences found");
+    return;
+  }
+  const db2 = getDb();
+  console.log(`Reconciling ${diffs.length} inventory differences`);
+  const remoteMap = new Map(
+    remoteInventory.map((item) => [item.productId, item])
+  );
+  for (const diff of diffs) {
+    const localItem = db2.select().from(inventory).where(eq(inventory.productId, diff.productId)).get();
+    const remoteItem = remoteMap.get(diff.productId);
+    let useRemoteValue = false;
+    if (!localItem && remoteItem) {
+      useRemoteValue = true;
+    } else if (localItem && remoteItem) {
+      useRemoteValue = remoteItem.lastUpdated > localItem.lastUpdated;
+    }
+    if (useRemoteValue && remoteItem) {
+      await db2.insert(inventory).values({
+        productId: remoteItem.productId,
+        currentStock: remoteItem.currentStock,
+        reservedStock: remoteItem.reservedStock,
+        lastUpdated: remoteItem.lastUpdated,
+        lastSyncedAt: /* @__PURE__ */ new Date()
+      }).onConflictDoUpdate({
+        target: inventory.productId,
+        set: {
+          currentStock: remoteItem.currentStock,
+          reservedStock: remoteItem.reservedStock,
+          lastUpdated: remoteItem.lastUpdated,
+          lastSyncedAt: /* @__PURE__ */ new Date()
+        }
+      });
+      console.log(`Reconciled ${diff.productId}: local=${diff.localStock} → remote=${diff.remoteStock}`);
+      await publish("inventory.reconciled", {
+        productId: diff.productId,
+        previousStock: diff.localStock,
+        newStock: diff.remoteStock,
+        source: "reconciliation"
+      });
+    }
+  }
+}
+async function performInventoryReconciliation(peerInventory) {
+  const db2 = getDb();
+  try {
+    const localInventory = db2.select({
+      productId: inventory.productId,
+      currentStock: inventory.currentStock,
+      reservedStock: inventory.reservedStock,
+      lastUpdated: inventory.lastUpdated
+    }).from(inventory).all();
+    const diffs = compareInventory(localInventory, peerInventory);
+    if (diffs.length > 0) {
+      console.log(`Found ${diffs.length} inventory differences`);
+      await reconcileInventory(diffs, peerInventory);
+      await publish("inventory.reconciliation.complete", {
+        differencesFound: diffs.length,
+        timestamp: (/* @__PURE__ */ new Date()).toISOString()
+      });
+    }
+  } catch (error) {
+    console.error("Inventory reconciliation error:", error);
+    throw error;
+  }
+}
+async function requestInventoryFromPeers() {
+  const { requestInventoryFromAllPeers: requestInventoryFromAllPeers2 } = await Promise.resolve().then(() => wsClient);
+  await requestInventoryFromAllPeers2();
+  await publish("inventory.reconciliation.request", {
+    requestId: crypto.randomUUID(),
+    timestamp: (/* @__PURE__ */ new Date()).toISOString()
+  });
+}
+function getInventorySnapshot() {
+  const db2 = getDb();
+  return db2.select({
+    productId: inventory.productId,
+    currentStock: inventory.currentStock,
+    reservedStock: inventory.reservedStock,
+    lastUpdated: inventory.lastUpdated
+  }).from(inventory).all();
+}
 let wss = null;
 const connectedPeers = /* @__PURE__ */ new Map();
 function startPeerServer(port) {
@@ -876,7 +1014,25 @@ function startPeerServer(port) {
       console.log(`New peer connection from ${clientIp}`);
       ws.on("message", async (data) => {
         try {
-          const message = JSON.parse(data.toString());
+          const parsedData = JSON.parse(data.toString());
+          if (parsedData.type === "inventory_request") {
+            console.log("Received inventory request from peer");
+            const inventorySnapshot = getInventorySnapshot();
+            ws.send(JSON.stringify({
+              type: "inventory_response",
+              requestId: parsedData.requestId,
+              inventory: inventorySnapshot,
+              timestamp: (/* @__PURE__ */ new Date()).toISOString()
+            }));
+            return;
+          } else if (parsedData.type === "inventory_response") {
+            console.log("Received inventory response from peer");
+            if (parsedData.inventory) {
+              await performInventoryReconciliation(parsedData.inventory);
+            }
+            return;
+          }
+          const message = parsedData;
           console.log(`Received message from peer:`, message);
           const db2 = getDb();
           const existing = await db2.select().from(inboxProcessed).where(eq(inboxProcessed.messageId, message.id)).limit(1);
@@ -981,6 +1137,20 @@ function connectToPeer(url, terminalId) {
             pendingAcks.delete(response.messageId);
             markSent(response.messageId, "peer_ack");
           }
+        } else if (response.type === "inventory_request") {
+          console.log("Received inventory request from peer");
+          const inventorySnapshot = getInventorySnapshot();
+          ws.send(JSON.stringify({
+            type: "inventory_response",
+            requestId: response.requestId,
+            inventory: inventorySnapshot,
+            timestamp: (/* @__PURE__ */ new Date()).toISOString()
+          }));
+        } else if (response.type === "inventory_response") {
+          console.log("Received inventory response from peer");
+          if (response.inventory) {
+            performInventoryReconciliation(response.inventory);
+          }
         }
       } catch (error) {
         console.error("Error parsing peer response:", error);
@@ -1067,8 +1237,29 @@ function disconnectFromPeers() {
   peers.clear();
   pendingAcks.clear();
 }
+async function requestInventoryFromAllPeers() {
+  const requestId = Math.random().toString(36).substring(7);
+  for (const [url, peer] of peers) {
+    if (peer.isConnected && peer.ws) {
+      console.log(`Requesting inventory from peer: ${url}`);
+      peer.ws.send(JSON.stringify({
+        type: "inventory_request",
+        requestId,
+        timestamp: (/* @__PURE__ */ new Date()).toISOString()
+      }));
+    }
+  }
+}
+const wsClient = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
+  __proto__: null,
+  connectToPeers,
+  disconnectFromPeers,
+  requestInventoryFromAllPeers
+}, Symbol.toStringTag, { value: "Module" }));
 let syncInterval = null;
+let reconcileInterval = null;
 const SYNC_INTERVAL = 5e3;
+const RECONCILE_INTERVAL = 6e5;
 function getConfig() {
   let terminalId = process.env.TERMINAL_ID || "L1";
   let terminalPort = parseInt(process.env.TERMINAL_PORT || "8123");
@@ -1109,12 +1300,32 @@ function startLaneSync() {
       console.error("Error in sync interval:", error);
     }
   }, SYNC_INTERVAL);
+  reconcileInterval = setInterval(async () => {
+    try {
+      console.log("Starting scheduled inventory reconciliation");
+      await requestInventoryFromPeers();
+    } catch (error) {
+      console.error("Error in reconciliation interval:", error);
+    }
+  }, RECONCILE_INTERVAL);
+  setTimeout(async () => {
+    try {
+      console.log("Running initial inventory reconciliation");
+      await requestInventoryFromPeers();
+    } catch (error) {
+      console.error("Error in initial reconciliation:", error);
+    }
+  }, 3e4);
 }
 function stopLaneSync() {
   console.log("Stopping lane sync");
   if (syncInterval) {
     clearInterval(syncInterval);
     syncInterval = null;
+  }
+  if (reconcileInterval) {
+    clearInterval(reconcileInterval);
+    reconcileInterval = null;
   }
   disconnectFromPeers();
   stopPeerServer();
