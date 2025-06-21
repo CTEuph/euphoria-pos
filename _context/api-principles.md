@@ -147,20 +147,34 @@ const result = await electron.payment.waitForCompletion(paymentId)
 
 ### 7. **Database Sync Principles**
 
-**Local-First:**
-- Critical data (products, inventory) cached in renderer
-- Updates applied optimistically
-- Sync happens in background
+**Local-First with SQLite:**
+- All data operations go through local SQLite database first
+- PostgreSQL (Supabase) is treated as eventual consistency target
+- Critical data (products, inventory, employees) stored locally
+- Updates applied to SQLite immediately, synced async
+
+**Outbox-Inbox Pattern:**
+- All state changes published to `outbox` table
+- Messages have three states: `pending` → `peer_ack` → `cloud_ack`
+- Inbox table prevents duplicate message processing
+- Every message has UUID for idempotency
+
+**Three-Stage Sync:**
+1. **Local Commit** - Write to SQLite (immediate)
+2. **Peer Sync** - WebSocket to other lanes (5 seconds)
+3. **Cloud Sync** - HTTPS to Supabase (30 seconds)
 
 **Conflict Resolution:**
-- Last-write-wins for most fields
-- Special handling for inventory (sum all changes)
-- Transaction log for audit trail
+- Last-write-wins based on `lastUpdated` timestamp
+- Inventory reconciliation runs every 10 minutes
+- Special handling for inventory (newest timestamp wins)
+- Complete audit trail in `inventory_changes` table
 
 **Offline Queue:**
-- All mutations queued when offline
-- Queue persisted to disk (not just memory)
-- Automatic retry when connection restored
+- Outbox pattern ensures no data loss
+- Messages retry with exponential backoff
+- Failed messages tracked with retry count
+- Manual intervention after max retries
 
 ### 8. **Performance Guidelines**
 

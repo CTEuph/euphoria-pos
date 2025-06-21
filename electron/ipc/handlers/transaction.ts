@@ -1,6 +1,7 @@
 import { ipcMain, type IpcMainInvokeEvent } from 'electron'
 import { assertAuthenticated } from './auth'
 import { completeSale, getTransactionById, getRecentTransactions, type TransactionDTO } from '../../services/transactionService'
+import { getTerminalId } from '../../services/config'
 
 /**
  * Setup transaction IPC handlers
@@ -28,8 +29,15 @@ export function setupTransactionHandlers(): void {
         throw new Error(`Payment total (${totalPayments}) does not match transaction total (${dto.totalAmount})`)
       }
       
+      // Add employee and terminal information
+      const enhancedDto = {
+        ...dto,
+        employeeId: employee.id,
+        terminalId: getTerminalId()
+      }
+      
       // Complete the sale
-      const transactionId = await completeSale(dto)
+      const transactionId = await completeSale(enhancedDto)
       
       return {
         success: true,

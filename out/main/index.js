@@ -1,10 +1,12 @@
-import { app, ipcMain, BrowserWindow } from "electron";
+import { app, ipcMain, dialog, BrowserWindow } from "electron";
+import * as path from "path";
 import { join } from "path";
+import * as fs from "fs";
 import { drizzle } from "drizzle-orm/better-sqlite3";
 import Database from "better-sqlite3";
 import { sqliteTable, integer, text, index, primaryKey } from "drizzle-orm/sqlite-core";
 import { relations, eq, sql } from "drizzle-orm";
-import path from "node:path";
+import path$1 from "node:path";
 import { v4 } from "uuid";
 import { migrate } from "drizzle-orm/better-sqlite3/migrator";
 import bcrypt from "bcrypt";
@@ -14,6 +16,119 @@ import __cjs_mod__ from "node:module";
 const __filename = import.meta.filename;
 const __dirname = import.meta.dirname;
 const require2 = __cjs_mod__.createRequire(import.meta.url);
+function validateConfig() {
+  const errors = [];
+  const warnings = [];
+  let terminalId = process.env.TERMINAL_ID;
+  let terminalPort = parseInt(process.env.TERMINAL_PORT || "8123");
+  try {
+    const settingsPath = path.join(__dirname, "..", "settings.local.json");
+    if (fs.existsSync(settingsPath)) {
+      const settings = JSON.parse(fs.readFileSync(settingsPath, "utf-8"));
+      if (settings.terminalId) terminalId = settings.terminalId;
+      if (settings.terminalPort) terminalPort = settings.terminalPort;
+    }
+  } catch (error) {
+    warnings.push("Failed to read settings.local.json, using environment variables");
+  }
+  if (!terminalId) {
+    errors.push("TERMINAL_ID is required. Set it in environment variables or settings.local.json");
+  } else if (!/^[A-Z0-9]{2,10}$/.test(terminalId)) {
+    errors.push("TERMINAL_ID must be 2-10 characters, uppercase letters and numbers only (e.g., L1, L2, LANE01)");
+  }
+  if (!terminalPort || terminalPort < 1024 || terminalPort > 65535) {
+    errors.push("TERMINAL_PORT must be between 1024 and 65535");
+  }
+  if (terminalPort === 5173) {
+    errors.push("TERMINAL_PORT cannot be 5173 (reserved for Vite dev server)");
+  }
+  const peerTerminals = process.env.PEER_TERMINALS ? process.env.PEER_TERMINALS.split(",").map((url) => url.trim()) : [];
+  for (const peer of peerTerminals) {
+    if (!peer.startsWith("ws://") && !peer.startsWith("wss://")) {
+      errors.push(`Invalid peer terminal URL: ${peer}. Must start with ws:// or wss://`);
+    }
+  }
+  const supabaseUrl = process.env.SUPABASE_URL;
+  const supabaseServiceKey = process.env.SUPABASE_SERVICE_KEY;
+  if (supabaseUrl && !supabaseUrl.startsWith("https://")) {
+    errors.push("SUPABASE_URL must start with https://");
+  }
+  if (supabaseUrl && !supabaseServiceKey) {
+    warnings.push("SUPABASE_URL is set but SUPABASE_SERVICE_KEY is missing. Cloud sync will be disabled.");
+  }
+  const syncBackoffBaseMs = parseInt(process.env.SYNC_BACKOFF_BASE_MS || "1000");
+  if (syncBackoffBaseMs < 100 || syncBackoffBaseMs > 6e4) {
+    warnings.push("SYNC_BACKOFF_BASE_MS should be between 100 and 60000 ms. Using default: 1000ms");
+  }
+  if (terminalId === "L1" || terminalId === "L2") {
+    warnings.push(`Using default terminal ID '${terminalId}'. Consider setting a unique ID for production.`);
+  }
+  try {
+    const dbPath = app.getPath("userData");
+    fs.accessSync(dbPath, fs.constants.W_OK);
+  } catch (error) {
+    errors.push(`Cannot write to database directory: ${app.getPath("userData")}`);
+  }
+  if (peerTerminals.some((peer) => peer.includes("localhost") || peer.includes("127.0.0.1"))) {
+    warnings.push("Peer terminals include localhost. This is fine for development but not for production.");
+  }
+  return {
+    isValid: errors.length === 0,
+    errors,
+    warnings,
+    config: errors.length === 0 ? {
+      terminalId,
+      terminalPort,
+      peerTerminals,
+      supabaseUrl,
+      supabaseServiceKey,
+      syncBackoffBaseMs
+    } : void 0
+  };
+}
+function handleConfigErrors(result) {
+  console.error("\n========================================");
+  console.error("CONFIGURATION ERRORS");
+  console.error("========================================\n");
+  if (result.errors.length > 0) {
+    console.error("The following errors must be fixed:\n");
+    result.errors.forEach((error, index2) => {
+      console.error(`  ${index2 + 1}. ${error}`);
+    });
+    console.error("\n");
+  }
+  if (result.warnings.length > 0) {
+    console.warn("Warnings:\n");
+    result.warnings.forEach((warning, index2) => {
+      console.warn(`  ${index2 + 1}. ${warning}`);
+    });
+    console.warn("\n");
+  }
+  console.error("To fix these issues:\n");
+  console.error("1. Create a file: electron/settings.local.json with:");
+  console.error("   {");
+  console.error('     "terminalId": "L1",');
+  console.error('     "terminalPort": 8123');
+  console.error("   }");
+  console.error("\n2. Or set environment variables:");
+  console.error("   TERMINAL_ID=L1");
+  console.error("   TERMINAL_PORT=8123");
+  console.error("   PEER_TERMINALS=ws://localhost:8124");
+  console.error("\n========================================\n");
+}
+function getValidatedConfig() {
+  const result = validateConfig();
+  if (!result.isValid) {
+    handleConfigErrors(result);
+    throw new Error("Invalid configuration. See errors above.");
+  }
+  if (result.warnings.length > 0) {
+    console.warn("\nConfiguration warnings:");
+    result.warnings.forEach((warning) => console.warn(`- ${warning}`));
+    console.warn("");
+  }
+  return result.config;
+}
 const products = sqliteTable("products", {
   id: text("id").primaryKey(),
   sku: text("sku", { length: 50 }).notNull().unique(),
@@ -305,14 +420,14 @@ let db = null;
 function initializeDatabase() {
   if (db) return db;
   const userDataPath = app.getPath("userData");
-  const dbPath = path.join(userDataPath, "euphoria-pos.db");
+  const dbPath = path$1.join(userDataPath, "euphoria-pos.db");
   console.log("Initializing SQLite database at:", dbPath);
   sqliteDb = new Database(dbPath);
   sqliteDb.pragma("journal_mode = WAL");
   sqliteDb.pragma("synchronous = NORMAL");
   db = drizzle(sqliteDb, { schema });
   console.log("Running SQLite migrations...");
-  const migrationsFolder = path.join(__dirname, "../../drizzle/sqlite");
+  const migrationsFolder = path$1.join(__dirname, "../../drizzle/sqlite");
   migrate(db, { migrationsFolder });
   console.log("Migrations completed successfully");
   return db;
@@ -593,12 +708,18 @@ async function publish(topic, payload, _options = {}) {
 async function markSent(messageId, stage) {
   const db2 = getDb();
   const timestamp = now();
-  {
+  if (stage === "peer_ack") {
     await db2.update(outbox).set({
       status: "peer_ack",
       peerAckedAt: timestamp
     }).where(eq(outbox.id, messageId));
     console.log(`Message ${messageId} acknowledged by peer`);
+  } else if (stage === "cloud_ack") {
+    await db2.update(outbox).set({
+      status: "cloud_ack",
+      cloudAckedAt: timestamp
+    }).where(eq(outbox.id, messageId));
+    console.log(`Message ${messageId} acknowledged by cloud`);
   }
 }
 async function getPendingMessages(status = "pending", limit = 100) {
@@ -798,6 +919,13 @@ async function getRecentTransactions(limit = 10) {
   const db2 = getDb();
   return await db2.select().from(transactions).orderBy(sql`${transactions.createdAt} DESC`).limit(limit);
 }
+let cachedConfig = null;
+function getTerminalId() {
+  if (!cachedConfig) {
+    cachedConfig = getValidatedConfig();
+  }
+  return cachedConfig.terminalId;
+}
 function setupTransactionHandlers() {
   ipcMain.handle("transaction:complete", async (event, dto) => {
     try {
@@ -813,7 +941,12 @@ function setupTransactionHandlers() {
       if (Math.abs(totalPayments - dto.totalAmount) > 0.01) {
         throw new Error(`Payment total (${totalPayments}) does not match transaction total (${dto.totalAmount})`);
       }
-      const transactionId = await completeSale(dto);
+      const enhancedDto = {
+        ...dto,
+        employeeId: employee.id,
+        terminalId: getTerminalId()
+      };
+      const transactionId = await completeSale(enhancedDto);
       return {
         success: true,
         transactionId
@@ -1256,6 +1389,118 @@ const wsClient = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProp
   disconnectFromPeers,
   requestInventoryFromAllPeers
 }, Symbol.toStringTag, { value: "Module" }));
+let syncIntervalTimer = null;
+let isRunning = false;
+const DEFAULT_SYNC_INTERVAL = 3e4;
+const DEFAULT_BATCH_SIZE = 50;
+const DEFAULT_MAX_RETRIES = 3;
+function startCloudSync(config) {
+  if (isRunning) {
+    console.log("Cloud sync already running");
+    return;
+  }
+  const {
+    supabaseUrl,
+    supabaseServiceKey,
+    terminalId,
+    syncInterval: syncInterval2 = DEFAULT_SYNC_INTERVAL,
+    batchSize = DEFAULT_BATCH_SIZE
+  } = config;
+  if (!supabaseUrl || supabaseUrl === "your_supabase_url") {
+    console.log("Cloud sync disabled - no Supabase URL configured");
+    return;
+  }
+  if (!supabaseServiceKey || supabaseServiceKey === "your_supabase_service_key") {
+    console.log("Cloud sync disabled - no Supabase service key configured");
+    return;
+  }
+  console.log(`Starting cloud sync for terminal ${terminalId}`);
+  console.log(`Sync interval: ${syncInterval2}ms, Batch size: ${batchSize}`);
+  isRunning = true;
+  syncToCloud(config);
+  syncIntervalTimer = setInterval(() => {
+    syncToCloud(config);
+  }, syncInterval2);
+}
+function stopCloudSync() {
+  if (syncIntervalTimer) {
+    clearInterval(syncIntervalTimer);
+    syncIntervalTimer = null;
+  }
+  isRunning = false;
+  console.log("Cloud sync stopped");
+}
+async function syncToCloud(config) {
+  const {
+    supabaseUrl,
+    supabaseServiceKey,
+    terminalId,
+    batchSize = DEFAULT_BATCH_SIZE,
+    maxRetries = DEFAULT_MAX_RETRIES
+  } = config;
+  try {
+    const messages = await getPendingMessages("peer_ack", batchSize);
+    if (messages.length === 0) {
+      return;
+    }
+    console.log(`Syncing ${messages.length} messages to cloud`);
+    const concurrency = 5;
+    const results = [];
+    for (let i = 0; i < messages.length; i += concurrency) {
+      const batch = messages.slice(i, i + concurrency);
+      const batchResults = await Promise.all(
+        batch.map((msg) => sendToCloud(msg, supabaseUrl, supabaseServiceKey, terminalId, maxRetries))
+      );
+      results.push(...batchResults);
+    }
+    const successful = results.filter((r) => r.success).length;
+    const failed = results.filter((r) => !r.success).length;
+    console.log(`Cloud sync completed: ${successful} successful, ${failed} failed`);
+  } catch (error) {
+    console.error("Error during cloud sync:", error);
+  }
+}
+async function sendToCloud(message, supabaseUrl, serviceKey, terminalId, maxRetries) {
+  if (message.retryCount >= maxRetries) {
+    console.error(`Message ${message.id} exceeded max retries (${maxRetries})`);
+    return { success: false, messageId: message.id, error: "Max retries exceeded" };
+  }
+  try {
+    const payload = {
+      messageId: message.id,
+      terminalId,
+      topic: message.topic,
+      data: message.payload,
+      timestamp: message.createdAt.toISOString(),
+      peerAckedAt: message.peerAckedAt?.toISOString()
+    };
+    const response = await fetch(`${supabaseUrl}/functions/v1/sync-pos-message`, {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${serviceKey}`,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify(payload)
+    });
+    if (response.ok) {
+      await markSent(message.id, "cloud_ack");
+      return { success: true, messageId: message.id };
+    } else {
+      const error = await response.text();
+      console.error(`Cloud sync failed for message ${message.id}:`, error);
+      await incrementRetryCount(message.id);
+      return { success: false, messageId: message.id, error };
+    }
+  } catch (error) {
+    console.error(`Error sending message ${message.id} to cloud:`, error);
+    await incrementRetryCount(message.id);
+    return {
+      success: false,
+      messageId: message.id,
+      error: error instanceof Error ? error.message : "Unknown error"
+    };
+  }
+}
 let syncInterval = null;
 let reconcileInterval = null;
 const SYNC_INTERVAL = 5e3;
@@ -1331,6 +1576,12 @@ function stopLaneSync() {
   stopPeerServer();
 }
 let mainWindow = null;
+const configResult = validateConfig();
+if (!configResult.isValid) {
+  handleConfigErrors(configResult);
+  app.quit();
+  process.exit(1);
+}
 function createWindow() {
   mainWindow = new BrowserWindow({
     width: 1400,
@@ -1348,12 +1599,43 @@ function createWindow() {
   }
 }
 app.whenReady().then(async () => {
-  initializeDatabase();
-  await seedInitialData();
-  setupAuthHandlers();
-  setupTransactionHandlers();
-  startLaneSync();
-  createWindow();
+  try {
+    console.log("========================================");
+    console.log("Euphoria POS Starting");
+    console.log(`Terminal ID: ${configResult.config.terminalId}`);
+    console.log(`Terminal Port: ${configResult.config.terminalPort}`);
+    console.log(`Peer Terminals: ${configResult.config.peerTerminals.join(", ") || "none"}`);
+    console.log("========================================\n");
+    initializeDatabase();
+    await seedInitialData();
+    setupAuthHandlers();
+    setupTransactionHandlers();
+    startLaneSync();
+    if (configResult.config.supabaseUrl && configResult.config.supabaseServiceKey) {
+      console.log("Starting cloud sync...");
+      startCloudSync({
+        supabaseUrl: configResult.config.supabaseUrl,
+        supabaseServiceKey: configResult.config.supabaseServiceKey,
+        terminalId: configResult.config.terminalId,
+        syncInterval: 3e4,
+        // 30 seconds
+        batchSize: 50,
+        maxRetries: 3
+      });
+    } else {
+      console.log("Cloud sync disabled (no Supabase credentials)");
+    }
+    createWindow();
+  } catch (error) {
+    console.error("Failed to start application:", error);
+    dialog.showErrorBox(
+      "Startup Error",
+      `Failed to start Euphoria POS:
+
+${error instanceof Error ? error.message : "Unknown error"}`
+    );
+    app.quit();
+  }
 });
 app.on("window-all-closed", () => {
   if (process.platform !== "darwin") {
@@ -1361,6 +1643,9 @@ app.on("window-all-closed", () => {
   }
 });
 app.on("before-quit", () => {
+  console.log("Shutting down Euphoria POS...");
   stopLaneSync();
+  stopCloudSync();
   closeDatabase();
+  console.log("Shutdown complete");
 });
