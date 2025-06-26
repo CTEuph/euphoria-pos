@@ -198,10 +198,6 @@ describe('[Feature]', () => {
 ### Executive Summary
 [2-3 sentence overview of the implementation plan]
 
-### Time Estimate
-- Development: X hours
-- Testing: Y hours
-- Total: Z hours (with buffer)
 
 ### Success Metrics
 1. [Specific measurable outcome]

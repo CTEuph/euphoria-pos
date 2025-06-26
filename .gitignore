@@ -6,3 +6,4 @@ release
 *.local
 .env
 .env.local
+_obsidian/
