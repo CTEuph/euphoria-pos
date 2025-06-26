@@ -3,8 +3,8 @@ import type { Config } from 'drizzle-kit'
 export default {
   schema: './drizzle/schema.ts',
   out: './drizzle/migrations',
-  driver: 'pg',
+  dialect: 'sqlite',
   dbCredentials: {
-    connectionString: process.env.DATABASE_URL!,
+    url: process.env.SQLITE_DATABASE_PATH || './data/euphoria-pos.db',
   },
 } satisfies Config
