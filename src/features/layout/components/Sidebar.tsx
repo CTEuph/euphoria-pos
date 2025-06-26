@@ -3,6 +3,7 @@ import { Search } from 'lucide-react'
 import { categories } from '@/shared/lib/mockData'
 import { CustomerSearch } from '@/features/customer/components/CustomerSearch'
 import { Button } from '@/components/ui/button'
+import { useAuth } from '@/features/employee/hooks/useAuth'
 
 interface SidebarProps {
   selectedCategory: string | null
@@ -18,6 +19,7 @@ export function Sidebar({
   onSearchChange 
 }: SidebarProps) {
   const [showCustomerSearch, setShowCustomerSearch] = useState(false)
+  const { permissions, isAuthenticated } = useAuth()
   return (
     <div className="w-80 bg-gray-50 border-r border-gray-200 flex flex-col">
       {/* Search Bar */}
@@ -62,24 +64,43 @@ export function Sidebar({
       </div>
 
       {/* Quick Actions */}
-      <div className="p-4 border-t border-gray-200">
-        <h3 className="text-sm font-semibold text-gray-700 mb-3">Quick Actions</h3>
-        <div className="space-y-2">
-          <Button 
-            variant="outline" 
-            className="w-full justify-start"
-            onClick={() => setShowCustomerSearch(true)}
-          >
-            📱 Customer Lookup
-          </Button>
-          <Button variant="outline" className="w-full justify-start">
-            📋 Hold Orders
-          </Button>
-          <Button variant="outline" className="w-full justify-start">
-            🔄 Returns
-          </Button>
+      {isAuthenticated && (
+        <div className="p-4 border-t border-gray-200">
+          <h3 className="text-sm font-semibold text-gray-700 mb-3">Quick Actions</h3>
+          <div className="space-y-2">
+            {/* Customer Lookup - All authenticated users */}
+            {permissions.canProcessSales && (
+              <Button 
+                variant="outline" 
+                className="w-full justify-start"
+                onClick={() => setShowCustomerSearch(true)}
+              >
+                📱 Customer Lookup
+              </Button>
+            )}
+            
+            {/* Hold Orders - All authenticated users */}
+            {permissions.canManageHoldOrders && (
+              <Button 
+                variant="outline" 
+                className="w-full justify-start"
+              >
+                📋 Hold Orders
+              </Button>
+            )}
+            
+            {/* Returns - Manager+ only */}
+            {permissions.canProcessReturns && (
+              <Button 
+                variant="outline" 
+                className="w-full justify-start"
+              >
+                🔄 Returns
+              </Button>
+            )}
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Customer Search Modal */}
       <CustomerSearch 

@@ -44,6 +44,12 @@ export interface RolePermissions {
   canResetPins: boolean
   canAccessSettings: boolean
   canViewReports: boolean
+  canManageInventory: boolean
+  canManageProducts: boolean
+  canManageEmployees: boolean
+  canManageHoldOrders: boolean
+  canProcessReturns: boolean
+  canViewInventory: boolean
 }
 
 // Permission mapping by role
@@ -56,6 +62,12 @@ export const ROLE_PERMISSIONS: Record<EmployeeRole, RolePermissions> = {
     canResetPins: false,
     canAccessSettings: false,
     canViewReports: false,
+    canManageInventory: false,
+    canManageProducts: false,
+    canManageEmployees: false,
+    canManageHoldOrders: true,
+    canProcessReturns: false,
+    canViewInventory: true,
   },
   manager: {
     canProcessSales: true,
@@ -65,6 +77,12 @@ export const ROLE_PERMISSIONS: Record<EmployeeRole, RolePermissions> = {
     canResetPins: true,
     canAccessSettings: false,
     canViewReports: true,
+    canManageInventory: true,
+    canManageProducts: true,
+    canManageEmployees: false,
+    canManageHoldOrders: true,
+    canProcessReturns: true,
+    canViewInventory: true,
   },
   owner: {
     canProcessSales: true,
@@ -74,6 +92,12 @@ export const ROLE_PERMISSIONS: Record<EmployeeRole, RolePermissions> = {
     canResetPins: true,
     canAccessSettings: true,
     canViewReports: true,
+    canManageInventory: true,
+    canManageProducts: true,
+    canManageEmployees: true,
+    canManageHoldOrders: true,
+    canProcessReturns: true,
+    canViewInventory: true,
   },
 }
 

@@ -1,6 +1,7 @@
 import { create } from 'zustand'
 import { persist, createJSONStorage } from 'zustand/middleware'
 import { CartItem, Product, Customer, TAX_RATE } from '@/shared/lib/mockData'
+import { createTransaction, type CreateTransactionRequest } from '../services/transactionService'
 import { 
   transactionPreservationService, 
   createTransactionSnapshot, 
@@ -35,6 +36,14 @@ interface CheckoutStore {
   // Modal state actions
   setPaymentModal: (open: boolean) => void
   setCustomerModal: (open: boolean) => void
+  
+  // Transaction processing
+  processPayment: (
+    paymentMethod: 'cash' | 'card' | 'split',
+    amountPaid: number,
+    employeeId: string,
+    changeGiven?: number
+  ) => Promise<{ success: boolean; transactionNumber?: string; error?: string }>
   
   // Transaction preservation
   preserveCurrentTransaction: (employeeId: string) => void
@@ -204,6 +213,84 @@ export const useCheckoutStore = create<CheckoutStore>()(
       transactionPreservationService.clearPreservedTransactionsForEmployee(employeeId)
     } else {
       transactionPreservationService.clearAllPreservedTransactions()
+    }
+  },
+
+  // Process payment and create transaction record
+  processPayment: async (
+    paymentMethod: 'cash' | 'card' | 'split',
+    amountPaid: number,
+    employeeId: string,
+    changeGiven: number = 0
+  ) => {
+    const state = get()
+    
+    try {
+      // Set processing state
+      set({ isProcessing: true })
+      
+      // Validate we have items in cart
+      if (state.cart.length === 0) {
+        throw new Error('Cannot process payment: cart is empty')
+      }
+      
+      // Validate employee ID
+      if (!employeeId) {
+        throw new Error('Cannot process payment: no employee logged in')
+      }
+      
+      // Create transaction request
+      const transactionRequest: CreateTransactionRequest = {
+        items: state.cart.map(item => ({
+          productId: item.id,
+          quantity: item.quantity,
+          unitPrice: item.price,
+          totalPrice: item.total,
+          caseDiscountApplied: false, // TODO: Implement case discount logic
+          discountAmount: 0
+        })),
+        subtotal: state.subtotal,
+        taxAmount: state.tax,
+        totalAmount: state.total,
+        paymentMethod,
+        amountPaid,
+        changeGiven,
+        customerId: state.customer?.id,
+        employeeId, // 👈 KEY: Employee who processed the sale
+        salesChannel: 'pos'
+      }
+      
+      // Create transaction
+      const result = await createTransaction(transactionRequest)
+      
+      if (result.success) {
+        // Clear cart on successful transaction
+        const derived = calculateDerivedValues([])
+        set({
+          cart: [],
+          customer: null,
+          isProcessing: false,
+          ...derived
+        })
+        
+        return {
+          success: true,
+          transactionNumber: result.transactionNumber
+        }
+      } else {
+        set({ isProcessing: false })
+        return {
+          success: false,
+          error: result.error || 'Transaction failed'
+        }
+      }
+    } catch (error) {
+      set({ isProcessing: false })
+      console.error('Payment processing failed:', error)
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Unknown error occurred'
+      }
     }
   }
     }),

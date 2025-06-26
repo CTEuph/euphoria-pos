@@ -7,3 +7,12 @@ release
 .env
 .env.local
 _obsidian/
+
+# Database files
+data/
+*.db
+*.db-shm
+*.db-wal
+
+# Build output
+out/

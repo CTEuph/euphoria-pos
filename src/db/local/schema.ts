@@ -98,6 +98,87 @@ export const inventoryRelations = relations(inventory, ({ one }) => ({
   })
 }))
 
+// Transactions table - stores completed sales with employee information
+export const transactions = sqliteTable('transactions', {
+  id: text('id').primaryKey(), // ULID
+  transactionNumber: text('transaction_number', { length: 20 }).notNull().unique(),
+  customerId: text('customer_id'), // Optional customer reference
+  employeeId: text('employee_id').references(() => employees.id).notNull(), // WHO processed the sale
+  
+  subtotal: real('subtotal').notNull(),
+  taxAmount: real('tax_amount').notNull(),
+  totalAmount: real('total_amount').notNull(),
+  
+  status: text('status').notNull().default('completed'), // completed, voided, refunded
+  salesChannel: text('sales_channel').notNull().default('pos'), // pos, doordash, grubhub, employee
+  
+  // Payment information (simplified for now)
+  paymentMethod: text('payment_method').notNull(), // cash, card, split
+  amountPaid: real('amount_paid').notNull(),
+  changeGiven: real('change_given').notNull().default(0),
+  
+  createdAt: integer('created_at', { mode: 'timestamp' }).notNull().$defaultFn(() => new Date()),
+  voidedAt: integer('voided_at', { mode: 'timestamp' }),
+  voidedBy: text('voided_by').references(() => employees.id)
+}, (table) => ({
+  transactionNumberIdx: index('transactions_number_idx').on(table.transactionNumber),
+  employeeIdx: index('transactions_employee_idx').on(table.employeeId),
+  statusIdx: index('transactions_status_idx').on(table.status),
+  createdAtIdx: index('transactions_created_at_idx').on(table.createdAt)
+}))
+
+// Transaction items - individual products in each transaction
+export const transactionItems = sqliteTable('transaction_items', {
+  id: text('id').primaryKey(), // ULID
+  transactionId: text('transaction_id').references(() => transactions.id).notNull(),
+  productId: text('product_id').references(() => products.id).notNull(),
+  
+  quantity: integer('quantity').notNull(),
+  unitPrice: real('unit_price').notNull(), // Price at time of sale
+  totalPrice: real('total_price').notNull(), // quantity * unitPrice
+  
+  // Case discount information
+  caseDiscountApplied: integer('case_discount_applied', { mode: 'boolean' }).default(false),
+  discountAmount: real('discount_amount').notNull().default(0),
+  
+  createdAt: integer('created_at', { mode: 'timestamp' }).notNull().$defaultFn(() => new Date())
+}, (table) => ({
+  transactionIdx: index('transaction_items_transaction_idx').on(table.transactionId),
+  productIdx: index('transaction_items_product_idx').on(table.productId)
+}))
+
+// Relations for transaction tables
+export const transactionsRelations = relations(transactions, ({ one, many }) => ({
+  employee: one(employees, {
+    fields: [transactions.employeeId],
+    references: [employees.id]
+  }),
+  voidedByEmployee: one(employees, {
+    fields: [transactions.voidedBy],
+    references: [employees.id]
+  }),
+  items: many(transactionItems)
+}))
+
+export const transactionItemsRelations = relations(transactionItems, ({ one }) => ({
+  transaction: one(transactions, {
+    fields: [transactionItems.transactionId],
+    references: [transactions.id]
+  }),
+  product: one(products, {
+    fields: [transactionItems.productId],
+    references: [products.id]
+  })
+}))
+
+// Update employees relations to include transactions
+export const employeesRelations = relations(employees, ({ many }) => ({
+  transactions: many(transactions),
+  voidedTransactions: many(transactions, {
+    relationName: 'voidedBy'
+  })
+}))
+
 // Sync queue for offline operations (SQLite-specific)
 export const syncQueue = sqliteTable('sync_queue', {
   id: text('id').primaryKey(), // ULID
@@ -182,6 +263,10 @@ export type Inventory = typeof inventory.$inferSelect
 export type NewInventory = typeof inventory.$inferInsert
 export type Employee = typeof employees.$inferSelect
 export type NewEmployee = typeof employees.$inferInsert
+export type Transaction = typeof transactions.$inferSelect
+export type NewTransaction = typeof transactions.$inferInsert
+export type TransactionItem = typeof transactionItems.$inferSelect
+export type NewTransactionItem = typeof transactionItems.$inferInsert
 
 // Sync-related type exports
 export type SyncQueue = typeof syncQueue.$inferSelect

@@ -3,10 +3,13 @@ import { Minus, Plus, Trash2, User, CreditCard } from 'lucide-react'
 import { useCheckoutStore } from '../store/checkoutStore'
 import { CustomerSearch } from '@/features/customer/components/CustomerSearch'
 import { Button } from '@/components/ui/button'
+import { useAuth } from '@/features/employee/hooks/useAuth'
 
 export function ShoppingCart() {
   const [showCustomerSearch, setShowCustomerSearch] = useState(false)
+  const [isProcessingPayment, setIsProcessingPayment] = useState(false)
   const cartScrollRef = useRef<HTMLDivElement>(null)
+  const { permissions, isAuthenticated, currentUser } = useAuth()
   const { 
     cart, 
     customer, 
@@ -16,7 +19,9 @@ export function ShoppingCart() {
     itemCount, 
     updateQuantity, 
     removeItem, 
-    clearCart 
+    clearCart,
+    processPayment,
+    isProcessing
   } = useCheckoutStore()
 
   // Scroll to bottom when cart changes (new items added)
@@ -40,6 +45,35 @@ export function ShoppingCart() {
     }).format(amount)
   }
 
+  // Handle payment processing
+  const handlePayment = async (paymentMethod: 'cash' | 'card' | 'split') => {
+    if (!currentUser?.id) {
+      alert('Error: No employee logged in')
+      return
+    }
+
+    setIsProcessingPayment(true)
+    
+    try {
+      const result = await processPayment(
+        paymentMethod,
+        total, // For now, assume exact payment
+        currentUser.id
+      )
+
+      if (result.success) {
+        alert(`Payment successful! Transaction #${result.transactionNumber}`)
+      } else {
+        alert(`Payment failed: ${result.error}`)
+      }
+    } catch (error) {
+      console.error('Payment processing error:', error)
+      alert('Payment failed: Unexpected error occurred')
+    } finally {
+      setIsProcessingPayment(false)
+    }
+  }
+
   return (
     <div className="w-96 bg-white border-l border-gray-200 flex flex-col">
       {/* Cart Header */}
@@ -48,7 +82,7 @@ export function ShoppingCart() {
           <h2 className="text-lg font-semibold text-gray-900">
             Cart ({itemCount})
           </h2>
-          {cart.length > 0 && (
+          {cart.length > 0 && isAuthenticated && permissions.canProcessSales && (
             <Button 
               variant="outline" 
               size="sm" 
@@ -85,14 +119,23 @@ export function ShoppingCart() {
             </Button>
           </div>
         ) : (
-          <Button 
-            variant="outline" 
-            className="w-full"
-            onClick={() => setShowCustomerSearch(true)}
-          >
-            <User className="w-4 h-4 mr-2" />
-            Add Customer
-          </Button>
+          isAuthenticated && permissions.canProcessSales ? (
+            <Button 
+              variant="outline" 
+              className="w-full"
+              onClick={() => setShowCustomerSearch(true)}
+            >
+              <User className="w-4 h-4 mr-2" />
+              Add Customer
+            </Button>
+          ) : (
+            <div className="text-center p-3 bg-gray-50 text-gray-500 rounded-lg text-sm">
+              {!isAuthenticated 
+                ? "Log in to add customers" 
+                : "No permission to manage customers"
+              }
+            </div>
+          )
         )}
       </div>
 
@@ -179,18 +222,43 @@ export function ShoppingCart() {
           </div>
           
           <div className="space-y-2">
-            <Button className="w-full bg-purple-600 hover:bg-purple-700">
-              <CreditCard className="w-4 h-4 mr-2" />
-              Process Payment
-            </Button>
-            <div className="grid grid-cols-2 gap-2">
-              <Button variant="outline" size="sm">
-                💳 Card
-              </Button>
-              <Button variant="outline" size="sm">
-                💵 Cash
-              </Button>
-            </div>
+            {isAuthenticated && permissions.canProcessSales ? (
+              <>
+                <Button 
+                  className="w-full bg-purple-600 hover:bg-purple-700"
+                  onClick={() => handlePayment('card')}
+                  disabled={isProcessing || isProcessingPayment}
+                >
+                  <CreditCard className="w-4 h-4 mr-2" />
+                  {isProcessing || isProcessingPayment ? 'Processing...' : 'Process Payment'}
+                </Button>
+                <div className="grid grid-cols-2 gap-2">
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => handlePayment('card')}
+                    disabled={isProcessing || isProcessingPayment}
+                  >
+                    💳 Card
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => handlePayment('cash')}
+                    disabled={isProcessing || isProcessingPayment}
+                  >
+                    💵 Cash
+                  </Button>
+                </div>
+              </>
+            ) : (
+              <div className="text-center p-3 bg-yellow-50 text-yellow-700 rounded-lg text-sm">
+                {!isAuthenticated 
+                  ? "Please log in to process payments" 
+                  : "You don't have permission to process sales"
+                }
+              </div>
+            )}
           </div>
         </div>
       )}

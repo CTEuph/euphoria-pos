@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Clock, User, Settings, LogOut, Shield, AlertTriangle } from 'lucide-react'
+import { Clock, User, Settings, LogOut, Shield, AlertTriangle, BarChart3, Package, Users } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { useAuth } from '@/features/employee/hooks/useAuth'
 import { useSessionTimeout } from '@/features/employee/hooks/useSessionTimeout'
@@ -13,7 +13,8 @@ export function TopBar() {
     isAuthenticated, 
     userFullName, 
     userRole, 
-    isManagerOrAbove 
+    isManagerOrAbove,
+    permissions 
   } = useAuth()
   
   const { 
@@ -134,6 +135,54 @@ export function TopBar() {
 
             {/* Action buttons */}
             <div className="flex items-center space-x-2">
+              {/* Reports button - Manager+ */}
+              {permissions.canViewReports && (
+                <Button 
+                  variant="ghost" 
+                  size="sm"
+                  className="text-gray-600 hover:text-gray-900"
+                  title="Reports & Analytics"
+                >
+                  <BarChart3 className="w-4 h-4" />
+                </Button>
+              )}
+
+              {/* Inventory Management - Manager+ */}
+              {permissions.canManageInventory && (
+                <Button 
+                  variant="ghost" 
+                  size="sm"
+                  className="text-gray-600 hover:text-gray-900"
+                  title="Inventory Management"
+                >
+                  <Package className="w-4 h-4" />
+                </Button>
+              )}
+
+              {/* Employee Management - Owner only */}
+              {permissions.canManageEmployees && (
+                <Button 
+                  variant="ghost" 
+                  size="sm"
+                  className="text-gray-600 hover:text-gray-900"
+                  title="Employee Management"
+                >
+                  <Users className="w-4 h-4" />
+                </Button>
+              )}
+
+              {/* Settings - Owner only */}
+              {permissions.canAccessSettings && (
+                <Button 
+                  variant="ghost" 
+                  size="sm"
+                  className="text-gray-600 hover:text-gray-900"
+                  title="System Settings"
+                >
+                  <Settings className="w-4 h-4" />
+                </Button>
+              )}
+              
               <LogoutButton 
                 variant="ghost" 
                 size="sm"
@@ -142,16 +191,6 @@ export function TopBar() {
                 <LogOut className="w-4 h-4 mr-1" />
                 Logout
               </LogoutButton>
-              
-              {isManagerOrAbove && (
-                <Button 
-                  variant="outline" 
-                  size="sm"
-                  className="text-gray-600 hover:text-gray-900"
-                >
-                  <Settings className="w-4 h-4" />
-                </Button>
-              )}
             </div>
           </>
         ) : (

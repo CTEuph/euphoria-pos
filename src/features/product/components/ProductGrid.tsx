@@ -2,6 +2,7 @@ import { ShoppingCart, Package } from 'lucide-react'
 import { Product } from '@/shared/lib/mockData'
 import { useCheckoutStore } from '@/features/checkout/store/checkoutStore'
 import { Button } from '@/components/ui/button'
+import { useAuth } from '@/features/employee/hooks/useAuth'
 
 interface ProductGridProps {
   products: Product[]
@@ -10,6 +11,7 @@ interface ProductGridProps {
 
 export function ProductGrid({ products, loading = false }: ProductGridProps) {
   const { addItem, hasItem } = useCheckoutStore()
+  const { permissions, isAuthenticated } = useAuth()
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-US', {
@@ -100,18 +102,28 @@ export function ProductGrid({ products, loading = false }: ProductGridProps) {
               </div>
             </div>
 
-            <Button
-              onClick={() => addItem(product)}
-              disabled={!product.inStock}
-              className={`w-full ${
-                hasItem(product.id) 
-                  ? 'bg-green-600 hover:bg-green-700' 
-                  : 'bg-purple-600 hover:bg-purple-700'
-              }`}
-            >
-              <ShoppingCart className="w-4 h-4 mr-2" />
-              {hasItem(product.id) ? 'Added' : 'Add to Cart'}
-            </Button>
+            {isAuthenticated && permissions.canProcessSales ? (
+              <Button
+                onClick={() => addItem(product)}
+                disabled={!product.inStock}
+                className={`w-full ${
+                  hasItem(product.id) 
+                    ? 'bg-green-600 hover:bg-green-700' 
+                    : 'bg-purple-600 hover:bg-purple-700'
+                }`}
+              >
+                <ShoppingCart className="w-4 h-4 mr-2" />
+                {hasItem(product.id) ? 'Added' : 'Add to Cart'}
+              </Button>
+            ) : (
+              <Button
+                disabled
+                className="w-full bg-gray-300 text-gray-500 cursor-not-allowed"
+              >
+                <ShoppingCart className="w-4 h-4 mr-2" />
+                {!isAuthenticated ? 'Login Required' : 'No Permission'}
+              </Button>
+            )}
           </div>
         </div>
       ))}

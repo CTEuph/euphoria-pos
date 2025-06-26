@@ -9,9 +9,10 @@ import {
   createDatabaseBackup,
   getLocalDatabase
 } from '../../../src/db/index'
-import type { Product, Employee, Inventory } from '../../../src/db/local/schema'
-import { eq, like, and, or } from 'drizzle-orm'
+import type { Product, Employee, Inventory, Transaction, NewTransaction, NewTransactionItem } from '../../../src/db/local/schema'
+import { eq, like, and, or, desc, gte, lt, sum, count, sql } from 'drizzle-orm'
 import * as schema from '../../../src/db/local/schema'
+import { ulid } from 'ulid'
 
 /**
  * Setup all database-related IPC handlers
@@ -253,6 +254,262 @@ export function setupDatabaseHandlers(): void {
     }
   })
 
+  // Create transaction handler
+  ipcMain.handle('db:create-transaction', async (
+    _event,
+    data: {
+      transaction: NewTransaction
+      items: NewTransactionItem[]
+    }
+  ): Promise<{ success: boolean; transaction?: Transaction; error?: string }> => {
+    try {
+      const db = getLocalDatabase()
+      
+      // Start transaction
+      return await db.transaction(async (tx) => {
+        // Insert transaction record
+        const [createdTransaction] = await tx
+          .insert(schema.transactions)
+          .values(data.transaction)
+          .returning()
+        
+        // Insert transaction items
+        if (data.items.length > 0) {
+          await tx
+            .insert(schema.transactionItems)
+            .values(data.items)
+        }
+        
+        // Update inventory for each item
+        for (const item of data.items) {
+          await tx
+            .update(schema.inventory)
+            .set({
+              currentStock: sql`current_stock - ${item.quantity}`,
+              lastUpdated: new Date()
+            })
+            .where(eq(schema.inventory.productId, item.productId))
+        }
+        
+        // Add to sync queue for cloud upload
+        await tx
+          .insert(schema.syncQueue)
+          .values({
+            id: ulid(),
+            operation: 'upload_transaction',
+            entityType: 'transaction',
+            entityId: createdTransaction.id,
+            payload: JSON.stringify({
+              transaction: createdTransaction,
+              items: data.items
+            }),
+            priority: 1 // High priority for transactions
+          })
+        
+        return {
+          success: true,
+          transaction: createdTransaction
+        }
+      })
+      
+    } catch (error) {
+      console.error('Failed to create transaction:', error)
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Unknown error occurred'
+      }
+    }
+  })
+
+  // Get employee transactions handler
+  ipcMain.handle('db:get-employee-transactions', async (
+    _event,
+    employeeId: string,
+    limit: number = 10
+  ): Promise<{ success: boolean; transactions?: any[]; error?: string }> => {
+    try {
+      const db = getLocalDatabase()
+      
+      const results = await db
+        .select({
+          id: schema.transactions.id,
+          transactionNumber: schema.transactions.transactionNumber,
+          employeeName: sql<string>`${schema.employees.firstName} || ' ' || ${schema.employees.lastName}`,
+          employeeCode: schema.employees.employeeCode,
+          totalAmount: schema.transactions.totalAmount,
+          paymentMethod: schema.transactions.paymentMethod,
+          createdAt: schema.transactions.createdAt,
+          itemCount: sql<number>`COUNT(${schema.transactionItems.id})`
+        })
+        .from(schema.transactions)
+        .innerJoin(schema.employees, eq(schema.transactions.employeeId, schema.employees.id))
+        .leftJoin(schema.transactionItems, eq(schema.transactions.id, schema.transactionItems.transactionId))
+        .where(eq(schema.transactions.employeeId, employeeId))
+        .groupBy(schema.transactions.id, schema.employees.id)
+        .orderBy(desc(schema.transactions.createdAt))
+        .limit(limit)
+      
+      return {
+        success: true,
+        transactions: results
+      }
+      
+    } catch (error) {
+      console.error('Failed to get employee transactions:', error)
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Unknown error occurred'
+      }
+    }
+  })
+
+  // Get transaction by ID handler
+  ipcMain.handle('db:get-transaction-by-id', async (
+    _event,
+    transactionId: string
+  ): Promise<{ success: boolean; transaction?: Transaction; error?: string }> => {
+    try {
+      const db = getLocalDatabase()
+      
+      const result = await db
+        .select()
+        .from(schema.transactions)
+        .where(eq(schema.transactions.id, transactionId))
+        .limit(1)
+      
+      return {
+        success: true,
+        transaction: result.length > 0 ? result[0] : undefined
+      }
+      
+    } catch (error) {
+      console.error('Failed to get transaction by ID:', error)
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Unknown error occurred'
+      }
+    }
+  })
+
+  // Void transaction handler
+  ipcMain.handle('db:void-transaction', async (
+    _event,
+    data: {
+      transactionId: string
+      voidedBy: string
+      reason: string
+    }
+  ): Promise<{ success: boolean; error?: string }> => {
+    try {
+      const db = getLocalDatabase()
+      
+      await db.transaction(async (tx) => {
+        // Update transaction status
+        await tx
+          .update(schema.transactions)
+          .set({
+            status: 'voided',
+            voidedAt: new Date(),
+            voidedBy: data.voidedBy
+          })
+          .where(eq(schema.transactions.id, data.transactionId))
+        
+        // Get transaction items to restore inventory
+        const items = await tx
+          .select()
+          .from(schema.transactionItems)
+          .where(eq(schema.transactionItems.transactionId, data.transactionId))
+        
+        // Restore inventory for each item
+        for (const item of items) {
+          await tx
+            .update(schema.inventory)
+            .set({
+              currentStock: sql`current_stock + ${item.quantity}`,
+              lastUpdated: new Date()
+            })
+            .where(eq(schema.inventory.productId, item.productId))
+        }
+        
+        // Add to sync queue
+        await tx
+          .insert(schema.syncQueue)
+          .values({
+            id: ulid(),
+            operation: 'void_transaction',
+            entityType: 'transaction',
+            entityId: data.transactionId,
+            payload: JSON.stringify(data),
+            priority: 1
+          })
+      })
+      
+      return { success: true }
+      
+    } catch (error) {
+      console.error('Failed to void transaction:', error)
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Unknown error occurred'
+      }
+    }
+  })
+
+  // Get daily sales summary handler
+  ipcMain.handle('db:get-daily-sales-summary', async (
+    _event,
+    employeeId: string,
+    date: Date
+  ): Promise<{ success: boolean; summary?: any; error?: string }> => {
+    try {
+      const db = getLocalDatabase()
+      
+      // Get start and end of day
+      const startOfDay = new Date(date)
+      startOfDay.setHours(0, 0, 0, 0)
+      
+      const endOfDay = new Date(date)
+      endOfDay.setHours(23, 59, 59, 999)
+      
+      const result = await db
+        .select({
+          totalSales: sql<number>`COALESCE(SUM(${schema.transactions.totalAmount}), 0)`,
+          transactionCount: sql<number>`COUNT(${schema.transactions.id})`,
+          cashSales: sql<number>`COALESCE(SUM(CASE WHEN ${schema.transactions.paymentMethod} = 'cash' THEN ${schema.transactions.totalAmount} ELSE 0 END), 0)`,
+          cardSales: sql<number>`COALESCE(SUM(CASE WHEN ${schema.transactions.paymentMethod} = 'card' THEN ${schema.transactions.totalAmount} ELSE 0 END), 0)`
+        })
+        .from(schema.transactions)
+        .where(
+          and(
+            eq(schema.transactions.employeeId, employeeId),
+            eq(schema.transactions.status, 'completed'),
+            gte(schema.transactions.createdAt, startOfDay),
+            lt(schema.transactions.createdAt, endOfDay)
+          )
+        )
+      
+      const summary = result[0]
+      const averageTransaction = summary.transactionCount > 0 
+        ? summary.totalSales / summary.transactionCount 
+        : 0
+      
+      return {
+        success: true,
+        summary: {
+          ...summary,
+          averageTransaction
+        }
+      }
+      
+    } catch (error) {
+      console.error('Failed to get daily sales summary:', error)
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Unknown error occurred'
+      }
+    }
+  })
+
   console.log('Database IPC handlers registered')
 }
 
@@ -269,7 +526,12 @@ export function removeDatabaseHandlers(): void {
     'db:get-employees',
     'db:get-inventory',
     'db:update-inventory',
-    'db:get-sync-status'
+    'db:get-sync-status',
+    'db:create-transaction',
+    'db:get-employee-transactions',
+    'db:get-transaction-by-id',
+    'db:void-transaction',
+    'db:get-daily-sales-summary'
   ]
   
   handlers.forEach(handler => {

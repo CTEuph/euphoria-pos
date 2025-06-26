@@ -6,6 +6,8 @@ import type {
   Employee,
   RateLimitState
 } from '../src/features/employee/types'
+import type { NewTransaction, NewTransactionItem, Transaction } from '../src/db/local/schema'
+
 
 // Define the API interface that will be available in renderer
 interface ElectronAPI {
@@ -38,14 +40,45 @@ interface ElectronAPI {
     getRecentActivity: (limit?: number) => Promise<any[]>
   }
   
-  // Database API (for future use)
+  // Database API
   db: {
     healthCheck: () => Promise<any>
     createBackup: (backupPath?: string) => Promise<string>
+    createTransaction: (data: {
+      transaction: NewTransaction
+      items: NewTransactionItem[]
+    }) => Promise<{ success: boolean; transaction?: Transaction; error?: string }>
+    getEmployeeTransactions: (employeeId: string, limit?: number) => Promise<{ 
+      success: boolean; 
+      transactions?: any[]; 
+      error?: string 
+    }>
+    getTransactionById: (transactionId: string) => Promise<{ 
+      success: boolean; 
+      transaction?: Transaction; 
+      error?: string 
+    }>
+    voidTransaction: (data: {
+      transactionId: string
+      voidedBy: string
+      reason: string
+    }) => Promise<{ success: boolean; error?: string }>
+    getDailySalesSummary: (employeeId: string, date: Date) => Promise<{ 
+      success: boolean; 
+      summary?: {
+        totalSales: number
+        transactionCount: number
+        averageTransaction: number
+        cashSales: number
+        cardSales: number
+      }; 
+      error?: string 
+    }>
   }
 }
 
-contextBridge.exposeInMainWorld('electron', {
+// Create the API object
+const electronAPI = {
   version: process.versions.electron,
   
   // Authentication methods
@@ -91,9 +124,27 @@ contextBridge.exposeInMainWorld('electron', {
   // Database methods
   db: {
     healthCheck: () => ipcRenderer.invoke('db:health-check'),
-    createBackup: (backupPath?: string) => ipcRenderer.invoke('db:create-backup', backupPath)
+    createBackup: (backupPath?: string) => ipcRenderer.invoke('db:create-backup', backupPath),
+    createTransaction: (data: {
+      transaction: NewTransaction
+      items: NewTransactionItem[]
+    }) => ipcRenderer.invoke('db:create-transaction', data),
+    getEmployeeTransactions: (employeeId: string, limit?: number) => 
+      ipcRenderer.invoke('db:get-employee-transactions', employeeId, limit),
+    getTransactionById: (transactionId: string) => 
+      ipcRenderer.invoke('db:get-transaction-by-id', transactionId),
+    voidTransaction: (data: {
+      transactionId: string
+      voidedBy: string
+      reason: string
+    }) => ipcRenderer.invoke('db:void-transaction', data),
+    getDailySalesSummary: (employeeId: string, date: Date) => 
+      ipcRenderer.invoke('db:get-daily-sales-summary', employeeId, date)
   }
-} satisfies ElectronAPI)
+} satisfies ElectronAPI
+
+// Expose the API to the renderer
+contextBridge.exposeInMainWorld('electron', electronAPI)
 
 // Type declaration for global window object
 declare global {
