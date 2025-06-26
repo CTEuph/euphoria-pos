@@ -2,7 +2,7 @@
 
 ## Command Usage:
 ```
-/plan-feature [TASK_ID] [GUIDE_PATH] [MODE]
+/plan-feature [TASK_ID] [GUIDE_PATH]
 
 Examples:
 /plan-feature task-1.1 _plans/high-plans/implementation-guide.md        # Full planning
