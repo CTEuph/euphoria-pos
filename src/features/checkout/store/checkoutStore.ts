@@ -1,5 +1,12 @@
 import { create } from 'zustand'
+import { persist, createJSONStorage } from 'zustand/middleware'
 import { CartItem, Product, Customer, TAX_RATE } from '@/shared/lib/mockData'
+import { 
+  transactionPreservationService, 
+  createTransactionSnapshot, 
+  shouldPreserveTransaction,
+  type TransactionSnapshot 
+} from '@/features/employee/services/transactionPreservationService'
 
 interface CheckoutStore {
   // State
@@ -29,6 +36,13 @@ interface CheckoutStore {
   setPaymentModal: (open: boolean) => void
   setCustomerModal: (open: boolean) => void
   
+  // Transaction preservation
+  preserveCurrentTransaction: (employeeId: string) => void
+  restoreTransaction: (snapshot: TransactionSnapshot) => void
+  getPreservedTransactions: (employeeId?: string) => TransactionSnapshot[]
+  hasPreservedTransactions: (employeeId?: string) => boolean
+  clearPreservedTransactions: (employeeId?: string) => void
+  
   // Utility functions
   getCartItem: (productId: string) => CartItem | undefined
   hasItem: (productId: string) => boolean
@@ -44,7 +58,9 @@ const calculateDerivedValues = (cart: CartItem[]) => {
   return { subtotal, tax, total, itemCount }
 }
 
-export const useCheckoutStore = create<CheckoutStore>((set, get) => ({
+export const useCheckoutStore = create<CheckoutStore>()(
+  persist(
+    (set, get) => ({
   // Initial state
   cart: [],
   customer: null,
@@ -151,5 +167,59 @@ export const useCheckoutStore = create<CheckoutStore>((set, get) => ({
   
   hasItem: (productId: string) => {
     return get().cart.some(item => item.id === productId)
+  },
+
+  // Transaction preservation methods
+  preserveCurrentTransaction: (employeeId: string) => {
+    const state = get()
+    
+    if (shouldPreserveTransaction(state)) {
+      const snapshot = createTransactionSnapshot(state, employeeId)
+      transactionPreservationService.preserveTransaction(snapshot)
+    }
+  },
+
+  restoreTransaction: (snapshot: TransactionSnapshot) => {
+    const derived = calculateDerivedValues(snapshot.cart)
+    set({
+      cart: snapshot.cart,
+      customer: snapshot.customer,
+      ...derived
+    })
+  },
+
+  getPreservedTransactions: (employeeId?: string) => {
+    if (employeeId) {
+      return transactionPreservationService.getPreservedTransactionsForEmployee(employeeId)
+    }
+    return transactionPreservationService.getAllPreservedTransactions()
+  },
+
+  hasPreservedTransactions: (employeeId?: string) => {
+    return transactionPreservationService.hasPreservedTransactions(employeeId)
+  },
+
+  clearPreservedTransactions: (employeeId?: string) => {
+    if (employeeId) {
+      transactionPreservationService.clearPreservedTransactionsForEmployee(employeeId)
+    } else {
+      transactionPreservationService.clearAllPreservedTransactions()
+    }
   }
-}))
+    }),
+    {
+      name: 'euphoria-pos-checkout', // localStorage key
+      storage: createJSONStorage(() => localStorage),
+      
+      // Only persist essential cart data for quick recovery
+      partialize: (state) => ({
+        cart: state.cart,
+        customer: state.customer,
+        subtotal: state.subtotal,
+        tax: state.tax,
+        total: state.total,
+        itemCount: state.itemCount
+      })
+    }
+  )
+)

@@ -7,9 +7,11 @@ import { relations } from 'drizzle-orm'
 // Application-level enum constants for type safety
 export const PRODUCT_CATEGORIES = ['wine', 'liquor', 'beer', 'other'] as const
 export const PRODUCT_SIZES = ['750ml', '1L', '1.5L', '1.75L', 'other'] as const
+export const EMPLOYEE_ROLES = ['cashier', 'manager', 'owner'] as const
 
 export type ProductCategory = typeof PRODUCT_CATEGORIES[number]
 export type ProductSize = typeof PRODUCT_SIZES[number]
+export type EmployeeRole = typeof EMPLOYEE_ROLES[number]
 
 // Products table
 export const products = sqliteTable('products', {
@@ -59,16 +61,13 @@ export const inventory = sqliteTable('inventory', {
 // Employees table (for authentication and permissions)
 export const employees = sqliteTable('employees', {
   id: text('id').primaryKey(), // ULID
-  employeeCode: text('employee_code', { length: 20 }).notNull().unique(),
+  employeeCode: text('employee_code', { length: 20 }).notNull().unique(), 
   firstName: text('first_name').notNull(),
   lastName: text('last_name').notNull(),
   pin: text('pin', { length: 60 }).notNull(), // Hashed PIN
+  role: text('role').notNull().default('cashier'), // cashier, manager, owner
   
   isActive: integer('is_active', { mode: 'boolean' }).default(true),
-  canOverridePrice: integer('can_override_price', { mode: 'boolean' }).default(false),
-  canVoidTransaction: integer('can_void_transaction', { mode: 'boolean' }).default(false),
-  isManager: integer('is_manager', { mode: 'boolean' }).default(false),
-  
   createdAt: integer('created_at', { mode: 'timestamp' }).notNull().$defaultFn(() => new Date()),
   updatedAt: integer('updated_at', { mode: 'timestamp' }).notNull().$defaultFn(() => new Date())
 }, (table) => ({

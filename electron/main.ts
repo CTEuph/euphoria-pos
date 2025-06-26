@@ -1,5 +1,7 @@
 import { app, BrowserWindow } from 'electron'
 import { join } from 'path'
+import { setupDatabaseHandlers } from './ipc/handlers/database'
+import { setupAuthHandlers } from './ipc/handlers/authHandler'
 
 let mainWindow: BrowserWindow | null = null
 
@@ -21,7 +23,13 @@ function createWindow(): void {
   }
 }
 
-app.whenReady().then(createWindow)
+app.whenReady().then(() => {
+  // Setup IPC handlers before creating window
+  setupDatabaseHandlers()
+  setupAuthHandlers()
+  
+  createWindow()
+})
 
 app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') {

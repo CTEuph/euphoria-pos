@@ -4,6 +4,7 @@ import { Sidebar } from '@/features/layout/components/Sidebar'
 import { ProductGrid } from '@/features/product/components/ProductGrid'
 import { ShoppingCart } from '@/features/checkout/components/ShoppingCart'
 import { BarcodeInput } from '@/features/checkout/components/BarcodeInput'
+import { AuthGuard } from '@/features/employee/components/AuthGuard'
 import { mockProducts } from '@/shared/lib/mockData'
 import { useBarcodeScanner } from '@/features/checkout/hooks/useBarcodeScanner'
 import { useCheckoutStore } from '@/features/checkout/store/checkoutStore'
@@ -83,35 +84,42 @@ function App() {
 
   return (
     <>
-      <div className="h-screen flex flex-col bg-gray-100">
-        {/* Top Bar */}
-        <TopBar />
-        
-        {/* Main Content */}
-        <div className="flex-1 flex overflow-hidden">
-          {/* Left Sidebar */}
-          <Sidebar
-            selectedCategory={selectedCategory}
-            onCategorySelect={setSelectedCategory}
-            searchTerm={searchTerm}
-            onSearchChange={setSearchTerm}
-          />
+      <AuthGuard
+        requireAuth={true}
+        requiredRole="cashier"
+        loginMessage="Welcome to Euphoria POS. Please authenticate to continue."
+        autoRestoreTransactions={true}
+      >
+        <div className="h-screen flex flex-col bg-gray-100">
+          {/* Top Bar */}
+          <TopBar />
           
-          {/* Center Product Area */}
-          <div className="flex-1 flex flex-col">
-            {/* Barcode Scanner Input */}
-            <BarcodeInput />
+          {/* Main Content */}
+          <div className="flex-1 flex overflow-hidden">
+            {/* Left Sidebar */}
+            <Sidebar
+              selectedCategory={selectedCategory}
+              onCategorySelect={setSelectedCategory}
+              searchTerm={searchTerm}
+              onSearchChange={setSearchTerm}
+            />
             
-            {/* Product Grid */}
-            <div className="flex-1 overflow-y-auto bg-gray-50">
-              <ProductGrid products={filteredProducts} />
+            {/* Center Product Area */}
+            <div className="flex-1 flex flex-col">
+              {/* Barcode Scanner Input */}
+              <BarcodeInput />
+              
+              {/* Product Grid */}
+              <div className="flex-1 overflow-y-auto bg-gray-50">
+                <ProductGrid products={filteredProducts} />
+              </div>
             </div>
+            
+            {/* Right Shopping Cart */}
+            <ShoppingCart />
           </div>
-          
-          {/* Right Shopping Cart */}
-          <ShoppingCart />
         </div>
-      </div>
+      </AuthGuard>
       
       {/* Toast Notifications */}
       <Toaster />

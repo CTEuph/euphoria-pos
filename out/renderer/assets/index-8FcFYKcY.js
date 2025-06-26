@@ -12171,22 +12171,55 @@ const createLucideIcon = (iconName, iconNode) => {
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
  */
-const __iconNode$d = [
+const __iconNode$g = [
   ["circle", { cx: "12", cy: "12", r: "10", key: "1mglay" }],
   ["polyline", { points: "12 6 12 12 16 14", key: "68esgv" }]
 ];
-const Clock = createLucideIcon("clock", __iconNode$d);
+const Clock = createLucideIcon("clock", __iconNode$g);
 /**
  * @license lucide-react v0.516.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
  */
-const __iconNode$c = [
+const __iconNode$f = [
   ["rect", { width: "20", height: "14", x: "2", y: "5", rx: "2", key: "ynyp8z" }],
   ["line", { x1: "2", x2: "22", y1: "10", y2: "10", key: "1b3vmo" }]
 ];
-const CreditCard = createLucideIcon("credit-card", __iconNode$c);
+const CreditCard = createLucideIcon("credit-card", __iconNode$f);
+/**
+ * @license lucide-react v0.516.0 - ISC
+ *
+ * This source code is licensed under the ISC license.
+ * See the LICENSE file in the root directory of this source tree.
+ */
+const __iconNode$e = [
+  ["line", { x1: "4", x2: "20", y1: "9", y2: "9", key: "4lhtct" }],
+  ["line", { x1: "4", x2: "20", y1: "15", y2: "15", key: "vyu0kd" }],
+  ["line", { x1: "10", x2: "8", y1: "3", y2: "21", key: "1ggp8o" }],
+  ["line", { x1: "16", x2: "14", y1: "3", y2: "21", key: "weycgp" }]
+];
+const Hash = createLucideIcon("hash", __iconNode$e);
+/**
+ * @license lucide-react v0.516.0 - ISC
+ *
+ * This source code is licensed under the ISC license.
+ * See the LICENSE file in the root directory of this source tree.
+ */
+const __iconNode$d = [
+  ["path", { d: "m16 17 5-5-5-5", key: "1bji2h" }],
+  ["path", { d: "M21 12H9", key: "dn1m92" }],
+  ["path", { d: "M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4", key: "1uf3rs" }]
+];
+const LogOut = createLucideIcon("log-out", __iconNode$d);
+/**
+ * @license lucide-react v0.516.0 - ISC
+ *
+ * This source code is licensed under the ISC license.
+ * See the LICENSE file in the root directory of this source tree.
+ */
+const __iconNode$c = [["path", { d: "M5 12h14", key: "1ays0h" }]];
+const Minus = createLucideIcon("minus", __iconNode$c);
 /**
  * @license lucide-react v0.516.0 - ISC
  *
@@ -12194,27 +12227,6 @@ const CreditCard = createLucideIcon("credit-card", __iconNode$c);
  * See the LICENSE file in the root directory of this source tree.
  */
 const __iconNode$b = [
-  ["line", { x1: "4", x2: "20", y1: "9", y2: "9", key: "4lhtct" }],
-  ["line", { x1: "4", x2: "20", y1: "15", y2: "15", key: "vyu0kd" }],
-  ["line", { x1: "10", x2: "8", y1: "3", y2: "21", key: "1ggp8o" }],
-  ["line", { x1: "16", x2: "14", y1: "3", y2: "21", key: "weycgp" }]
-];
-const Hash = createLucideIcon("hash", __iconNode$b);
-/**
- * @license lucide-react v0.516.0 - ISC
- *
- * This source code is licensed under the ISC license.
- * See the LICENSE file in the root directory of this source tree.
- */
-const __iconNode$a = [["path", { d: "M5 12h14", key: "1ays0h" }]];
-const Minus = createLucideIcon("minus", __iconNode$a);
-/**
- * @license lucide-react v0.516.0 - ISC
- *
- * This source code is licensed under the ISC license.
- * See the LICENSE file in the root directory of this source tree.
- */
-const __iconNode$9 = [
   [
     "path",
     {
@@ -12226,14 +12238,14 @@ const __iconNode$9 = [
   ["polyline", { points: "3.29 7 12 12 20.71 7", key: "ousv84" }],
   ["path", { d: "m7.5 4.27 9 5.15", key: "1c824w" }]
 ];
-const Package = createLucideIcon("package", __iconNode$9);
+const Package = createLucideIcon("package", __iconNode$b);
 /**
  * @license lucide-react v0.516.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
  */
-const __iconNode$8 = [
+const __iconNode$a = [
   [
     "path",
     {
@@ -12242,7 +12254,31 @@ const __iconNode$8 = [
     }
   ]
 ];
-const Phone = createLucideIcon("phone", __iconNode$8);
+const Phone = createLucideIcon("phone", __iconNode$a);
+/**
+ * @license lucide-react v0.516.0 - ISC
+ *
+ * This source code is licensed under the ISC license.
+ * See the LICENSE file in the root directory of this source tree.
+ */
+const __iconNode$9 = [
+  ["path", { d: "M5 12h14", key: "1ays0h" }],
+  ["path", { d: "M12 5v14", key: "s699le" }]
+];
+const Plus = createLucideIcon("plus", __iconNode$9);
+/**
+ * @license lucide-react v0.516.0 - ISC
+ *
+ * This source code is licensed under the ISC license.
+ * See the LICENSE file in the root directory of this source tree.
+ */
+const __iconNode$8 = [
+  ["path", { d: "M3 7V5a2 2 0 0 1 2-2h2", key: "aa7l1z" }],
+  ["path", { d: "M17 3h2a2 2 0 0 1 2 2v2", key: "4qcy5o" }],
+  ["path", { d: "M21 17v2a2 2 0 0 1-2 2h-2", key: "6vwrx8" }],
+  ["path", { d: "M7 21H5a2 2 0 0 1-2-2v-2", key: "ioqczr" }]
+];
+const Scan = createLucideIcon("scan", __iconNode$8);
 /**
  * @license lucide-react v0.516.0 - ISC
  *
@@ -12250,10 +12286,10 @@ const Phone = createLucideIcon("phone", __iconNode$8);
  * See the LICENSE file in the root directory of this source tree.
  */
 const __iconNode$7 = [
-  ["path", { d: "M5 12h14", key: "1ays0h" }],
-  ["path", { d: "M12 5v14", key: "s699le" }]
+  ["path", { d: "m21 21-4.34-4.34", key: "14j7rj" }],
+  ["circle", { cx: "11", cy: "11", r: "8", key: "4ej97u" }]
 ];
-const Plus = createLucideIcon("plus", __iconNode$7);
+const Search = createLucideIcon("search", __iconNode$7);
 /**
  * @license lucide-react v0.516.0 - ISC
  *
@@ -12261,30 +12297,6 @@ const Plus = createLucideIcon("plus", __iconNode$7);
  * See the LICENSE file in the root directory of this source tree.
  */
 const __iconNode$6 = [
-  ["path", { d: "M3 7V5a2 2 0 0 1 2-2h2", key: "aa7l1z" }],
-  ["path", { d: "M17 3h2a2 2 0 0 1 2 2v2", key: "4qcy5o" }],
-  ["path", { d: "M21 17v2a2 2 0 0 1-2 2h-2", key: "6vwrx8" }],
-  ["path", { d: "M7 21H5a2 2 0 0 1-2-2v-2", key: "ioqczr" }]
-];
-const Scan = createLucideIcon("scan", __iconNode$6);
-/**
- * @license lucide-react v0.516.0 - ISC
- *
- * This source code is licensed under the ISC license.
- * See the LICENSE file in the root directory of this source tree.
- */
-const __iconNode$5 = [
-  ["path", { d: "m21 21-4.34-4.34", key: "14j7rj" }],
-  ["circle", { cx: "11", cy: "11", r: "8", key: "4ej97u" }]
-];
-const Search = createLucideIcon("search", __iconNode$5);
-/**
- * @license lucide-react v0.516.0 - ISC
- *
- * This source code is licensed under the ISC license.
- * See the LICENSE file in the root directory of this source tree.
- */
-const __iconNode$4 = [
   [
     "path",
     {
@@ -12294,14 +12306,30 @@ const __iconNode$4 = [
   ],
   ["circle", { cx: "12", cy: "12", r: "3", key: "1v7zrd" }]
 ];
-const Settings = createLucideIcon("settings", __iconNode$4);
+const Settings = createLucideIcon("settings", __iconNode$6);
 /**
  * @license lucide-react v0.516.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
  */
-const __iconNode$3 = [
+const __iconNode$5 = [
+  [
+    "path",
+    {
+      d: "M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z",
+      key: "oel41y"
+    }
+  ]
+];
+const Shield = createLucideIcon("shield", __iconNode$5);
+/**
+ * @license lucide-react v0.516.0 - ISC
+ *
+ * This source code is licensed under the ISC license.
+ * See the LICENSE file in the root directory of this source tree.
+ */
+const __iconNode$4 = [
   ["circle", { cx: "8", cy: "21", r: "1", key: "jimo8o" }],
   ["circle", { cx: "19", cy: "21", r: "1", key: "13723u" }],
   [
@@ -12312,7 +12340,21 @@ const __iconNode$3 = [
     }
   ]
 ];
-const ShoppingCart$1 = createLucideIcon("shopping-cart", __iconNode$3);
+const ShoppingCart$1 = createLucideIcon("shopping-cart", __iconNode$4);
+/**
+ * @license lucide-react v0.516.0 - ISC
+ *
+ * This source code is licensed under the ISC license.
+ * See the LICENSE file in the root directory of this source tree.
+ */
+const __iconNode$3 = [
+  ["path", { d: "M3 6h18", key: "d0wm0j" }],
+  ["path", { d: "M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6", key: "4alrt4" }],
+  ["path", { d: "M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2", key: "v07s0e" }],
+  ["line", { x1: "10", x2: "10", y1: "11", y2: "17", key: "1uufr5" }],
+  ["line", { x1: "14", x2: "14", y1: "11", y2: "17", key: "xtxkd" }]
+];
+const Trash2 = createLucideIcon("trash-2", __iconNode$3);
 /**
  * @license lucide-react v0.516.0 - ISC
  *
@@ -12320,13 +12362,17 @@ const ShoppingCart$1 = createLucideIcon("shopping-cart", __iconNode$3);
  * See the LICENSE file in the root directory of this source tree.
  */
 const __iconNode$2 = [
-  ["path", { d: "M3 6h18", key: "d0wm0j" }],
-  ["path", { d: "M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6", key: "4alrt4" }],
-  ["path", { d: "M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2", key: "v07s0e" }],
-  ["line", { x1: "10", x2: "10", y1: "11", y2: "17", key: "1uufr5" }],
-  ["line", { x1: "14", x2: "14", y1: "11", y2: "17", key: "xtxkd" }]
+  [
+    "path",
+    {
+      d: "m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3",
+      key: "wmoenq"
+    }
+  ],
+  ["path", { d: "M12 9v4", key: "juzpu7" }],
+  ["path", { d: "M12 17h.01", key: "p32p05" }]
 ];
-const Trash2 = createLucideIcon("trash-2", __iconNode$2);
+const TriangleAlert = createLucideIcon("triangle-alert", __iconNode$2);
 /**
  * @license lucide-react v0.516.0 - ISC
  *
@@ -15512,45 +15558,676 @@ const Button = reactExports.forwardRef(
   }
 );
 Button.displayName = "Button";
-function TopBar() {
-  const currentTime = (/* @__PURE__ */ new Date()).toLocaleTimeString([], {
-    hour: "2-digit",
-    minute: "2-digit"
-  });
-  const currentDate = (/* @__PURE__ */ new Date()).toLocaleDateString([], {
-    weekday: "long",
-    month: "short",
-    day: "numeric"
-  });
-  return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "h-16 bg-white border-b border-gray-200 flex items-center justify-between px-6", children: [
-    /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "flex items-center space-x-4", children: /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex items-center space-x-2", children: [
-      /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "w-8 h-8 bg-purple-600 rounded-lg flex items-center justify-center", children: /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "text-white font-bold text-sm", children: "E" }) }),
-      /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { children: [
-        /* @__PURE__ */ jsxRuntimeExports.jsx("h1", { className: "font-bold text-lg text-gray-900", children: "Euphoria Liquor" }),
-        /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "text-xs text-gray-500", children: "Point of Sale" })
-      ] })
-    ] }) }),
-    /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "flex items-center space-x-4", children: /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "text-center", children: [
-      /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "text-sm font-medium text-gray-900", children: currentDate }),
-      /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "text-xs text-gray-500 flex items-center justify-center", children: [
-        /* @__PURE__ */ jsxRuntimeExports.jsx(Clock, { className: "w-3 h-3 mr-1" }),
-        currentTime
-      ] })
-    ] }) }),
-    /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex items-center space-x-3", children: [
-      /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "text-right", children: [
-        /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "text-sm font-medium text-gray-900", children: "Jane Doe" }),
-        /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "text-xs text-gray-500", children: "Cashier" })
-      ] }),
-      /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex items-center space-x-2", children: [
-        /* @__PURE__ */ jsxRuntimeExports.jsxs(Button, { variant: "outline", size: "sm", children: [
-          /* @__PURE__ */ jsxRuntimeExports.jsx(User, { className: "w-4 h-4 mr-1" }),
-          "Switch User"
-        ] }),
-        /* @__PURE__ */ jsxRuntimeExports.jsx(Button, { variant: "outline", size: "sm", children: /* @__PURE__ */ jsxRuntimeExports.jsx(Settings, { className: "w-4 h-4" }) })
-      ] })
-    ] })
-  ] });
+const createStoreImpl = (createState) => {
+  let state;
+  const listeners2 = /* @__PURE__ */ new Set();
+  const setState = (partial, replace) => {
+    const nextState = typeof partial === "function" ? partial(state) : partial;
+    if (!Object.is(nextState, state)) {
+      const previousState = state;
+      state = (replace != null ? replace : typeof nextState !== "object" || nextState === null) ? nextState : Object.assign({}, state, nextState);
+      listeners2.forEach((listener) => listener(state, previousState));
+    }
+  };
+  const getState = () => state;
+  const getInitialState = () => initialState;
+  const subscribe = (listener) => {
+    listeners2.add(listener);
+    return () => listeners2.delete(listener);
+  };
+  const api = { setState, getState, getInitialState, subscribe };
+  const initialState = state = createState(setState, getState, api);
+  return api;
+};
+const createStore = (createState) => createState ? createStoreImpl(createState) : createStoreImpl;
+const identity = (arg) => arg;
+function useStore(api, selector = identity) {
+  const slice = React.useSyncExternalStore(
+    api.subscribe,
+    () => selector(api.getState()),
+    () => selector(api.getInitialState())
+  );
+  React.useDebugValue(slice);
+  return slice;
+}
+const createImpl = (createState) => {
+  const api = createStore(createState);
+  const useBoundStore = (selector) => useStore(api, selector);
+  Object.assign(useBoundStore, api);
+  return useBoundStore;
+};
+const create = (createState) => createImpl;
+function createJSONStorage(getStorage, options) {
+  let storage;
+  try {
+    storage = getStorage();
+  } catch (e) {
+    return;
+  }
+  const persistStorage = {
+    getItem: (name) => {
+      var _a;
+      const parse = (str2) => {
+        if (str2 === null) {
+          return null;
+        }
+        return JSON.parse(str2, void 0);
+      };
+      const str = (_a = storage.getItem(name)) != null ? _a : null;
+      if (str instanceof Promise) {
+        return str.then(parse);
+      }
+      return parse(str);
+    },
+    setItem: (name, newValue) => storage.setItem(name, JSON.stringify(newValue, void 0)),
+    removeItem: (name) => storage.removeItem(name)
+  };
+  return persistStorage;
+}
+const toThenable = (fn) => (input) => {
+  try {
+    const result = fn(input);
+    if (result instanceof Promise) {
+      return result;
+    }
+    return {
+      then(onFulfilled) {
+        return toThenable(onFulfilled)(result);
+      },
+      catch(_onRejected) {
+        return this;
+      }
+    };
+  } catch (e) {
+    return {
+      then(_onFulfilled) {
+        return this;
+      },
+      catch(onRejected) {
+        return toThenable(onRejected)(e);
+      }
+    };
+  }
+};
+const persistImpl = (config, baseOptions) => (set, get, api) => {
+  let options = {
+    storage: createJSONStorage(() => localStorage),
+    partialize: (state) => state,
+    version: 0,
+    merge: (persistedState, currentState) => ({
+      ...currentState,
+      ...persistedState
+    }),
+    ...baseOptions
+  };
+  let hasHydrated = false;
+  const hydrationListeners = /* @__PURE__ */ new Set();
+  const finishHydrationListeners = /* @__PURE__ */ new Set();
+  let storage = options.storage;
+  if (!storage) {
+    return config(
+      (...args) => {
+        console.warn(
+          `[zustand persist middleware] Unable to update item '${options.name}', the given storage is currently unavailable.`
+        );
+        set(...args);
+      },
+      get,
+      api
+    );
+  }
+  const setItem = () => {
+    const state = options.partialize({ ...get() });
+    return storage.setItem(options.name, {
+      state,
+      version: options.version
+    });
+  };
+  const savedSetState = api.setState;
+  api.setState = (state, replace) => {
+    savedSetState(state, replace);
+    void setItem();
+  };
+  const configResult = config(
+    (...args) => {
+      set(...args);
+      void setItem();
+    },
+    get,
+    api
+  );
+  api.getInitialState = () => configResult;
+  let stateFromStorage;
+  const hydrate = () => {
+    var _a, _b;
+    if (!storage) return;
+    hasHydrated = false;
+    hydrationListeners.forEach((cb) => {
+      var _a2;
+      return cb((_a2 = get()) != null ? _a2 : configResult);
+    });
+    const postRehydrationCallback = ((_b = options.onRehydrateStorage) == null ? void 0 : _b.call(options, (_a = get()) != null ? _a : configResult)) || void 0;
+    return toThenable(storage.getItem.bind(storage))(options.name).then((deserializedStorageValue) => {
+      if (deserializedStorageValue) {
+        if (typeof deserializedStorageValue.version === "number" && deserializedStorageValue.version !== options.version) {
+          if (options.migrate) {
+            const migration = options.migrate(
+              deserializedStorageValue.state,
+              deserializedStorageValue.version
+            );
+            if (migration instanceof Promise) {
+              return migration.then((result) => [true, result]);
+            }
+            return [true, migration];
+          }
+          console.error(
+            `State loaded from storage couldn't be migrated since no migrate function was provided`
+          );
+        } else {
+          return [false, deserializedStorageValue.state];
+        }
+      }
+      return [false, void 0];
+    }).then((migrationResult) => {
+      var _a2;
+      const [migrated, migratedState] = migrationResult;
+      stateFromStorage = options.merge(
+        migratedState,
+        (_a2 = get()) != null ? _a2 : configResult
+      );
+      set(stateFromStorage, true);
+      if (migrated) {
+        return setItem();
+      }
+    }).then(() => {
+      postRehydrationCallback == null ? void 0 : postRehydrationCallback(stateFromStorage, void 0);
+      stateFromStorage = get();
+      hasHydrated = true;
+      finishHydrationListeners.forEach((cb) => cb(stateFromStorage));
+    }).catch((e) => {
+      postRehydrationCallback == null ? void 0 : postRehydrationCallback(void 0, e);
+    });
+  };
+  api.persist = {
+    setOptions: (newOptions) => {
+      options = {
+        ...options,
+        ...newOptions
+      };
+      if (newOptions.storage) {
+        storage = newOptions.storage;
+      }
+    },
+    clearStorage: () => {
+      storage == null ? void 0 : storage.removeItem(options.name);
+    },
+    getOptions: () => options,
+    rehydrate: () => hydrate(),
+    hasHydrated: () => hasHydrated,
+    onHydrate: (cb) => {
+      hydrationListeners.add(cb);
+      return () => {
+        hydrationListeners.delete(cb);
+      };
+    },
+    onFinishHydration: (cb) => {
+      finishHydrationListeners.add(cb);
+      return () => {
+        finishHydrationListeners.delete(cb);
+      };
+    }
+  };
+  if (!options.skipHydration) {
+    hydrate();
+  }
+  return stateFromStorage || configResult;
+};
+const persist = persistImpl;
+const ROLE_PERMISSIONS = {
+  cashier: {
+    canProcessSales: true,
+    canProcessRefunds: false,
+    canVoidTransactions: false,
+    canOverridePrices: false,
+    canResetPins: false,
+    canAccessSettings: false,
+    canViewReports: false
+  },
+  manager: {
+    canProcessSales: true,
+    canProcessRefunds: true,
+    canVoidTransactions: true,
+    canOverridePrices: true,
+    canResetPins: true,
+    canAccessSettings: false,
+    canViewReports: true
+  },
+  owner: {
+    canProcessSales: true,
+    canProcessRefunds: true,
+    canVoidTransactions: true,
+    canOverridePrices: true,
+    canResetPins: true,
+    canAccessSettings: true,
+    canViewReports: true
+  }
+};
+const useAuthStore = create()(
+  persist(
+    (set, get) => ({
+      // Initial state
+      currentUser: null,
+      isAuthenticated: false,
+      sessionStartTime: null,
+      lastActivityTime: null,
+      permissions: null,
+      sessionTimeoutMinutes: 1,
+      // 1 minute for POS security
+      isSessionExpired: false,
+      // Login action - set user and initialize session
+      login: (result) => {
+        if (!result.success || !result.employee) {
+          console.error("Invalid login result provided to authStore.login");
+          return;
+        }
+        const now = /* @__PURE__ */ new Date();
+        const permissions = ROLE_PERMISSIONS[result.employee.role];
+        set({
+          currentUser: result.employee,
+          isAuthenticated: true,
+          sessionStartTime: now,
+          lastActivityTime: now,
+          permissions,
+          isSessionExpired: false
+        });
+        console.log(`User ${result.employee.firstName} ${result.employee.lastName} logged in with role: ${result.employee.role}`);
+      },
+      // Logout action - clear all authentication state
+      logout: () => {
+        const { currentUser } = get();
+        set({
+          currentUser: null,
+          isAuthenticated: false,
+          sessionStartTime: null,
+          lastActivityTime: null,
+          permissions: null,
+          isSessionExpired: false
+        });
+        if (currentUser) {
+          console.log(`User ${currentUser.firstName} ${currentUser.lastName} logged out`);
+        }
+      },
+      // Update last activity time
+      updateActivity: () => {
+        const { isAuthenticated } = get();
+        if (isAuthenticated) {
+          set({
+            lastActivityTime: /* @__PURE__ */ new Date(),
+            isSessionExpired: false
+          });
+        }
+      },
+      // Check if session has expired based on inactivity
+      checkSessionTimeout: () => {
+        const { isAuthenticated, lastActivityTime, sessionTimeoutMinutes } = get();
+        if (!isAuthenticated || !lastActivityTime) {
+          return false;
+        }
+        const now = /* @__PURE__ */ new Date();
+        const timeSinceActivity = now.getTime() - lastActivityTime.getTime();
+        const timeoutMs = sessionTimeoutMinutes * 60 * 1e3;
+        const hasExpired = timeSinceActivity > timeoutMs;
+        if (hasExpired) {
+          set({ isSessionExpired: true });
+        }
+        return hasExpired;
+      },
+      // Extend session - reset activity timer
+      extendSession: () => {
+        const { isAuthenticated } = get();
+        if (isAuthenticated) {
+          set({
+            lastActivityTime: /* @__PURE__ */ new Date(),
+            isSessionExpired: false
+          });
+        }
+      },
+      // Clear expired session while preserving transaction data
+      clearExpiredSession: () => {
+        const { currentUser } = get();
+        set({
+          currentUser: null,
+          isAuthenticated: false,
+          sessionStartTime: null,
+          lastActivityTime: null,
+          permissions: null,
+          isSessionExpired: false
+        });
+        if (currentUser) {
+          console.log(`Session expired for user ${currentUser.firstName} ${currentUser.lastName}`);
+        }
+      },
+      // Get total session duration in minutes
+      getSessionDuration: () => {
+        const { sessionStartTime } = get();
+        if (!sessionStartTime) return 0;
+        const now = /* @__PURE__ */ new Date();
+        return Math.floor((now.getTime() - sessionStartTime.getTime()) / (1e3 * 60));
+      },
+      // Get time since last activity in minutes
+      getTimeSinceLastActivity: () => {
+        const { lastActivityTime } = get();
+        if (!lastActivityTime) return 0;
+        const now = /* @__PURE__ */ new Date();
+        return Math.floor((now.getTime() - lastActivityTime.getTime()) / (1e3 * 60));
+      },
+      // Check if current user can perform a specific action
+      canPerformAction: (action) => {
+        const { permissions } = get();
+        if (!permissions) return false;
+        return permissions[action] === true;
+      }
+    }),
+    {
+      name: "euphoria-pos-auth",
+      // localStorage key
+      storage: createJSONStorage(() => localStorage),
+      // Only persist essential data for cart preservation
+      partialize: (state) => ({
+        currentUser: state.currentUser,
+        isAuthenticated: state.isAuthenticated,
+        sessionStartTime: state.sessionStartTime,
+        lastActivityTime: state.lastActivityTime,
+        permissions: state.permissions,
+        isSessionExpired: state.isSessionExpired
+      }),
+      // Custom serialization for Date objects
+      serialize: (state) => {
+        return JSON.stringify({
+          ...state,
+          state: {
+            ...state.state,
+            sessionStartTime: state.state.sessionStartTime?.toISOString() || null,
+            lastActivityTime: state.state.lastActivityTime?.toISOString() || null
+          }
+        });
+      },
+      // Custom deserialization for Date objects
+      deserialize: (str) => {
+        const parsed = JSON.parse(str);
+        return {
+          ...parsed,
+          state: {
+            ...parsed.state,
+            sessionStartTime: parsed.state.sessionStartTime ? new Date(parsed.state.sessionStartTime) : null,
+            lastActivityTime: parsed.state.lastActivityTime ? new Date(parsed.state.lastActivityTime) : null
+          }
+        };
+      }
+    }
+  )
+);
+const authSelectors = {
+  // Get current user info
+  getCurrentUser: () => useAuthStore.getState().currentUser,
+  // Check if user is authenticated
+  isAuthenticated: () => useAuthStore.getState().isAuthenticated,
+  // Get user's role
+  getUserRole: () => useAuthStore.getState().currentUser?.role || null,
+  // Get user's full name
+  getUserFullName: () => {
+    const user = useAuthStore.getState().currentUser;
+    return user ? `${user.firstName} ${user.lastName}` : null;
+  },
+  // Check if current user is manager or above
+  isManagerOrAbove: () => {
+    const role = useAuthStore.getState().currentUser?.role;
+    return role === "manager" || role === "owner";
+  },
+  // Check if current user is owner
+  isOwner: () => {
+    return useAuthStore.getState().currentUser?.role === "owner";
+  },
+  // Get remaining session time in minutes
+  getRemainingSessionTime: () => {
+    const { lastActivityTime, sessionTimeoutMinutes } = useAuthStore.getState();
+    if (!lastActivityTime) return 0;
+    const now = /* @__PURE__ */ new Date();
+    const timeSinceActivity = (now.getTime() - lastActivityTime.getTime()) / (1e3 * 60);
+    return Math.max(0, sessionTimeoutMinutes - timeSinceActivity);
+  }
+};
+function useAuth() {
+  const {
+    currentUser,
+    isAuthenticated,
+    isSessionExpired,
+    permissions,
+    login: storeLogin,
+    logout: storeLogout,
+    updateActivity: storeUpdateActivity,
+    extendSession: storeExtendSession,
+    checkSessionTimeout: storeCheckSessionTimeout,
+    clearExpiredSession,
+    canPerformAction: storeCanPerformAction,
+    getSessionDuration,
+    getTimeSinceLastActivity
+  } = useAuthStore();
+  reactExports.useEffect(() => {
+    if (isAuthenticated && !isSessionExpired) {
+      storeUpdateActivity();
+    }
+  }, [isAuthenticated, isSessionExpired, storeUpdateActivity]);
+  const login = reactExports.useCallback(async (credentials) => {
+    try {
+      const result = await window.electron.auth.login(credentials);
+      if (result.success && result.employee) {
+        storeLogin(result);
+      }
+      return result;
+    } catch (error2) {
+      const errorMessage = error2 instanceof Error ? error2.message : "Authentication system error";
+      return {
+        success: false,
+        error: errorMessage
+      };
+    }
+  }, [storeLogin]);
+  const logout = reactExports.useCallback(() => {
+    storeLogout();
+  }, [storeLogout]);
+  const updateActivity = reactExports.useCallback(() => {
+    if (isAuthenticated && !isSessionExpired) {
+      storeUpdateActivity();
+    }
+  }, [isAuthenticated, isSessionExpired, storeUpdateActivity]);
+  const extendSession = reactExports.useCallback(() => {
+    if (isAuthenticated) {
+      storeExtendSession();
+    }
+  }, [isAuthenticated, storeExtendSession]);
+  const canPerformAction = reactExports.useCallback((action) => {
+    return storeCanPerformAction(action);
+  }, [storeCanPerformAction]);
+  const requiresPermission = reactExports.useCallback((action) => {
+    if (!isAuthenticated) {
+      throw new Error("Authentication required");
+    }
+    if (!canPerformAction(action)) {
+      const userRole2 = currentUser?.role || "unknown";
+      throw new Error(`Permission denied: ${action} requires higher privileges than ${userRole2}`);
+    }
+  }, [isAuthenticated, canPerformAction, currentUser?.role]);
+  const checkSessionTimeout = reactExports.useCallback(() => {
+    return storeCheckSessionTimeout();
+  }, [storeCheckSessionTimeout]);
+  const handleSessionExpiry = reactExports.useCallback(() => {
+    if (isSessionExpired) {
+      clearExpiredSession();
+    }
+  }, [isSessionExpired, clearExpiredSession]);
+  const userRole = currentUser?.role || null;
+  const userFullName = currentUser ? `${currentUser.firstName} ${currentUser.lastName}` : null;
+  const isManagerOrAbove = userRole === "manager" || userRole === "owner";
+  const isOwner = userRole === "owner";
+  const remainingSessionTime = authSelectors.getRemainingSessionTime();
+  const sessionDuration = getSessionDuration();
+  const timeSinceLastActivity = getTimeSinceLastActivity();
+  return {
+    // State
+    currentUser,
+    isAuthenticated,
+    isSessionExpired,
+    permissions,
+    // User info
+    userRole,
+    userFullName,
+    isManagerOrAbove,
+    isOwner,
+    // Session info
+    sessionDuration,
+    timeSinceLastActivity,
+    remainingSessionTime,
+    // Actions
+    login,
+    logout,
+    updateActivity,
+    extendSession,
+    // Permission checks
+    canPerformAction,
+    requiresPermission,
+    // Session management
+    checkSessionTimeout,
+    handleSessionExpiry
+  };
+}
+function useSessionTimeout(options = {}) {
+  const {
+    timeoutMinutes = 1,
+    // 1 minute for POS security
+    onSessionExpire,
+    onSessionWarning,
+    warningThresholdSeconds = 15,
+    autoLogout = true
+  } = options;
+  const {
+    isAuthenticated,
+    isSessionExpired,
+    updateActivity,
+    checkSessionTimeout,
+    handleSessionExpiry,
+    remainingSessionTime
+  } = useAuth();
+  const [isNearExpiry, setIsNearExpiry] = reactExports.useState(false);
+  const intervalRef = reactExports.useRef(null);
+  const warningFiredRef = reactExports.useRef(false);
+  const secondsRemaining = Math.ceil(remainingSessionTime * 60);
+  const minutesRemaining = Math.ceil(remainingSessionTime);
+  const resetTimeout = reactExports.useCallback(() => {
+    if (isAuthenticated && !isSessionExpired) {
+      updateActivity();
+      setIsNearExpiry(false);
+      warningFiredRef.current = false;
+    }
+  }, [isAuthenticated, isSessionExpired, updateActivity]);
+  const extendSession = reactExports.useCallback(() => {
+    resetTimeout();
+  }, [resetTimeout]);
+  const triggerTimeout = reactExports.useCallback(() => {
+    if (isAuthenticated) {
+      handleSessionExpiry();
+      onSessionExpire?.();
+    }
+  }, [isAuthenticated, handleSessionExpiry, onSessionExpire]);
+  reactExports.useEffect(() => {
+    if (!isAuthenticated) {
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+        intervalRef.current = null;
+      }
+      setIsNearExpiry(false);
+      warningFiredRef.current = false;
+      return;
+    }
+    intervalRef.current = setInterval(() => {
+      const hasTimedOut = checkSessionTimeout();
+      if (hasTimedOut) {
+        setIsNearExpiry(false);
+        if (autoLogout) {
+          handleSessionExpiry();
+        }
+        onSessionExpire?.();
+        if (intervalRef.current) {
+          clearInterval(intervalRef.current);
+          intervalRef.current = null;
+        }
+      } else {
+        const currentSecondsRemaining = Math.ceil(remainingSessionTime * 60);
+        const nearExpiry = currentSecondsRemaining <= warningThresholdSeconds;
+        setIsNearExpiry(nearExpiry);
+        if (nearExpiry && !warningFiredRef.current) {
+          warningFiredRef.current = true;
+          onSessionWarning?.(currentSecondsRemaining);
+        }
+        if (!nearExpiry && warningFiredRef.current) {
+          warningFiredRef.current = false;
+        }
+      }
+    }, 1e3);
+    return () => {
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+        intervalRef.current = null;
+      }
+    };
+  }, [
+    isAuthenticated,
+    checkSessionTimeout,
+    handleSessionExpiry,
+    onSessionExpire,
+    onSessionWarning,
+    warningThresholdSeconds,
+    autoLogout,
+    remainingSessionTime
+  ]);
+  reactExports.useEffect(() => {
+    if (!isAuthenticated) return;
+    const activityEvents = [
+      "mousedown",
+      "mousemove",
+      "keypress",
+      "scroll",
+      "touchstart",
+      "click"
+    ];
+    let lastActivityUpdate = 0;
+    const throttleMs = 1e3;
+    const handleActivity = () => {
+      const now = Date.now();
+      if (now - lastActivityUpdate > throttleMs) {
+        lastActivityUpdate = now;
+        resetTimeout();
+      }
+    };
+    activityEvents.forEach((event) => {
+      document.addEventListener(event, handleActivity, { passive: true });
+    });
+    return () => {
+      activityEvents.forEach((event) => {
+        document.removeEventListener(event, handleActivity);
+      });
+    };
+  }, [isAuthenticated, resetTimeout]);
+  return {
+    isActive: isAuthenticated && !isSessionExpired,
+    isExpired: isSessionExpired,
+    isNearExpiry,
+    secondsRemaining: Math.max(0, secondsRemaining),
+    minutesRemaining: Math.max(0, minutesRemaining),
+    resetTimeout,
+    extendSession,
+    triggerTimeout
+  };
 }
 const mockProducts = [
   // Wine
@@ -15806,45 +16483,223 @@ const categories = [
   { id: "rtd", label: "RTD", icon: "🥤" },
   { id: "accessories", label: "Accessories", icon: "🔧" }
 ];
-const createStoreImpl = (createState) => {
-  let state;
-  const listeners2 = /* @__PURE__ */ new Set();
-  const setState = (partial, replace) => {
-    const nextState = typeof partial === "function" ? partial(state) : partial;
-    if (!Object.is(nextState, state)) {
-      const previousState = state;
-      state = (replace != null ? replace : typeof nextState !== "object" || nextState === null) ? nextState : Object.assign({}, state, nextState);
-      listeners2.forEach((listener) => listener(state, previousState));
+class TransactionPreservationService {
+  storageKey;
+  options;
+  constructor(options = {}) {
+    this.options = {
+      maxPreservedTransactions: 5,
+      maxAgeHours: 24,
+      autoRestore: true,
+      storageKeyPrefix: "euphoria-pos-preserved",
+      ...options
+    };
+    this.storageKey = `${this.options.storageKeyPrefix}-transactions`;
+  }
+  /**
+   * Preserve current transaction state
+   */
+  preserveTransaction(snapshot) {
+    try {
+      const preserved = this.getPreservedTransactions();
+      preserved.unshift({
+        ...snapshot,
+        timestamp: /* @__PURE__ */ new Date()
+      });
+      this.cleanupPreservedTransactions(preserved);
+      localStorage.setItem(this.storageKey, JSON.stringify(preserved));
+      console.log(`Transaction preserved for employee ${snapshot.preservedBy}: ${snapshot.itemCount} items, $${snapshot.total.toFixed(2)}`);
+    } catch (error2) {
+      console.error("Failed to preserve transaction:", error2);
     }
-  };
-  const getState = () => state;
-  const getInitialState = () => initialState;
-  const subscribe = (listener) => {
-    listeners2.add(listener);
-    return () => listeners2.delete(listener);
-  };
-  const api = { setState, getState, getInitialState, subscribe };
-  const initialState = state = createState(setState, getState, api);
-  return api;
-};
-const createStore = (createState) => createState ? createStoreImpl(createState) : createStoreImpl;
-const identity = (arg) => arg;
-function useStore(api, selector = identity) {
-  const slice = React.useSyncExternalStore(
-    api.subscribe,
-    () => selector(api.getState()),
-    () => selector(api.getInitialState())
-  );
-  React.useDebugValue(slice);
-  return slice;
+  }
+  /**
+   * Get the most recent preserved transaction for an employee
+   */
+  getLatestPreservedTransaction(employeeId) {
+    try {
+      const preserved = this.getPreservedTransactions();
+      if (employeeId) {
+        return preserved.find((t) => t.preservedBy === employeeId) || null;
+      } else {
+        return preserved[0] || null;
+      }
+    } catch (error2) {
+      console.error("Failed to get preserved transaction:", error2);
+      return null;
+    }
+  }
+  /**
+   * Get all preserved transactions
+   */
+  getAllPreservedTransactions() {
+    return this.getPreservedTransactions();
+  }
+  /**
+   * Get preserved transactions for a specific employee
+   */
+  getPreservedTransactionsForEmployee(employeeId) {
+    try {
+      const preserved = this.getPreservedTransactions();
+      return preserved.filter((t) => t.preservedBy === employeeId);
+    } catch (error2) {
+      console.error("Failed to get employee transactions:", error2);
+      return [];
+    }
+  }
+  /**
+   * Remove a specific preserved transaction
+   */
+  removePreservedTransaction(timestamp, employeeId) {
+    try {
+      const preserved = this.getPreservedTransactions();
+      const initialLength = preserved.length;
+      const filtered = preserved.filter((t) => {
+        const isTargetTransaction = t.timestamp.getTime() === timestamp.getTime();
+        const employeeMatch = employeeId ? t.preservedBy === employeeId : true;
+        return !(isTargetTransaction && employeeMatch);
+      });
+      if (filtered.length < initialLength) {
+        localStorage.setItem(this.storageKey, JSON.stringify(filtered));
+        return true;
+      }
+      return false;
+    } catch (error2) {
+      console.error("Failed to remove preserved transaction:", error2);
+      return false;
+    }
+  }
+  /**
+   * Clear all preserved transactions
+   */
+  clearAllPreservedTransactions() {
+    try {
+      localStorage.removeItem(this.storageKey);
+      console.log("All preserved transactions cleared");
+    } catch (error2) {
+      console.error("Failed to clear preserved transactions:", error2);
+    }
+  }
+  /**
+   * Clear preserved transactions for a specific employee
+   */
+  clearPreservedTransactionsForEmployee(employeeId) {
+    try {
+      const preserved = this.getPreservedTransactions();
+      const filtered = preserved.filter((t) => t.preservedBy !== employeeId);
+      localStorage.setItem(this.storageKey, JSON.stringify(filtered));
+      console.log(`Cleared preserved transactions for employee ${employeeId}`);
+    } catch (error2) {
+      console.error("Failed to clear employee transactions:", error2);
+    }
+  }
+  /**
+   * Check if there are any preserved transactions available
+   */
+  hasPreservedTransactions(employeeId) {
+    try {
+      const preserved = this.getPreservedTransactions();
+      if (employeeId) {
+        return preserved.some((t) => t.preservedBy === employeeId);
+      }
+      return preserved.length > 0;
+    } catch (error2) {
+      console.error("Failed to check preserved transactions:", error2);
+      return false;
+    }
+  }
+  /**
+   * Get summary statistics of preserved transactions
+   */
+  getPreservationStats() {
+    try {
+      const preserved = this.getPreservedTransactions();
+      if (preserved.length === 0) {
+        return {
+          totalTransactions: 0,
+          totalValue: 0,
+          totalItems: 0,
+          oldestTransaction: null,
+          newestTransaction: null,
+          employeeCount: 0
+        };
+      }
+      const totalValue = preserved.reduce((sum, t) => sum + t.total, 0);
+      const totalItems = preserved.reduce((sum, t) => sum + t.itemCount, 0);
+      const employees = new Set(preserved.map((t) => t.preservedBy));
+      return {
+        totalTransactions: preserved.length,
+        totalValue,
+        totalItems,
+        oldestTransaction: preserved[preserved.length - 1].timestamp,
+        newestTransaction: preserved[0].timestamp,
+        employeeCount: employees.size
+      };
+    } catch (error2) {
+      console.error("Failed to get preservation stats:", error2);
+      return {
+        totalTransactions: 0,
+        totalValue: 0,
+        totalItems: 0,
+        oldestTransaction: null,
+        newestTransaction: null,
+        employeeCount: 0
+      };
+    }
+  }
+  /**
+   * Get preserved transactions from localStorage
+   */
+  getPreservedTransactions() {
+    try {
+      const stored = localStorage.getItem(this.storageKey);
+      if (!stored) return [];
+      const parsed = JSON.parse(stored);
+      return parsed.map((t) => ({
+        ...t,
+        timestamp: new Date(t.timestamp)
+      }));
+    } catch (error2) {
+      console.error("Failed to parse preserved transactions:", error2);
+      return [];
+    }
+  }
+  /**
+   * Clean up old and excess preserved transactions
+   */
+  cleanupPreservedTransactions(transactions) {
+    const now = /* @__PURE__ */ new Date();
+    const maxAgeMs = this.options.maxAgeHours * 60 * 60 * 1e3;
+    const filtered = transactions.filter((t) => {
+      const age = now.getTime() - t.timestamp.getTime();
+      return age <= maxAgeMs;
+    });
+    if (filtered.length > this.options.maxPreservedTransactions) {
+      filtered.splice(this.options.maxPreservedTransactions);
+    }
+    transactions.length = 0;
+    transactions.push(...filtered);
+  }
 }
-const createImpl = (createState) => {
-  const api = createStore(createState);
-  const useBoundStore = (selector) => useStore(api, selector);
-  Object.assign(useBoundStore, api);
-  return useBoundStore;
-};
-const create = (createState) => createState ? createImpl(createState) : createImpl;
+const transactionPreservationService = new TransactionPreservationService();
+function createTransactionSnapshot(checkoutState, employeeId, sessionId) {
+  return {
+    cart: checkoutState.cart.map((item) => ({ ...item })),
+    // Deep clone cart items
+    customer: checkoutState.customer ? { ...checkoutState.customer } : null,
+    // Clone customer
+    subtotal: checkoutState.subtotal,
+    tax: checkoutState.tax,
+    total: checkoutState.total,
+    itemCount: checkoutState.itemCount,
+    timestamp: /* @__PURE__ */ new Date(),
+    preservedBy: employeeId,
+    sessionId
+  };
+}
+function shouldPreserveTransaction(checkoutState) {
+  return checkoutState.cart.length > 0 && checkoutState.itemCount > 0 && checkoutState.total > 0;
+}
 const calculateDerivedValues = (cart) => {
   const subtotal = cart.reduce((sum, item) => sum + item.total, 0);
   const tax = subtotal * TAX_RATE;
@@ -15852,92 +16707,414 @@ const calculateDerivedValues = (cart) => {
   const itemCount = cart.reduce((sum, item) => sum + item.quantity, 0);
   return { subtotal, tax, total, itemCount };
 };
-const useCheckoutStore = create((set, get) => ({
-  // Initial state
-  cart: [],
-  customer: null,
-  isProcessing: false,
-  // Modal states
-  isPaymentModalOpen: false,
-  isCustomerModalOpen: false,
-  // Computed values
-  subtotal: 0,
-  tax: 0,
-  total: 0,
-  itemCount: 0,
-  // Actions
-  addItem: (product) => {
-    const currentCart = get().cart;
-    const existingItem = currentCart.find((item) => item.id === product.id);
-    let newCart;
-    if (existingItem) {
-      newCart = currentCart.map(
-        (item) => item.id === product.id ? {
-          ...item,
-          quantity: item.quantity + 1,
-          total: (item.quantity + 1) * item.price
-        } : item
-      );
-    } else {
-      const cartItem = {
-        ...product,
-        quantity: 1,
-        total: product.price
-      };
-      newCart = [...currentCart, cartItem];
-    }
-    const derived = calculateDerivedValues(newCart);
-    set({ cart: newCart, ...derived });
-  },
-  removeItem: (productId) => {
-    const newCart = get().cart.filter((item) => item.id !== productId);
-    const derived = calculateDerivedValues(newCart);
-    set({ cart: newCart, ...derived });
-  },
-  updateQuantity: (productId, quantity) => {
-    if (quantity <= 0) {
-      get().removeItem(productId);
-      return;
-    }
-    const newCart = get().cart.map(
-      (item) => item.id === productId ? {
-        ...item,
-        quantity,
-        total: quantity * item.price
-      } : item
-    );
-    const derived = calculateDerivedValues(newCart);
-    set({ cart: newCart, ...derived });
-  },
-  clearCart: () => {
-    const derived = calculateDerivedValues([]);
-    set({
+const useCheckoutStore = create()(
+  persist(
+    (set, get) => ({
+      // Initial state
       cart: [],
       customer: null,
-      ...derived
-    });
-  },
-  setCustomer: (customer) => {
-    set({ customer });
-  },
-  setProcessing: (processing) => {
-    set({ isProcessing: processing });
-  },
-  // Modal state actions
-  setPaymentModal: (open) => {
-    set({ isPaymentModalOpen: open });
-  },
-  setCustomerModal: (open) => {
-    set({ isCustomerModalOpen: open });
-  },
-  // Utility functions
-  getCartItem: (productId) => {
-    return get().cart.find((item) => item.id === productId);
-  },
-  hasItem: (productId) => {
-    return get().cart.some((item) => item.id === productId);
-  }
-}));
+      isProcessing: false,
+      // Modal states
+      isPaymentModalOpen: false,
+      isCustomerModalOpen: false,
+      // Computed values
+      subtotal: 0,
+      tax: 0,
+      total: 0,
+      itemCount: 0,
+      // Actions
+      addItem: (product) => {
+        const currentCart = get().cart;
+        const existingItem = currentCart.find((item) => item.id === product.id);
+        let newCart;
+        if (existingItem) {
+          newCart = currentCart.map(
+            (item) => item.id === product.id ? {
+              ...item,
+              quantity: item.quantity + 1,
+              total: (item.quantity + 1) * item.price
+            } : item
+          );
+        } else {
+          const cartItem = {
+            ...product,
+            quantity: 1,
+            total: product.price
+          };
+          newCart = [...currentCart, cartItem];
+        }
+        const derived = calculateDerivedValues(newCart);
+        set({ cart: newCart, ...derived });
+      },
+      removeItem: (productId) => {
+        const newCart = get().cart.filter((item) => item.id !== productId);
+        const derived = calculateDerivedValues(newCart);
+        set({ cart: newCart, ...derived });
+      },
+      updateQuantity: (productId, quantity) => {
+        if (quantity <= 0) {
+          get().removeItem(productId);
+          return;
+        }
+        const newCart = get().cart.map(
+          (item) => item.id === productId ? {
+            ...item,
+            quantity,
+            total: quantity * item.price
+          } : item
+        );
+        const derived = calculateDerivedValues(newCart);
+        set({ cart: newCart, ...derived });
+      },
+      clearCart: () => {
+        const derived = calculateDerivedValues([]);
+        set({
+          cart: [],
+          customer: null,
+          ...derived
+        });
+      },
+      setCustomer: (customer) => {
+        set({ customer });
+      },
+      setProcessing: (processing) => {
+        set({ isProcessing: processing });
+      },
+      // Modal state actions
+      setPaymentModal: (open) => {
+        set({ isPaymentModalOpen: open });
+      },
+      setCustomerModal: (open) => {
+        set({ isCustomerModalOpen: open });
+      },
+      // Utility functions
+      getCartItem: (productId) => {
+        return get().cart.find((item) => item.id === productId);
+      },
+      hasItem: (productId) => {
+        return get().cart.some((item) => item.id === productId);
+      },
+      // Transaction preservation methods
+      preserveCurrentTransaction: (employeeId) => {
+        const state = get();
+        if (shouldPreserveTransaction(state)) {
+          const snapshot = createTransactionSnapshot(state, employeeId);
+          transactionPreservationService.preserveTransaction(snapshot);
+        }
+      },
+      restoreTransaction: (snapshot) => {
+        const derived = calculateDerivedValues(snapshot.cart);
+        set({
+          cart: snapshot.cart,
+          customer: snapshot.customer,
+          ...derived
+        });
+      },
+      getPreservedTransactions: (employeeId) => {
+        if (employeeId) {
+          return transactionPreservationService.getPreservedTransactionsForEmployee(employeeId);
+        }
+        return transactionPreservationService.getAllPreservedTransactions();
+      },
+      hasPreservedTransactions: (employeeId) => {
+        return transactionPreservationService.hasPreservedTransactions(employeeId);
+      },
+      clearPreservedTransactions: (employeeId) => {
+        if (employeeId) {
+          transactionPreservationService.clearPreservedTransactionsForEmployee(employeeId);
+        } else {
+          transactionPreservationService.clearAllPreservedTransactions();
+        }
+      }
+    }),
+    {
+      name: "euphoria-pos-checkout",
+      // localStorage key
+      storage: createJSONStorage(() => localStorage),
+      // Only persist essential cart data for quick recovery
+      partialize: (state) => ({
+        cart: state.cart,
+        customer: state.customer,
+        subtotal: state.subtotal,
+        tax: state.tax,
+        total: state.total,
+        itemCount: state.itemCount
+      })
+    }
+  )
+);
+function LogoutConfirmation({
+  isOpen,
+  onClose,
+  onConfirm,
+  message,
+  showTransactionInfo = true,
+  className
+}) {
+  const [isLoggingOut, setIsLoggingOut] = reactExports.useState(false);
+  const { currentUser, userFullName } = useAuth();
+  const { cart, itemCount, total } = useCheckoutStore();
+  const hasActiveTransaction = cart.length > 0 && itemCount > 0 && total > 0;
+  const handleConfirmLogout = async () => {
+    setIsLoggingOut(true);
+    try {
+      await new Promise((resolve) => setTimeout(resolve, 500));
+      onConfirm();
+    } catch (error2) {
+      console.error("Logout error:", error2);
+    } finally {
+      setIsLoggingOut(false);
+    }
+  };
+  if (!isOpen) return null;
+  return /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4", children: /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: cn(
+    "bg-white rounded-2xl shadow-2xl max-w-md w-full p-8 animate-in fade-in-0 zoom-in-95 duration-200",
+    className
+  ), children: [
+    /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "text-center mb-6", children: [
+      /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "w-16 h-16 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-4", children: /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "text-3xl", children: "👋" }) }),
+      /* @__PURE__ */ jsxRuntimeExports.jsx("h2", { className: "text-2xl font-bold text-slate-900 mb-2", children: "Confirm Logout" }),
+      /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "text-slate-600", children: userFullName ? `Logging out ${userFullName}` : "Logging out current user" })
+    ] }),
+    message && /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg", children: /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "text-blue-800 text-sm font-medium", children: message }) }),
+    showTransactionInfo && hasActiveTransaction && /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "mb-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg", children: [
+      /* @__PURE__ */ jsxRuntimeExports.jsxs("h3", { className: "text-yellow-800 font-semibold mb-2 flex items-center gap-2", children: [
+        /* @__PURE__ */ jsxRuntimeExports.jsx("span", { children: "⚠️" }),
+        "Active Transaction"
+      ] }),
+      /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "text-yellow-700 text-sm space-y-1", children: [
+        /* @__PURE__ */ jsxRuntimeExports.jsxs("p", { children: [
+          itemCount,
+          " item",
+          itemCount !== 1 ? "s" : "",
+          " in cart"
+        ] }),
+        /* @__PURE__ */ jsxRuntimeExports.jsxs("p", { className: "font-medium", children: [
+          "Total: $",
+          total.toFixed(2)
+        ] }),
+        /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "text-xs mt-2", children: "Your transaction will be preserved and restored when you log back in." })
+      ] })
+    ] }),
+    showTransactionInfo && !hasActiveTransaction && /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "mb-6 p-4 bg-slate-50 border border-slate-200 rounded-lg", children: /* @__PURE__ */ jsxRuntimeExports.jsxs("p", { className: "text-slate-600 text-sm flex items-center gap-2", children: [
+      /* @__PURE__ */ jsxRuntimeExports.jsx("span", { children: "ℹ️" }),
+      "No active transaction to preserve"
+    ] }) }),
+    /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex gap-3", children: [
+      /* @__PURE__ */ jsxRuntimeExports.jsx(
+        Button,
+        {
+          variant: "outline",
+          size: "lg",
+          onClick: onClose,
+          disabled: isLoggingOut,
+          className: "flex-1 h-14 text-lg",
+          children: "Cancel"
+        }
+      ),
+      /* @__PURE__ */ jsxRuntimeExports.jsx(
+        Button,
+        {
+          size: "lg",
+          onClick: handleConfirmLogout,
+          disabled: isLoggingOut,
+          className: "flex-1 h-14 text-lg bg-orange-600 hover:bg-orange-700",
+          children: isLoggingOut ? /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex items-center gap-2", children: [
+            /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" }),
+            "Logging out..."
+          ] }) : "Logout"
+        }
+      )
+    ] }),
+    currentUser && /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "mt-6 pt-4 border-t border-slate-200 text-center", children: /* @__PURE__ */ jsxRuntimeExports.jsxs("p", { className: "text-slate-500 text-sm", children: [
+      "Employee: ",
+      currentUser.employeeCode,
+      " • ",
+      currentUser.role
+    ] }) })
+  ] }) });
+}
+function LogoutButton({
+  children = "Logout",
+  variant = "ghost",
+  size = "default",
+  requireConfirmation = true,
+  confirmationMessage,
+  className
+}) {
+  const [showConfirmation, setShowConfirmation] = reactExports.useState(false);
+  const { logout, currentUser } = useAuth();
+  const checkoutStore = useCheckoutStore();
+  const handleLogout = () => {
+    if (requireConfirmation) {
+      setShowConfirmation(true);
+    } else {
+      performLogout();
+    }
+  };
+  const performLogout = () => {
+    if (currentUser && checkoutStore.cart.length > 0) {
+      checkoutStore.preserveCurrentTransaction(currentUser.id);
+    }
+    logout();
+    setShowConfirmation(false);
+  };
+  return /* @__PURE__ */ jsxRuntimeExports.jsxs(jsxRuntimeExports.Fragment, { children: [
+    /* @__PURE__ */ jsxRuntimeExports.jsx(
+      Button,
+      {
+        variant,
+        size,
+        onClick: handleLogout,
+        className,
+        disabled: !currentUser,
+        children
+      }
+    ),
+    requireConfirmation && /* @__PURE__ */ jsxRuntimeExports.jsx(
+      LogoutConfirmation,
+      {
+        isOpen: showConfirmation,
+        onClose: () => setShowConfirmation(false),
+        onConfirm: performLogout,
+        message: confirmationMessage
+      }
+    )
+  ] });
+}
+function TopBar() {
+  const [currentTime, setCurrentTime] = reactExports.useState(/* @__PURE__ */ new Date());
+  const {
+    currentUser,
+    isAuthenticated,
+    userFullName,
+    userRole,
+    isManagerOrAbove
+  } = useAuth();
+  const {
+    isActive,
+    isNearExpiry,
+    secondsRemaining,
+    sessionHealth
+  } = useSessionTimeout();
+  reactExports.useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentTime(/* @__PURE__ */ new Date());
+    }, 1e3);
+    return () => clearInterval(timer);
+  }, []);
+  const formattedTime = currentTime.toLocaleTimeString([], {
+    hour: "2-digit",
+    minute: "2-digit"
+  });
+  const formattedDate = currentTime.toLocaleDateString([], {
+    weekday: "long",
+    month: "short",
+    day: "numeric"
+  });
+  const getSessionStatusIndicator = () => {
+    if (!isAuthenticated) {
+      return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex items-center gap-1 px-2 py-1 bg-red-100 text-red-700 rounded-md text-xs", children: [
+        /* @__PURE__ */ jsxRuntimeExports.jsx(TriangleAlert, { className: "w-3 h-3" }),
+        "Not Logged In"
+      ] });
+    }
+    if (!isActive) {
+      return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex items-center gap-1 px-2 py-1 bg-red-100 text-red-700 rounded-md text-xs", children: [
+        /* @__PURE__ */ jsxRuntimeExports.jsx(TriangleAlert, { className: "w-3 h-3" }),
+        "Session Expired"
+      ] });
+    }
+    if (isNearExpiry) {
+      return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex items-center gap-1 px-2 py-1 bg-yellow-100 text-yellow-700 rounded-md text-xs animate-pulse", children: [
+        /* @__PURE__ */ jsxRuntimeExports.jsx(Clock, { className: "w-3 h-3" }),
+        secondsRemaining,
+        "s"
+      ] });
+    }
+    return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: cn(
+      "flex items-center gap-1 px-2 py-1 rounded-md text-xs",
+      sessionHealth === "good" && "bg-green-100 text-green-700",
+      sessionHealth === "warning" && "bg-yellow-100 text-yellow-700",
+      sessionHealth === "critical" && "bg-red-100 text-red-700"
+    ), children: [
+      /* @__PURE__ */ jsxRuntimeExports.jsx(Shield, { className: "w-3 h-3" }),
+      "Active"
+    ] });
+  };
+  return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "h-16 bg-white border-b border-gray-200 flex items-center justify-between px-6", children: [
+    /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "flex items-center space-x-4", children: /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex items-center space-x-2", children: [
+      /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "w-8 h-8 bg-purple-600 rounded-lg flex items-center justify-center", children: /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "text-white font-bold text-sm", children: "E" }) }),
+      /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { children: [
+        /* @__PURE__ */ jsxRuntimeExports.jsx("h1", { className: "font-bold text-lg text-gray-900", children: "Euphoria Liquor" }),
+        /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "text-xs text-gray-500", children: "Point of Sale" })
+      ] })
+    ] }) }),
+    /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "flex items-center space-x-4", children: /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "text-center", children: [
+      /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "text-sm font-medium text-gray-900", children: formattedDate }),
+      /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "text-xs text-gray-500 flex items-center justify-center", children: [
+        /* @__PURE__ */ jsxRuntimeExports.jsx(Clock, { className: "w-3 h-3 mr-1" }),
+        formattedTime
+      ] })
+    ] }) }),
+    /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "flex items-center space-x-3", children: isAuthenticated && currentUser ? /* @__PURE__ */ jsxRuntimeExports.jsxs(jsxRuntimeExports.Fragment, { children: [
+      /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "text-right", children: [
+        /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "text-sm font-medium text-gray-900", children: userFullName }),
+        /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "text-xs text-gray-500 flex items-center justify-end gap-2", children: [
+          /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "capitalize", children: userRole }),
+          /* @__PURE__ */ jsxRuntimeExports.jsx("span", { children: "•" }),
+          /* @__PURE__ */ jsxRuntimeExports.jsx("span", { children: currentUser.employeeCode })
+        ] })
+      ] }),
+      /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "flex flex-col items-center gap-1", children: getSessionStatusIndicator() }),
+      /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex items-center space-x-2", children: [
+        /* @__PURE__ */ jsxRuntimeExports.jsxs(
+          LogoutButton,
+          {
+            variant: "ghost",
+            size: "sm",
+            className: "text-gray-600 hover:text-gray-900",
+            children: [
+              /* @__PURE__ */ jsxRuntimeExports.jsx(LogOut, { className: "w-4 h-4 mr-1" }),
+              "Logout"
+            ]
+          }
+        ),
+        isManagerOrAbove && /* @__PURE__ */ jsxRuntimeExports.jsx(
+          Button,
+          {
+            variant: "outline",
+            size: "sm",
+            className: "text-gray-600 hover:text-gray-900",
+            children: /* @__PURE__ */ jsxRuntimeExports.jsx(Settings, { className: "w-4 h-4" })
+          }
+        )
+      ] })
+    ] }) : (
+      /* Not authenticated state */
+      /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex items-center space-x-3", children: [
+        /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "text-right", children: [
+          /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "text-sm font-medium text-gray-500", children: "Not Logged In" }),
+          /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "text-xs text-gray-400", children: "Please authenticate" })
+        ] }),
+        /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "flex items-center space-x-2", children: /* @__PURE__ */ jsxRuntimeExports.jsxs(
+          Button,
+          {
+            variant: "outline",
+            size: "sm",
+            onClick: () => {
+              console.log("Open login modal");
+            },
+            children: [
+              /* @__PURE__ */ jsxRuntimeExports.jsx(User, { className: "w-4 h-4 mr-1" }),
+              "Login"
+            ]
+          }
+        ) })
+      ] })
+    ) })
+  ] });
+}
 function CustomerSearch({ isOpen, onClose }) {
   const [searchTerm, setSearchTerm] = reactExports.useState("");
   const { setCustomer } = useCheckoutStore();

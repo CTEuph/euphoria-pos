@@ -1,16 +1,89 @@
-import { Clock, User, Settings } from 'lucide-react'
+import { useState, useEffect } from 'react'
+import { Clock, User, Settings, LogOut, Shield, AlertTriangle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { useAuth } from '@/features/employee/hooks/useAuth'
+import { useSessionTimeout } from '@/features/employee/hooks/useSessionTimeout'
+import { LogoutButton } from '@/features/employee/components/LogoutConfirmation'
+import { cn } from '@/shared/lib/utils'
 
 export function TopBar() {
-  const currentTime = new Date().toLocaleTimeString([], { 
+  const [currentTime, setCurrentTime] = useState(new Date())
+  const { 
+    currentUser, 
+    isAuthenticated, 
+    userFullName, 
+    userRole, 
+    isManagerOrAbove 
+  } = useAuth()
+  
+  const { 
+    isActive, 
+    isNearExpiry, 
+    secondsRemaining, 
+    sessionHealth 
+  } = useSessionTimeout()
+
+  // Update time every second
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentTime(new Date())
+    }, 1000)
+
+    return () => clearInterval(timer)
+  }, [])
+
+  const formattedTime = currentTime.toLocaleTimeString([], { 
     hour: '2-digit', 
     minute: '2-digit' 
   })
-  const currentDate = new Date().toLocaleDateString([], {
+  
+  const formattedDate = currentTime.toLocaleDateString([], {
     weekday: 'long',
     month: 'short',
     day: 'numeric'
   })
+
+  // Session status indicator
+  const getSessionStatusIndicator = () => {
+    if (!isAuthenticated) {
+      return (
+        <div className="flex items-center gap-1 px-2 py-1 bg-red-100 text-red-700 rounded-md text-xs">
+          <AlertTriangle className="w-3 h-3" />
+          Not Logged In
+        </div>
+      )
+    }
+
+    if (!isActive) {
+      return (
+        <div className="flex items-center gap-1 px-2 py-1 bg-red-100 text-red-700 rounded-md text-xs">
+          <AlertTriangle className="w-3 h-3" />
+          Session Expired
+        </div>
+      )
+    }
+
+    if (isNearExpiry) {
+      return (
+        <div className="flex items-center gap-1 px-2 py-1 bg-yellow-100 text-yellow-700 rounded-md text-xs animate-pulse">
+          <Clock className="w-3 h-3" />
+          {secondsRemaining}s
+        </div>
+      )
+    }
+
+    return (
+      <div className={cn(
+        "flex items-center gap-1 px-2 py-1 rounded-md text-xs",
+        sessionHealth === 'good' && "bg-green-100 text-green-700",
+        sessionHealth === 'warning' && "bg-yellow-100 text-yellow-700",
+        sessionHealth === 'critical' && "bg-red-100 text-red-700"
+      )}>
+        <Shield className="w-3 h-3" />
+        Active
+      </div>
+    )
+  }
 
   return (
     <div className="h-16 bg-white border-b border-gray-200 flex items-center justify-between px-6">
@@ -30,29 +103,79 @@ export function TopBar() {
       {/* Center - Date and Time */}
       <div className="flex items-center space-x-4">
         <div className="text-center">
-          <div className="text-sm font-medium text-gray-900">{currentDate}</div>
+          <div className="text-sm font-medium text-gray-900">{formattedDate}</div>
           <div className="text-xs text-gray-500 flex items-center justify-center">
             <Clock className="w-3 h-3 mr-1" />
-            {currentTime}
+            {formattedTime}
           </div>
         </div>
       </div>
 
-      {/* Right side - Cashier info and actions */}
+      {/* Right side - Employee info and actions */}
       <div className="flex items-center space-x-3">
-        <div className="text-right">
-          <div className="text-sm font-medium text-gray-900">Jane Doe</div>
-          <div className="text-xs text-gray-500">Cashier</div>
-        </div>
-        <div className="flex items-center space-x-2">
-          <Button variant="outline" size="sm">
-            <User className="w-4 h-4 mr-1" />
-            Switch User
-          </Button>
-          <Button variant="outline" size="sm">
-            <Settings className="w-4 h-4" />
-          </Button>
-        </div>
+        {isAuthenticated && currentUser ? (
+          <>
+            {/* Employee information */}
+            <div className="text-right">
+              <div className="text-sm font-medium text-gray-900">
+                {userFullName}
+              </div>
+              <div className="text-xs text-gray-500 flex items-center justify-end gap-2">
+                <span className="capitalize">{userRole}</span>
+                <span>•</span>
+                <span>{currentUser.employeeCode}</span>
+              </div>
+            </div>
+
+            {/* Session status */}
+            <div className="flex flex-col items-center gap-1">
+              {getSessionStatusIndicator()}
+            </div>
+
+            {/* Action buttons */}
+            <div className="flex items-center space-x-2">
+              <LogoutButton 
+                variant="ghost" 
+                size="sm"
+                className="text-gray-600 hover:text-gray-900"
+              >
+                <LogOut className="w-4 h-4 mr-1" />
+                Logout
+              </LogoutButton>
+              
+              {isManagerOrAbove && (
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  className="text-gray-600 hover:text-gray-900"
+                >
+                  <Settings className="w-4 h-4" />
+                </Button>
+              )}
+            </div>
+          </>
+        ) : (
+          /* Not authenticated state */
+          <div className="flex items-center space-x-3">
+            <div className="text-right">
+              <div className="text-sm font-medium text-gray-500">Not Logged In</div>
+              <div className="text-xs text-gray-400">Please authenticate</div>
+            </div>
+            <div className="flex items-center space-x-2">
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={() => {
+                  // This would typically open a login modal or redirect to login
+                  console.log('Open login modal')
+                }}
+              >
+                <User className="w-4 h-4 mr-1" />
+                Login
+              </Button>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   )
