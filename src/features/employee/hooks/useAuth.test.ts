@@ -43,7 +43,7 @@ vi.stubGlobal('console', consoleMock)
 
 describe('useAuth', () => {
   const mockEmployee: Employee = {
-    id: 'emp_01234567890123456789',
+    id: 'emp_012345656789012345656789',
     employeeCode: 'EMP001',
     firstName: 'John',
     lastName: 'Doe',
@@ -107,10 +107,10 @@ describe('useAuth', () => {
       
       let loginResult: LoginResult
       await act(async () => {
-        loginResult = await result.current.login({ pin: '1234' })
+        loginResult = await result.current.login({ pin: '123456' })
       })
       
-      expect(mockElectronAuth.login).toHaveBeenCalledWith({ pin: '1234' })
+      expect(mockElectronAuth.login).toHaveBeenCalledWith({ pin: '123456' })
       expect(loginResult!.success).toBe(true)
       expect(result.current.isAuthenticated).toBe(true)
       expect(result.current.currentUser).toEqual(mockEmployee)
@@ -126,7 +126,7 @@ describe('useAuth', () => {
       
       let loginResult: LoginResult
       await act(async () => {
-        loginResult = await result.current.login({ pin: '1234' })
+        loginResult = await result.current.login({ pin: '123456' })
       })
       
       expect(loginResult!.success).toBe(false)
@@ -141,7 +141,7 @@ describe('useAuth', () => {
       
       let loginResult: LoginResult
       await act(async () => {
-        loginResult = await result.current.login({ pin: '1234' })
+        loginResult = await result.current.login({ pin: '123456' })
       })
       
       expect(loginResult!.success).toBe(false)
@@ -157,7 +157,7 @@ describe('useAuth', () => {
       
       // Login first
       await act(async () => {
-        await result.current.login({ pin: '1234' })
+        await result.current.login({ pin: '123456' })
       })
       
       expect(result.current.isAuthenticated).toBe(true)
@@ -179,7 +179,7 @@ describe('useAuth', () => {
       const { result } = renderHook(() => useAuth())
       
       await act(async () => {
-        await result.current.login({ pin: '1234' })
+        await result.current.login({ pin: '123456' })
       })
     })
 
@@ -228,7 +228,7 @@ describe('useAuth', () => {
       const { result } = renderHook(() => useAuth())
       
       await act(async () => {
-        await result.current.login({ pin: '1234' })
+        await result.current.login({ pin: '123456' })
       })
       
       expect(result.current.userRole).toBe('manager')
@@ -244,7 +244,7 @@ describe('useAuth', () => {
       const { result } = renderHook(() => useAuth())
       
       await act(async () => {
-        await result.current.login({ pin: '1234' })
+        await result.current.login({ pin: '123456' })
       })
       
       expect(result.current.userRole).toBe('owner')
@@ -263,7 +263,7 @@ describe('useAuth', () => {
       
       // Mock login to track activity
       await act(async () => {
-        await result.current.login({ pin: '1234' })
+        await result.current.login({ pin: '123456' })
       })
       
       expect(result.current.timeSinceLastActivity).toBe(0)
@@ -273,7 +273,7 @@ describe('useAuth', () => {
       const { result } = renderHook(() => useAuth())
       
       await act(async () => {
-        await result.current.login({ pin: '1234' })
+        await result.current.login({ pin: '123456' })
       })
       
       // Advance time
@@ -307,7 +307,7 @@ describe('useAuth', () => {
       const { result } = renderHook(() => useAuth())
       
       await act(async () => {
-        await result.current.login({ pin: '1234' })
+        await result.current.login({ pin: '123456' })
       })
       
       // Advance time by 5 minutes
@@ -320,7 +320,7 @@ describe('useAuth', () => {
       const { result } = renderHook(() => useAuth())
       
       await act(async () => {
-        await result.current.login({ pin: '1234' })
+        await result.current.login({ pin: '123456' })
       })
       
       // Advance time past timeout (1 minute)
@@ -335,7 +335,7 @@ describe('useAuth', () => {
       const { result } = renderHook(() => useAuth())
       
       await act(async () => {
-        await result.current.login({ pin: '1234' })
+        await result.current.login({ pin: '123456' })
       })
       
       // Advance time
@@ -352,7 +352,7 @@ describe('useAuth', () => {
       const { result } = renderHook(() => useAuth())
       
       await act(async () => {
-        await result.current.login({ pin: '1234' })
+        await result.current.login({ pin: '123456' })
       })
       
       // Force session expiry
@@ -370,7 +370,7 @@ describe('useAuth', () => {
 
 describe('usePermission', () => {
   const mockEmployee: Employee = {
-    id: 'emp_01234567890123456789',
+    id: 'emp_012345656789012345656789',
     employeeCode: 'EMP001',
     firstName: 'John',
     lastName: 'Doe',
@@ -403,7 +403,7 @@ describe('usePermission', () => {
 
 describe('useRequirePermission', () => {
   const mockEmployee: Employee = {
-    id: 'emp_01234567890123456789',
+    id: 'emp_012345656789012345656789',
     employeeCode: 'EMP001',
     firstName: 'John',
     lastName: 'Doe',
@@ -444,7 +444,7 @@ describe('useRequirePermission', () => {
 
 describe('useSessionStatus', () => {
   const mockEmployee: Employee = {
-    id: 'emp_01234567890123456789',
+    id: 'emp_012345656789012345656789',
     employeeCode: 'EMP001',
     firstName: 'John',
     lastName: 'Doe',

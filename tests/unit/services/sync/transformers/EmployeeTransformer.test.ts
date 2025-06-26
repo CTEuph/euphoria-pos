@@ -21,11 +21,11 @@ describe('EmployeeTransformer', () => {
   describe('toCloud', () => {
     it('should transform local employee to cloud format', () => {
       const localEmployee: Employee = {
-        id: 'ULID123456789',
+        id: 'ULID1234565678909',
         employeeCode: 'EMP001',
         firstName: 'John',
         lastName: 'Doe',
-        pin: 'hashed_1234_salt',
+        pin: 'hashed_123456_salt',
         isActive: true,
         canOverridePrice: true,
         canVoidTransaction: false,
@@ -37,11 +37,11 @@ describe('EmployeeTransformer', () => {
       const cloudEmployee = transformer.toCloud(localEmployee)
 
       expect(cloudEmployee).toEqual({
-        id: 'ULID123456789',
+        id: 'ULID1234565678909',
         employee_code: 'EMP001',
         first_name: 'John',
         last_name: 'Doe',
-        pin_hash: 'hashed_1234_salt',
+        pin_hash: 'hashed_123456_salt',
         is_active: true,
         can_override_price: true,
         can_void_transaction: false,
@@ -54,11 +54,11 @@ describe('EmployeeTransformer', () => {
 
     it('should handle false boolean values correctly', () => {
       const localEmployee: Employee = {
-        id: 'ULID123456789',
+        id: 'ULID1234565678909',
         employeeCode: 'EMP001',
         firstName: 'John',
         lastName: 'Doe',
-        pin: 'hashed_1234_salt',
+        pin: 'hashed_123456_salt',
         isActive: false,
         canOverridePrice: false,
         canVoidTransaction: false,
@@ -79,11 +79,11 @@ describe('EmployeeTransformer', () => {
   describe('toLocal', () => {
     it('should transform cloud employee to local format', () => {
       const cloudEmployee: CloudEmployee = {
-        id: 'ULID123456789',
+        id: 'ULID1234565678909',
         employee_code: 'EMP001',
         first_name: 'John',
         last_name: 'Doe',
-        pin_hash: 'hashed_1234_salt',
+        pin_hash: 'hashed_123456_salt',
         is_active: true,
         can_override_price: true,
         can_void_transaction: false,
@@ -96,11 +96,11 @@ describe('EmployeeTransformer', () => {
       const localEmployee = transformer.toLocal(cloudEmployee)
 
       expect(localEmployee).toEqual({
-        id: 'ULID123456789',
+        id: 'ULID1234565678909',
         employeeCode: 'EMP001',
         firstName: 'John',
         lastName: 'Doe',
-        pin: 'hashed_1234_salt',
+        pin: 'hashed_123456_salt',
         isActive: true,
         canOverridePrice: true,
         canVoidTransaction: false,
@@ -114,11 +114,11 @@ describe('EmployeeTransformer', () => {
   describe('validate', () => {
     it('should validate matching local and cloud employees', () => {
       const localEmployee: Employee = {
-        id: 'ULID123456789',
+        id: 'ULID1234565678909',
         employeeCode: 'EMP001',
         firstName: 'John',
         lastName: 'Doe',
-        pin: 'hashed_1234_salt',
+        pin: 'hashed_123456_salt',
         isActive: true,
         canOverridePrice: true,
         canVoidTransaction: false,
@@ -135,11 +135,11 @@ describe('EmployeeTransformer', () => {
 
     it('should detect mismatched employees', () => {
       const localEmployee: Employee = {
-        id: 'ULID123456789',
+        id: 'ULID1234565678909',
         employeeCode: 'EMP001',
         firstName: 'John',
         lastName: 'Doe',
-        pin: 'hashed_1234_salt',
+        pin: 'hashed_123456_salt',
         isActive: true,
         canOverridePrice: true,
         canVoidTransaction: false,
@@ -165,7 +165,7 @@ describe('EmployeeTransformer', () => {
           employeeCode: 'EMP001',
           firstName: 'John',
           lastName: 'Doe',
-          pin: 'hashed_1234_salt',
+          pin: 'hashed_123456_salt',
           isActive: true,
           canOverridePrice: false,
           canVoidTransaction: false,
@@ -178,7 +178,7 @@ describe('EmployeeTransformer', () => {
           employeeCode: 'EMP002',
           firstName: 'Jane',
           lastName: 'Smith',
-          pin: 'hashed_5678_salt',
+          pin: 'hashed_567890_salt',
           isActive: true,
           canOverridePrice: true,
           canVoidTransaction: true,
@@ -202,11 +202,11 @@ describe('EmployeeTransformUtils', () => {
   describe('validateEmployeeData', () => {
     it('should validate correct employee data', () => {
       const employee: Employee = {
-        id: 'ULID123456789',
+        id: 'ULID1234565678909',
         employeeCode: 'EMP001',
         firstName: 'John',
         lastName: 'Doe',
-        pin: '1234',
+        pin: '123456',
         isActive: true,
         canOverridePrice: false,
         canVoidTransaction: false,
@@ -249,11 +249,11 @@ describe('EmployeeTransformUtils', () => {
 
     it('should allow hashed PINs', () => {
       const employee: Employee = {
-        id: 'ULID123456789',
+        id: 'ULID1234565678909',
         employeeCode: 'EMP001',
         firstName: 'John',
         lastName: 'Doe',
-        pin: 'hashed_1234_salt',
+        pin: 'hashed_123456_salt',
         isActive: true,
         canOverridePrice: false,
         canVoidTransaction: false,
@@ -271,11 +271,11 @@ describe('EmployeeTransformUtils', () => {
   describe('getDisplayName', () => {
     it('should format employee display name', () => {
       const employee: Employee = {
-        id: 'ULID123456789',
+        id: 'ULID1234565678909',
         employeeCode: 'EMP001',
         firstName: 'John',
         lastName: 'Doe',
-        pin: '1234',
+        pin: '123456',
         isActive: true,
         canOverridePrice: false,
         canVoidTransaction: false,
@@ -291,11 +291,11 @@ describe('EmployeeTransformUtils', () => {
 
     it('should handle single name', () => {
       const employee: Employee = {
-        id: 'ULID123456789',
+        id: 'ULID1234565678909',
         employeeCode: 'EMP001',
         firstName: 'John',
         lastName: '',
-        pin: '1234',
+        pin: '123456',
         isActive: true,
         canOverridePrice: false,
         canVoidTransaction: false,
@@ -313,11 +313,11 @@ describe('EmployeeTransformUtils', () => {
   describe('getFullNameWithCode', () => {
     it('should format full name with employee code', () => {
       const employee: Employee = {
-        id: 'ULID123456789',
+        id: 'ULID1234565678909',
         employeeCode: 'EMP001',
         firstName: 'John',
         lastName: 'Doe',
-        pin: '1234',
+        pin: '123456',
         isActive: true,
         canOverridePrice: false,
         canVoidTransaction: false,
@@ -334,11 +334,11 @@ describe('EmployeeTransformUtils', () => {
 
   describe('hasPermission', () => {
     const employee: Employee = {
-      id: 'ULID123456789',
+      id: 'ULID1234565678909',
       employeeCode: 'EMP001',
       firstName: 'John',
       lastName: 'Doe',
-      pin: '1234',
+      pin: '123456',
       isActive: true,
       canOverridePrice: true,
       canVoidTransaction: false,
@@ -367,11 +367,11 @@ describe('EmployeeTransformUtils', () => {
   describe('getPermissionSummary', () => {
     it('should return basic level for employee with no special permissions', () => {
       const employee: Employee = {
-        id: 'ULID123456789',
+        id: 'ULID1234565678909',
         employeeCode: 'EMP001',
         firstName: 'John',
         lastName: 'Doe',
-        pin: '1234',
+        pin: '123456',
         isActive: true,
         canOverridePrice: false,
         canVoidTransaction: false,
@@ -388,11 +388,11 @@ describe('EmployeeTransformUtils', () => {
 
     it('should return supervisor level for employee with some permissions', () => {
       const employee: Employee = {
-        id: 'ULID123456789',
+        id: 'ULID1234565678909',
         employeeCode: 'EMP001',
         firstName: 'John',
         lastName: 'Doe',
-        pin: '1234',
+        pin: '123456',
         isActive: true,
         canOverridePrice: true,
         canVoidTransaction: false,
@@ -409,11 +409,11 @@ describe('EmployeeTransformUtils', () => {
 
     it('should return manager level for manager employees', () => {
       const employee: Employee = {
-        id: 'ULID123456789',
+        id: 'ULID1234565678909',
         employeeCode: 'EMP001',
         firstName: 'John',
         lastName: 'Doe',
-        pin: '1234',
+        pin: '123456',
         isActive: true,
         canOverridePrice: true,
         canVoidTransaction: true,
@@ -460,7 +460,7 @@ describe('EmployeeTransformUtils', () => {
 
   describe('hashPin and verifyPin', () => {
     it('should hash and verify PIN correctly', () => {
-      const pin = '1234'
+      const pin = '123456'
       const hash = EmployeeTransformUtils.hashPin(pin)
 
       expect(hash).toBeTruthy()
@@ -469,12 +469,12 @@ describe('EmployeeTransformUtils', () => {
       const isValid = EmployeeTransformUtils.verifyPin(pin, hash)
       expect(isValid).toBe(true)
 
-      const isInvalid = EmployeeTransformUtils.verifyPin('5678', hash)
+      const isInvalid = EmployeeTransformUtils.verifyPin('567890', hash)
       expect(isInvalid).toBe(false)
     })
 
     it('should use custom salt', () => {
-      const pin = '1234'
+      const pin = '123456'
       const salt = 'custom-salt'
       const hash = EmployeeTransformUtils.hashPin(pin, salt)
 

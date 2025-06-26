@@ -42,7 +42,7 @@ describe('authService', () => {
 
   describe('PIN hashing', () => {
     it('should hash a PIN securely', async () => {
-      const pin = '1234'
+      const pin = '123456'
       const hash1 = await hashPin(pin)
       const hash2 = await hashPin(pin)
       
@@ -60,7 +60,7 @@ describe('authService', () => {
 
   describe('PIN comparison', () => {
     it('should validate correct PIN', async () => {
-      const pin = '1234'
+      const pin = '123456'
       const hash = await hashPin(pin)
       
       const isValid = await comparePin(pin, hash)
@@ -68,8 +68,8 @@ describe('authService', () => {
     })
 
     it('should reject incorrect PIN', async () => {
-      const pin = '1234'
-      const wrongPin = '5678'
+      const pin = '123456'
+      const wrongPin = '567890'
       const hash = await hashPin(pin)
       
       const isValid = await comparePin(wrongPin, hash)
@@ -77,10 +77,10 @@ describe('authService', () => {
     })
 
     it('should handle empty inputs gracefully', async () => {
-      const hash = await hashPin('1234')
+      const hash = await hashPin('123456')
       
       expect(await comparePin('', hash)).toBe(false)
-      expect(await comparePin('1234', '')).toBe(false)
+      expect(await comparePin('123456', '')).toBe(false)
       expect(await comparePin('', '')).toBe(false)
     })
   })
@@ -101,7 +101,7 @@ describe('authService', () => {
         }))
       })
       
-      const result = await authenticateEmployee({ pin: '9999' })
+      const result = await authenticateEmployee({ pin: '999999' })
       
       expect(result.success).toBe(false)
       expect(result.error).toBe('Invalid PIN')
@@ -121,7 +121,7 @@ describe('authService', () => {
       
       // Make multiple failed attempts
       for (let i = 0; i < 5; i++) {
-        const result = await validatePin('TEST001', '1234')
+        const result = await validatePin('TEST001', '123456')
         expect(result.isValid).toBe(false)
         expect(result.attemptsRemaining).toBe(10 - i - 1)
       }
@@ -138,11 +138,11 @@ describe('authService', () => {
       
       // Make 10 failed attempts to trigger lockout
       for (let i = 0; i < 10; i++) {
-        await validatePin('TEST002', '1234')
+        await validatePin('TEST002', '123456')
       }
       
       // Next attempt should be locked
-      const result = await validatePin('TEST002', '1234')
+      const result = await validatePin('TEST002', '123456')
       expect(result.isValid).toBe(false)
       expect(result.isLocked).toBe(true)
       expect(result.attemptsRemaining).toBe(0)
@@ -159,14 +159,14 @@ describe('authService', () => {
       
       // Make some failed attempts
       for (let i = 0; i < 5; i++) {
-        await validatePin('TEST001', '1234')
+        await validatePin('TEST001', '123456')
       }
       
       // Clear rate limit
       clearRateLimit('TEST001')
       
       // Next attempt should have full attempts remaining
-      const result = await validatePin('TEST001', '1234')
+      const result = await validatePin('TEST001', '123456')
       expect(result.attemptsRemaining).toBe(9) // 10 - 1 (current attempt)
     })
   })
@@ -177,7 +177,7 @@ describe('authService', () => {
         values: vi.fn(() => Promise.resolve())
       })
       
-      const employee = await createEmployee('TEST001', 'Test', 'User', '1234', 'cashier')
+      const employee = await createEmployee('TEST001', 'Test', 'User', '123456', 'cashier')
       
       expect(employee.employeeCode).toBe('TEST001')
       expect(employee.firstName).toBe('Test')
@@ -206,7 +206,7 @@ describe('authService', () => {
         }))
       })
       
-      const result = await resetEmployeePin('employee-id', '5678', 'admin-id')
+      const result = await resetEmployeePin('employee-id', '567890', 'admin-id')
       
       expect(result).toBe(true)
       expect(mockDb.update).toHaveBeenCalled()

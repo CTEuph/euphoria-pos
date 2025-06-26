@@ -3,11 +3,12 @@
  * Provides secure authentication interface for POS system
  */
 
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { PinPad } from './PinPad'
 import { useAuth } from '../hooks/useAuth'
 import { cn } from '@/shared/lib/utils'
+import { motion, useMotionValue, useTransform, animate } from 'framer-motion'
 import type { LoginResult } from '../types'
 
 interface LoginScreenProps {
@@ -35,16 +36,16 @@ export function LoginScreen({
       setAttemptsRemaining(null)
     }
     
-    // Auto-submit after 4 digits
-    if (newPin.length === 4) {
+    // Auto-submit after 6 digits
+    if (newPin.length === 6) {
       handlePinSubmit(newPin)
     }
   }, [error])
 
   const handlePinSubmit = useCallback(async (pinToSubmit?: string) => {
     const currentPin = pinToSubmit || pin
-    if (!currentPin || currentPin.length < 4) {
-      setError('Please enter a 4-digit PIN')
+    if (!currentPin || currentPin.length < 6) {
+      setError('Please enter a 6-digit PIN')
       return
     }
 
@@ -97,12 +98,137 @@ export function LoginScreen({
     } else if (key === 'Backspace' || key === '←') {
       const newPin = pin.slice(0, -1)
       handlePinChange(newPin)
-    } else if (/^\d$/.test(key) && pin.length < 4) {
-      // Allow up to 4 digits for PIN
+    } else if (/^\d$/.test(key) && pin.length < 6) {
+      // Allow up to 6 digits for PIN
       const newPin = pin + key
       handlePinChange(newPin)
     }
   }, [pin, isLoading, handlePinChange, handlePinClear])
+
+  const [isVisible, setIsVisible] = useState(true)
+  
+  // Perfect wave timing - locked in values
+  const animationDuration = 0.9 // seconds for ramp up/down
+  const delayMultiplier = 0.4 // percentage of ramp up when next starts
+  const minOpacity = 0.2 // starting opacity
+  const maxOpacity = 1.0 // peak opacity
+  const minScale = 0.91 // starting scale
+  const maxScale = 1.1 // peak scale
+  const restPause = 1.5 // seconds to pause between full cycles
+
+  // Listen for page visibility and window focus changes
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      setIsVisible(!document.hidden)
+    }
+
+    const handleWindowFocus = () => {
+      setIsVisible(true)
+    }
+
+    const handleWindowBlur = () => {
+      // Don't pause for Electron apps, but reset on focus for better reliability
+    }
+
+    // Standard visibility API
+    document.addEventListener('visibilitychange', handleVisibilityChange)
+    
+    // Window focus events (works well in Electron)
+    window.addEventListener('focus', handleWindowFocus)
+    window.addEventListener('blur', handleWindowBlur)
+
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange)
+      window.removeEventListener('focus', handleWindowFocus)
+      window.removeEventListener('blur', handleWindowBlur)
+    }
+  }, [])
+
+  const WaveDot = ({ index }: { index: number }) => {
+    const progress = useMotionValue(0)
+    const opacity = useTransform(progress, [0, 1], [minOpacity, maxOpacity])
+    const scale = useTransform(progress, [0, 1], [minScale, maxScale])
+
+    // Perfect smooth easing
+    const perfectEase = [0.25, 0.1, 0.25, 1]
+
+    useEffect(() => {
+      let timeoutId: NodeJS.Timeout
+      let animationControls: any
+      let isRunning = true
+      let startTime = Date.now()
+
+      const runWaveCycle = () => {
+        if (!isRunning || !isVisible) return
+
+        const waveStartDelay = index * (animationDuration * 1000 * delayMultiplier)
+        
+        timeoutId = setTimeout(async () => {
+          if (!isRunning || !isVisible) return
+
+          try {
+            // Smooth ramp up
+            animationControls = animate(progress, 1, {
+              duration: animationDuration,
+              ease: perfectEase
+            })
+            await animationControls
+
+            if (!isRunning || !isVisible) return
+
+            // Smooth ramp down
+            animationControls = animate(progress, 0, {
+              duration: animationDuration,
+              ease: perfectEase
+            })
+            await animationControls
+
+            if (!isRunning || !isVisible) return
+
+            // Calculate when the entire wave finishes and add rest pause
+            // Wave finishes when last dot (index 5) completes its animation
+            // Last dot starts at: 5 * 360ms = 1800ms
+            // Last dot finishes at: 1800ms + 1800ms (0.9s up + 0.9s down) = 3600ms total
+            // All dots restart together after rest pause
+            const totalWaveTime = (5 * 360) + (animationDuration * 2 * 1000) // 1800ms + 1800ms = 3600ms
+            const timeUntilRestart = totalWaveTime - waveStartDelay + (restPause * 1000)
+            
+            timeoutId = setTimeout(() => {
+              if (isRunning && isVisible) runWaveCycle()
+            }, timeUntilRestart)
+
+          } catch (error) {
+            // Animation was cancelled, ignore
+          }
+        }, waveStartDelay)
+      }
+
+      // Start or restart animation when component mounts or becomes visible
+      if (isVisible) {
+        startTime = Date.now()
+        runWaveCycle()
+      }
+
+      // Cleanup function
+      return () => {
+        isRunning = false
+        if (timeoutId) clearTimeout(timeoutId)
+        if (animationControls) animationControls.stop()
+        progress.set(0) // Reset to initial state
+      }
+    }, [index, progress, isVisible]) // Re-run when visibility changes
+
+    return (
+      <motion.div
+        className="w-3 h-3 rounded-full"
+        style={{
+          backgroundColor: 'rgb(147 51 234)',
+          opacity,
+          scale
+        }}
+      />
+    )
+  }
 
   return (
     <div className={cn(
@@ -116,6 +242,7 @@ export function LoginScreen({
         </h1>
       </div>
 
+
       {/* PIN Display - Bigger, cleaner */}
       <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-8 w-full max-w-md mb-8">
         <div 
@@ -126,21 +253,13 @@ export function LoginScreen({
         >
           {pin.length === 0 ? (
             <div className="flex gap-2">
-              {Array.from({ length: 4 }).map((_, index) => (
-                <div
-                  key={index}
-                  className="w-3 h-3 rounded-full bg-gray-300 animate-pulse"
-                  style={{
-                    animationDelay: `${index * 150}ms`,
-                    animationDuration: '2s'
-                  }}
-                  aria-hidden="true"
-                />
+              {Array.from({ length: 6 }).map((_, index) => (
+                <WaveDot key={index} index={index} />
               ))}
             </div>
           ) : (
             <div className="flex gap-2">
-              {Array.from({ length: 4 }).map((_, index) => (
+              {Array.from({ length: 6 }).map((_, index) => (
                 <div
                   key={index}
                   className={`w-3 h-3 rounded-full transition-colors duration-200 ${

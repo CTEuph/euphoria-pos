@@ -22,10 +22,10 @@ async function seedEmployees() {
     const sqlite = new Database(DATABASE_PATH)
     const db = drizzle(sqlite)
     
-    // Hash PINs (using simple PINs for testing)
-    const cashierPinHash = await bcrypt.hash('1234', 10)
-    const managerPinHash = await bcrypt.hash('5678', 10)
-    const ownerPinHash = await bcrypt.hash('9999', 10)
+    // Hash PINs (using 6-digit PINs for testing)
+    const cashierPinHash = await bcrypt.hash('123456', 10)
+    const managerPinHash = await bcrypt.hash('567890', 10)
+    const ownerPinHash = await bcrypt.hash('999999', 10)
     
     // Sample employees for each role
     const sampleEmployees: NewEmployee[] = [
@@ -79,9 +79,9 @@ async function seedEmployees() {
     
     console.log('✅ Successfully seeded employee data:')
     console.log('')
-    console.log('   👤 Cashier: Alice Johnson (CASH001) - PIN: 1234')
-    console.log('   👤 Manager: Bob Smith (MGR001) - PIN: 5678') 
-    console.log('   👤 Owner: Carol Williams (OWN001) - PIN: 9999')
+    console.log('   👤 Cashier: Alice Johnson (CASH001) - PIN: 123456')
+    console.log('   👤 Manager: Bob Smith (MGR001) - PIN: 567890') 
+    console.log('   👤 Owner: Carol Williams (OWN001) - PIN: 999999')
     console.log('')
     console.log('   These credentials can be used for testing authentication.')
     

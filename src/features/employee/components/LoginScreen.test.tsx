@@ -173,7 +173,7 @@ describe('LoginScreen', () => {
       await user.click(screen.getByTestId('pin-key-Enter'))
 
       await waitFor(() => {
-        expect(mockElectronAuth.login).toHaveBeenCalledWith({ pin: '1234' })
+        expect(mockElectronAuth.login).toHaveBeenCalledWith({ pin: '123456' })
       })
     })
 
@@ -196,7 +196,7 @@ describe('LoginScreen', () => {
       await user.click(screen.getByRole('button', { name: /login/i }))
 
       await waitFor(() => {
-        expect(mockElectronAuth.login).toHaveBeenCalledWith({ pin: '1234' })
+        expect(mockElectronAuth.login).toHaveBeenCalledWith({ pin: '123456' })
       })
     })
 
