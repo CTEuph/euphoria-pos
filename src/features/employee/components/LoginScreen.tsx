@@ -6,6 +6,7 @@
 import { useState, useCallback } from 'react'
 import { Button } from '@/components/ui/button'
 import { PinPad } from './PinPad'
+import { useAuth } from '../hooks/useAuth'
 import { cn } from '@/shared/lib/utils'
 import type { LoginResult } from '../types'
 
@@ -24,6 +25,7 @@ export function LoginScreen({
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [attemptsRemaining, setAttemptsRemaining] = useState<number | null>(null)
+  const { login } = useAuth()
 
   const handlePinChange = useCallback((newPin: string) => {
     setPin(newPin)
@@ -32,11 +34,17 @@ export function LoginScreen({
       setError(null)
       setAttemptsRemaining(null)
     }
+    
+    // Auto-submit after 4 digits
+    if (newPin.length === 4) {
+      handlePinSubmit(newPin)
+    }
   }, [error])
 
-  const handlePinSubmit = useCallback(async () => {
-    if (!pin || pin.length < 3) {
-      setError('Please enter a valid PIN')
+  const handlePinSubmit = useCallback(async (pinToSubmit?: string) => {
+    const currentPin = pinToSubmit || pin
+    if (!currentPin || currentPin.length < 4) {
+      setError('Please enter a 4-digit PIN')
       return
     }
 
@@ -44,8 +52,8 @@ export function LoginScreen({
     setError(null)
 
     try {
-      // Call the Electron IPC authentication method
-      const result = await window.electron.auth.login({ pin })
+      // Use the auth hook which has better error handling
+      const result = await login({ pin: currentPin })
 
       if (result.success && result.employee) {
         onLoginSuccess(result)
@@ -73,7 +81,7 @@ export function LoginScreen({
     } finally {
       setIsLoading(false)
     }
-  }, [pin, onLoginSuccess, onLoginError])
+  }, [onLoginSuccess, onLoginError])
 
   const handlePinClear = useCallback(() => {
     setPin('')
@@ -84,131 +92,85 @@ export function LoginScreen({
   const handleKeyPress = useCallback((key: string) => {
     if (isLoading) return
 
-    if (key === 'Enter' || key === '↵') {
-      handlePinSubmit()
-    } else if (key === 'Clear' || key === '⌫') {
+    if (key === 'Clear' || key === '⌫') {
       handlePinClear()
     } else if (key === 'Backspace' || key === '←') {
-      setPin(prev => prev.slice(0, -1))
-      // Clear error when user starts typing again
-      if (error) {
-        setError(null)
-        setAttemptsRemaining(null)
-      }
-    } else if (/^\d$/.test(key) && pin.length < 10) {
-      // Allow up to 10 digits for PIN
-      setPin(prev => prev + key)
-      // Clear error when user starts typing again
-      if (error) {
-        setError(null)
-        setAttemptsRemaining(null)
-      }
+      const newPin = pin.slice(0, -1)
+      handlePinChange(newPin)
+    } else if (/^\d$/.test(key) && pin.length < 4) {
+      // Allow up to 4 digits for PIN
+      const newPin = pin + key
+      handlePinChange(newPin)
     }
-  }, [pin, isLoading, handlePinSubmit, handlePinClear, error])
+  }, [pin, isLoading, handlePinChange, handlePinClear])
 
   return (
     <div className={cn(
-      "flex flex-col items-center justify-center min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 p-8",
+      "flex flex-col items-center justify-center min-h-screen bg-gray-50 p-6",
       className
     )}>
-      {/* Header */}
+      {/* Header - Just the title, bold and clean */}
       <div className="text-center mb-12">
-        <h1 className="text-4xl font-bold text-slate-900 mb-2">
+        <h1 className="text-4xl font-bold text-gray-900">
           Euphoria POS
         </h1>
-        <p className="text-xl text-slate-600">
-          Enter your PIN to continue
-        </p>
       </div>
 
-      {/* PIN Display */}
-      <div className="bg-white rounded-2xl shadow-lg p-8 mb-8 min-w-[400px]">
-        <div className="text-center mb-6">
-          <div className="block text-lg font-medium text-slate-700 mb-4">
-            Employee PIN
-          </div>
-          
-          {/* PIN Dots Display */}
-          <div 
-            className="flex justify-center items-center gap-3 min-h-[60px] bg-slate-50 rounded-lg p-4 border-2 border-slate-200 focus-within:border-blue-500 transition-colors"
-            role="textbox"
-            aria-label={`PIN entered, ${pin.length} digits`}
-            aria-live="polite"
-          >
-            {pin.length === 0 ? (
-              <span className="text-slate-400 text-lg">Enter PIN...</span>
-            ) : (
-              Array.from({ length: Math.max(pin.length, 1) }).map((_, index) => (
+      {/* PIN Display - Bigger, cleaner */}
+      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-8 w-full max-w-md mb-8">
+        <div 
+          className="w-full h-16 bg-gray-50 border border-gray-300 rounded-md px-6 flex items-center justify-center focus-within:ring-2 focus-within:ring-purple-500 focus-within:border-purple-500 transition-colors"
+          role="textbox"
+          aria-label={`PIN entered, ${pin.length} digits`}
+          aria-live="polite"
+        >
+          {pin.length === 0 ? (
+            <span className="text-gray-400 text-lg">••••</span>
+          ) : (
+            <div className="flex gap-2">
+              {Array.from({ length: 4 }).map((_, index) => (
                 <div
                   key={index}
-                  className="w-4 h-4 rounded-full bg-slate-800"
+                  className={`w-3 h-3 rounded-full ${
+                    index < pin.length ? 'bg-purple-600' : 'bg-gray-300'
+                  }`}
                   aria-hidden="true"
                 />
-              ))
-            )}
-          </div>
+              ))}
+            </div>
+          )}
         </div>
 
-        {/* Error Display */}
+        {/* Error Display - Compact */}
         {error && (
-          <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
-            <div className="flex items-center gap-2">
-              <div className="w-5 h-5 text-red-500" aria-hidden="true">
-                ⚠️
-              </div>
-              <p className="text-red-700 font-medium" role="alert">
-                {error}
-              </p>
-            </div>
+          <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-md">
+            <p className="text-red-700 text-sm font-medium text-center" role="alert">
+              {error}
+            </p>
             {attemptsRemaining !== null && attemptsRemaining > 0 && (
-              <p className="text-red-600 text-sm mt-1">
+              <p className="text-red-600 text-xs mt-1 text-center">
                 {attemptsRemaining} attempt{attemptsRemaining !== 1 ? 's' : ''} remaining
               </p>
             )}
           </div>
         )}
 
-        {/* Action Buttons */}
-        <div className="flex gap-3">
-          <Button
-            variant="outline"
-            size="lg"
-            onClick={handlePinClear}
-            disabled={isLoading || pin.length === 0}
-            className="flex-1"
-          >
-            Clear
-          </Button>
-          
-          <Button
-            size="lg"
-            onClick={handlePinSubmit}
-            disabled={isLoading || pin.length < 3}
-            className="flex-1"
-          >
-            {isLoading ? (
-              <div className="flex items-center gap-2">
-                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                Authenticating...
-              </div>
-            ) : (
-              'Login'
-            )}
-          </Button>
-        </div>
+        {/* Loading indicator when processing */}
+        {isLoading && (
+          <div className="mt-4 flex items-center justify-center gap-2 text-gray-600">
+            <div className="w-4 h-4 border-2 border-gray-400 border-t-transparent rounded-full animate-spin" />
+            <span className="text-sm">Authenticating...</span>
+          </div>
+        )}
       </div>
 
       {/* PIN Pad */}
-      <PinPad
-        onKeyPress={handleKeyPress}
-        disabled={isLoading}
-        className="max-w-md"
-      />
-
-      {/* Footer */}
-      <div className="mt-12 text-center text-slate-500 text-sm">
-        <p>Secure authentication powered by Euphoria POS</p>
-        <p className="mt-1">For assistance, contact your manager</p>
+      <div>
+        <PinPad
+          onKeyPress={handleKeyPress}
+          disabled={isLoading}
+          className="max-w-xs"
+        />
       </div>
     </div>
   )

@@ -53,7 +53,7 @@ export function PinPad({ onKeyPress, disabled = false, className }: PinPadProps)
   const getKeyVariant = (key: string) => {
     switch (key) {
       case 'Clear':
-        return 'destructive' as const
+        return 'outline' as const  // Changed from destructive to outline for white styling
       case '←':
         return 'secondary' as const
       default:
@@ -62,7 +62,7 @@ export function PinPad({ onKeyPress, disabled = false, className }: PinPadProps)
   }
 
   return (
-    <div className={cn("grid grid-cols-3 gap-4 p-6 bg-white rounded-2xl shadow-lg", className)}>
+    <div className={cn("grid grid-cols-3 gap-3", className)}>
       {PIN_PAD_LAYOUT.flat().map((key, index) => (
         <Button
           key={`${key}-${index}`}
@@ -71,17 +71,13 @@ export function PinPad({ onKeyPress, disabled = false, className }: PinPadProps)
           onClick={() => handleKeyClick(key)}
           disabled={disabled}
           className={cn(
-            "h-16 text-2xl font-bold transition-all duration-150",
-            "hover:scale-105 active:scale-95",
-            "focus:ring-4 focus:ring-blue-200",
+            "h-14 text-xl font-semibold",
             // Number keys
-            /^\d$/.test(key) && "bg-white border-2 border-slate-300 hover:bg-slate-50 hover:border-slate-400 text-slate-900",
-            // Clear key
-            key === 'Clear' && "bg-red-500 hover:bg-red-600 text-white border-red-500",
+            /^\d$/.test(key) && "bg-white border border-gray-300 hover:bg-gray-50 text-gray-900",
+            // Clear key - now white like other buttons
+            key === 'Clear' && "bg-white border border-gray-300 hover:bg-gray-50 text-gray-900",
             // Backspace key  
-            key === '←' && "bg-slate-200 hover:bg-slate-300 text-slate-700 border-slate-300",
-            // Disabled state
-            disabled && "opacity-50 cursor-not-allowed hover:scale-100 active:scale-100"
+            key === '←' && "bg-gray-200 hover:bg-gray-300 text-gray-700",
           )}
           aria-label={getKeyAriaLabel(key)}
           aria-disabled={disabled}
@@ -89,25 +85,6 @@ export function PinPad({ onKeyPress, disabled = false, className }: PinPadProps)
           {getKeyDisplayText(key)}
         </Button>
       ))}
-      
-      {/* Enter button spans full width */}
-      <Button
-        variant="default"
-        size="lg"
-        onClick={() => handleKeyClick('Enter')}
-        disabled={disabled}
-        className={cn(
-          "col-span-3 h-16 text-2xl font-bold mt-4",
-          "bg-blue-600 hover:bg-blue-700 text-white",
-          "transition-all duration-150 hover:scale-105 active:scale-95",
-          "focus:ring-4 focus:ring-blue-200",
-          disabled && "opacity-50 cursor-not-allowed hover:scale-100 active:scale-95"
-        )}
-        aria-label={getKeyAriaLabel('Enter')}
-        aria-disabled={disabled}
-      >
-        Login ↵
-      </Button>
     </div>
   )
 }
