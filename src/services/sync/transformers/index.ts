@@ -39,6 +39,12 @@ export {
   type InventoryUpdatePayload
 } from './InventoryTransformer'
 
+// Import classes for internal use in TransformerFactory
+import { ProductTransformer } from './ProductTransformer'
+import { EmployeeTransformer } from './EmployeeTransformer'
+import { InventoryTransformer, InventoryMovementTransformer } from './InventoryTransformer'
+import { TransformationError } from './base'
+
 /**
  * Unified transformer factory for all data types
  */

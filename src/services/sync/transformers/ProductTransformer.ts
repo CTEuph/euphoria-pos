@@ -171,7 +171,7 @@ export class ProductBarcodeTransformer extends BaseTransformer<ProductBarcode, C
         id: local.id,
         product_id: local.productId,
         barcode: local.barcode,
-        is_primary: local.isPrimary,
+        is_primary: local.isPrimary || false,
         created_at: TransformUtils.sqliteTimestampToIso(local.createdAt.getTime())!
       }
     } catch (error) {
