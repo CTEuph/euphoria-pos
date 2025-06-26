@@ -44,11 +44,20 @@ export abstract class BaseTransformer<LocalType, CloudType> implements BatchTran
   
   /**
    * Default validation - override for custom validation logic
+   * Validates both that the cloud object matches what would be produced from local,
+   * and that a round-trip transformation preserves the local data
    */
   validate(local: LocalType, cloud: CloudType): boolean {
     try {
+      // Check if the provided cloud object matches what we'd produce from local
+      const expectedCloud = this.toCloud(local)
+      const cloudMatches = JSON.stringify(cloud) === JSON.stringify(expectedCloud)
+      
+      // Check if round-trip transformation preserves local data
       const roundTrip = this.toLocal(this.toCloud(local))
-      return JSON.stringify(local) === JSON.stringify(roundTrip)
+      const roundTripMatches = JSON.stringify(local) === JSON.stringify(roundTrip)
+      
+      return cloudMatches && roundTripMatches
     } catch {
       return false
     }

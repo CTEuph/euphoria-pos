@@ -39,6 +39,20 @@ export {
   type InventoryUpdatePayload
 } from './InventoryTransformer'
 
+// Transaction transformers (stubs for future implementation)
+export {
+  TransactionTransformer,
+  TransactionItemTransformer,
+  TransactionTransformUtils
+} from './TransactionTransformer'
+
+// Customer transformers (stubs for future implementation)
+export {
+  CustomerTransformer,
+  CustomerHistoryTransformer,
+  CustomerTransformUtils
+} from './CustomerTransformer'
+
 // Import classes for internal use in TransformerFactory
 import { ProductTransformer } from './ProductTransformer'
 import { EmployeeTransformer } from './EmployeeTransformer'
