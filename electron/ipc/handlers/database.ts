@@ -265,34 +265,57 @@ export function setupDatabaseHandlers(): void {
     try {
       const db = getLocalDatabase()
       
-      // Start transaction
-      return await db.transaction(async (tx) => {
+      // Use synchronous transaction for better-sqlite3
+      const result = db.transaction((tx) => {
         // Insert transaction record
-        const [createdTransaction] = await tx
+        const createdTransaction = tx
           .insert(schema.transactions)
           .values(data.transaction)
           .returning()
+          .get()
         
         // Insert transaction items
         if (data.items.length > 0) {
-          await tx
+          tx
             .insert(schema.transactionItems)
             .values(data.items)
+            .run()
         }
         
         // Update inventory for each item
         for (const item of data.items) {
-          await tx
-            .update(schema.inventory)
-            .set({
-              currentStock: sql`current_stock - ${item.quantity}`,
-              lastUpdated: new Date()
-            })
+          // First check if inventory record exists
+          const existingInventory = tx
+            .select()
+            .from(schema.inventory)
             .where(eq(schema.inventory.productId, item.productId))
+            .get()
+          
+          if (existingInventory) {
+            tx
+              .update(schema.inventory)
+              .set({
+                currentStock: sql`current_stock - ${item.quantity}`,
+                lastUpdated: new Date()
+              })
+              .where(eq(schema.inventory.productId, item.productId))
+              .run()
+          } else {
+            // Create inventory record if it doesn't exist
+            tx
+              .insert(schema.inventory)
+              .values({
+                productId: item.productId,
+                currentStock: -item.quantity, // Start with negative if no initial stock
+                reservedStock: 0,
+                lastUpdated: new Date()
+              })
+              .run()
+          }
         }
         
         // Add to sync queue for cloud upload
-        await tx
+        tx
           .insert(schema.syncQueue)
           .values({
             id: ulid(),
@@ -305,12 +328,15 @@ export function setupDatabaseHandlers(): void {
             }),
             priority: 1 // High priority for transactions
           })
+          .run()
         
-        return {
-          success: true,
-          transaction: createdTransaction
-        }
-      })
+        return createdTransaction
+      })()
+      
+      return {
+        success: true,
+        transaction: result
+      }
       
     } catch (error) {
       console.error('Failed to create transaction:', error)
@@ -403,9 +429,9 @@ export function setupDatabaseHandlers(): void {
     try {
       const db = getLocalDatabase()
       
-      await db.transaction(async (tx) => {
+      db.transaction((tx) => {
         // Update transaction status
-        await tx
+        tx
           .update(schema.transactions)
           .set({
             status: 'voided',
@@ -413,26 +439,29 @@ export function setupDatabaseHandlers(): void {
             voidedBy: data.voidedBy
           })
           .where(eq(schema.transactions.id, data.transactionId))
+          .run()
         
         // Get transaction items to restore inventory
-        const items = await tx
+        const items = tx
           .select()
           .from(schema.transactionItems)
           .where(eq(schema.transactionItems.transactionId, data.transactionId))
+          .all()
         
         // Restore inventory for each item
         for (const item of items) {
-          await tx
+          tx
             .update(schema.inventory)
             .set({
               currentStock: sql`current_stock + ${item.quantity}`,
               lastUpdated: new Date()
             })
             .where(eq(schema.inventory.productId, item.productId))
+            .run()
         }
         
         // Add to sync queue
-        await tx
+        tx
           .insert(schema.syncQueue)
           .values({
             id: ulid(),
@@ -442,7 +471,8 @@ export function setupDatabaseHandlers(): void {
             payload: JSON.stringify(data),
             priority: 1
           })
-      })
+          .run()
+      })()
       
       return { success: true }
       

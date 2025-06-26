@@ -75,6 +75,15 @@ export function useAuth(): UseAuthReturn {
   // Login action with IPC integration
   const login = useCallback(async (credentials: LoginCredentials): Promise<LoginResult> => {
     try {
+      // Check if Electron API is available
+      if (!window.electron?.auth?.login) {
+        console.error('Electron auth API is not available')
+        return {
+          success: false,
+          error: 'Authentication system not available. Please restart the application.'
+        }
+      }
+
       // Call Electron IPC authentication
       const result = await window.electron.auth.login(credentials)
       
@@ -86,6 +95,7 @@ export function useAuth(): UseAuthReturn {
       return result
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Authentication system error'
+      console.error('Login error:', error)
       return {
         success: false,
         error: errorMessage

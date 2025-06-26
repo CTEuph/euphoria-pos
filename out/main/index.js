@@ -1,18 +1,21 @@
-import { ipcMain, app, BrowserWindow } from "electron";
+import { app, ipcMain, BrowserWindow } from "electron";
 import { join } from "path";
-import "better-sqlite3";
-import "drizzle-orm/better-sqlite3";
-import "drizzle-orm/better-sqlite3/migrator";
-import "fs";
+import Database from "better-sqlite3";
+import { drizzle } from "drizzle-orm/better-sqlite3";
+import { migrate } from "drizzle-orm/better-sqlite3/migrator";
+import { existsSync, mkdirSync } from "fs";
 import { sqliteTable, integer, real, text, index } from "drizzle-orm/sqlite-core";
-import { relations, eq, or, like, and } from "drizzle-orm";
-import "@supabase/supabase-js";
-import bcrypt from "bcryptjs";
+import { relations, eq, or, like, and, sql, desc, gte, lt } from "drizzle-orm";
+import { createClient } from "@supabase/supabase-js";
 import { ulid } from "ulid";
+import bcrypt from "bcryptjs";
 import __cjs_mod__ from "node:module";
 const __filename = import.meta.filename;
 const __dirname = import.meta.dirname;
 const require2 = __cjs_mod__.createRequire(import.meta.url);
+const PRODUCT_CATEGORIES = ["wine", "liquor", "beer", "other"];
+const PRODUCT_SIZES = ["750ml", "1L", "1.5L", "1.75L", "other"];
+const EMPLOYEE_ROLES = ["cashier", "manager", "owner"];
 const products = sqliteTable("products", {
   id: text("id").primaryKey(),
   // ULID instead of UUID
@@ -73,7 +76,7 @@ const employees = sqliteTable("employees", {
 }, (table) => ({
   employeeCodeIdx: index("employees_code_idx").on(table.employeeCode)
 }));
-relations(products, ({ many, one }) => ({
+const productsRelations = relations(products, ({ many, one }) => ({
   barcodes: many(productBarcodes),
   inventory: one(inventory),
   parentProduct: one(products, {
@@ -81,16 +84,90 @@ relations(products, ({ many, one }) => ({
     references: [products.id]
   })
 }));
-relations(productBarcodes, ({ one }) => ({
+const productBarcodesRelations = relations(productBarcodes, ({ one }) => ({
   product: one(products, {
     fields: [productBarcodes.productId],
     references: [products.id]
   })
 }));
-relations(inventory, ({ one }) => ({
+const inventoryRelations = relations(inventory, ({ one }) => ({
   product: one(products, {
     fields: [inventory.productId],
     references: [products.id]
+  })
+}));
+const transactions = sqliteTable("transactions", {
+  id: text("id").primaryKey(),
+  // ULID
+  transactionNumber: text("transaction_number", { length: 20 }).notNull().unique(),
+  customerId: text("customer_id"),
+  // Optional customer reference
+  employeeId: text("employee_id").references(() => employees.id).notNull(),
+  // WHO processed the sale
+  subtotal: real("subtotal").notNull(),
+  taxAmount: real("tax_amount").notNull(),
+  totalAmount: real("total_amount").notNull(),
+  status: text("status").notNull().default("completed"),
+  // completed, voided, refunded
+  salesChannel: text("sales_channel").notNull().default("pos"),
+  // pos, doordash, grubhub, employee
+  // Payment information (simplified for now)
+  paymentMethod: text("payment_method").notNull(),
+  // cash, card, split
+  amountPaid: real("amount_paid").notNull(),
+  changeGiven: real("change_given").notNull().default(0),
+  createdAt: integer("created_at", { mode: "timestamp" }).notNull().$defaultFn(() => /* @__PURE__ */ new Date()),
+  voidedAt: integer("voided_at", { mode: "timestamp" }),
+  voidedBy: text("voided_by").references(() => employees.id)
+}, (table) => ({
+  transactionNumberIdx: index("transactions_number_idx").on(table.transactionNumber),
+  employeeIdx: index("transactions_employee_idx").on(table.employeeId),
+  statusIdx: index("transactions_status_idx").on(table.status),
+  createdAtIdx: index("transactions_created_at_idx").on(table.createdAt)
+}));
+const transactionItems = sqliteTable("transaction_items", {
+  id: text("id").primaryKey(),
+  // ULID
+  transactionId: text("transaction_id").references(() => transactions.id).notNull(),
+  productId: text("product_id").references(() => products.id).notNull(),
+  quantity: integer("quantity").notNull(),
+  unitPrice: real("unit_price").notNull(),
+  // Price at time of sale
+  totalPrice: real("total_price").notNull(),
+  // quantity * unitPrice
+  // Case discount information
+  caseDiscountApplied: integer("case_discount_applied", { mode: "boolean" }).default(false),
+  discountAmount: real("discount_amount").notNull().default(0),
+  createdAt: integer("created_at", { mode: "timestamp" }).notNull().$defaultFn(() => /* @__PURE__ */ new Date())
+}, (table) => ({
+  transactionIdx: index("transaction_items_transaction_idx").on(table.transactionId),
+  productIdx: index("transaction_items_product_idx").on(table.productId)
+}));
+const transactionsRelations = relations(transactions, ({ one, many }) => ({
+  employee: one(employees, {
+    fields: [transactions.employeeId],
+    references: [employees.id]
+  }),
+  voidedByEmployee: one(employees, {
+    fields: [transactions.voidedBy],
+    references: [employees.id]
+  }),
+  items: many(transactionItems)
+}));
+const transactionItemsRelations = relations(transactionItems, ({ one }) => ({
+  transaction: one(transactions, {
+    fields: [transactionItems.transactionId],
+    references: [transactions.id]
+  }),
+  product: one(products, {
+    fields: [transactionItems.productId],
+    references: [products.id]
+  })
+}));
+const employeesRelations = relations(employees, ({ many }) => ({
+  transactions: many(transactions),
+  voidedTransactions: many(transactions, {
+    relationName: "voidedBy"
   })
 }));
 const syncQueue = sqliteTable("sync_queue", {
@@ -137,7 +214,7 @@ const syncStatus = sqliteTable("sync_status", {
   // JSON array of recent errors
   updatedAt: integer("updated_at", { mode: "timestamp" }).notNull().$defaultFn(() => /* @__PURE__ */ new Date())
 });
-sqliteTable("transaction_queue", {
+const transactionQueue = sqliteTable("transaction_queue", {
   id: text("id").primaryKey(),
   // ULID
   transactionId: text("transaction_id").notNull(),
@@ -152,7 +229,7 @@ sqliteTable("transaction_queue", {
   statusIdx: index("transaction_queue_status_idx").on(table.status),
   transactionIdx: index("transaction_queue_transaction_idx").on(table.transactionId)
 }));
-sqliteTable("master_data_versions", {
+const masterDataVersions = sqliteTable("master_data_versions", {
   dataType: text("data_type").primaryKey(),
   // 'products', 'employees', 'customers'
   version: integer("version").notNull().default(0),
@@ -161,10 +238,112 @@ sqliteTable("master_data_versions", {
   checksum: text("checksum")
   // Hash of data for integrity checking
 });
-relations(syncQueue, ({ one }) => ({
+const syncQueueRelations = relations(syncQueue, ({ one }) => ({
   // Could add relations to products/transactions if needed
 }));
+const schema = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
+  __proto__: null,
+  EMPLOYEE_ROLES,
+  PRODUCT_CATEGORIES,
+  PRODUCT_SIZES,
+  employees,
+  employeesRelations,
+  inventory,
+  inventoryRelations,
+  masterDataVersions,
+  productBarcodes,
+  productBarcodesRelations,
+  products,
+  productsRelations,
+  syncQueue,
+  syncQueueRelations,
+  syncStatus,
+  transactionItems,
+  transactionItemsRelations,
+  transactionQueue,
+  transactions,
+  transactionsRelations
+}, Symbol.toStringTag, { value: "Module" }));
+let db = null;
 let sqliteDb = null;
+function getAppDataPath() {
+  const userDataPath = app.getPath("userData");
+  const dbDir = join(userDataPath, "database");
+  if (!existsSync(dbDir)) {
+    mkdirSync(dbDir, { recursive: true });
+  }
+  return dbDir;
+}
+function getDatabasePath() {
+  const dbDir = getAppDataPath();
+  return join(dbDir, "euphoria-pos.db");
+}
+function initializeDatabase(options = {}) {
+  const dbPath = options.databasePath || getDatabasePath();
+  console.log(`Initializing SQLite database at: ${dbPath}`);
+  try {
+    sqliteDb = new Database(dbPath, {
+      verbose: process.env.NODE_ENV === "development" ? console.log : void 0,
+      fileMustExist: false
+    });
+    sqliteDb.pragma("journal_mode = WAL");
+    sqliteDb.pragma("foreign_keys = ON");
+    sqliteDb.pragma("synchronous = NORMAL");
+    sqliteDb.pragma("cache_size = -64000");
+    sqliteDb.pragma("temp_store = MEMORY");
+    sqliteDb.pragma("busy_timeout = 5000");
+    if (options.enableEncryption && options.encryptionKey) {
+      try {
+        sqliteDb.pragma(`key = '${options.encryptionKey}'`);
+        console.log("Database encryption enabled");
+      } catch (error) {
+        console.warn("Database encryption failed - continuing without encryption:", error);
+      }
+    }
+    db = drizzle(sqliteDb, {
+      schema,
+      logger: process.env.NODE_ENV === "development"
+    });
+    console.log("SQLite database initialized successfully");
+    return db;
+  } catch (error) {
+    console.error("Failed to initialize SQLite database:", error);
+    throw error;
+  }
+}
+async function runMigrations() {
+  if (!db) {
+    throw new Error("Database not initialized. Call initializeDatabase() first.");
+  }
+  try {
+    console.log("Running database migrations...");
+    await migrate(db, {
+      migrationsFolder: join(process.cwd(), "drizzle/migrations")
+    });
+    console.log("Database migrations completed successfully");
+  } catch (error) {
+    console.error("Migration failed:", error);
+    throw error;
+  }
+}
+function getDatabase() {
+  if (!db) {
+    throw new Error("Database not initialized. Call initializeDatabase() first.");
+  }
+  return db;
+}
+function closeDatabase() {
+  try {
+    if (sqliteDb) {
+      sqliteDb.close();
+      sqliteDb = null;
+      db = null;
+      console.log("Database connection closed");
+    }
+  } catch (error) {
+    console.error("Error closing database:", error);
+  }
+}
 function checkDatabaseHealth() {
   try {
     if (!sqliteDb) {
@@ -195,12 +374,73 @@ function checkDatabaseHealth() {
     };
   }
 }
+async function initializeSyncStatus(terminalId) {
+  const database = getDatabase();
+  try {
+    const existing = await database.select().from(syncStatus).where(eq(syncStatus.id, "main")).limit(1);
+    if (existing.length === 0) {
+      await database.insert(syncStatus).values({
+        id: "main",
+        terminalId,
+        pendingTransactionCount: 0,
+        pendingInventoryCount: 0,
+        queueDepth: 0,
+        isOnline: false,
+        updatedAt: /* @__PURE__ */ new Date()
+      });
+      console.log(`Initialized sync status for terminal: ${terminalId}`);
+    }
+  } catch (error) {
+    console.error("Failed to initialize sync status:", error);
+    throw error;
+  }
+}
 function createBackup(backupPath) {
-  {
+  if (!sqliteDb) {
     throw new Error("Database not initialized");
+  }
+  const timestamp = (/* @__PURE__ */ new Date()).toISOString().replace(/[:.]/g, "-");
+  const defaultBackupPath = join(getAppDataPath(), `backup-${timestamp}.db`);
+  const finalBackupPath = backupPath || defaultBackupPath;
+  try {
+    sqliteDb.backup(finalBackupPath);
+    console.log(`Database backup created: ${finalBackupPath}`);
+    return finalBackupPath;
+  } catch (error) {
+    console.error("Failed to create database backup:", error);
+    throw error;
   }
 }
 let supabase = null;
+let realtimeSubscriptions = /* @__PURE__ */ new Map();
+function initializeSupabase(config) {
+  try {
+    console.log("Initializing Supabase client...");
+    supabase = createClient(config.url, config.anonKey, {
+      auth: {
+        autoRefreshToken: config.options?.auth?.autoRefreshToken ?? true,
+        persistSession: config.options?.auth?.persistSession ?? false,
+        // No persistent sessions for POS
+        detectSessionInUrl: false
+      },
+      realtime: {
+        heartbeatIntervalMs: config.options?.realtime?.heartbeatIntervalMs ?? 3e4,
+        reconnectAfterMs: config.options?.realtime?.reconnectAfterMs ?? 1e3
+      }
+    });
+    console.log("Supabase client initialized successfully");
+    return supabase;
+  } catch (error) {
+    console.error("Failed to initialize Supabase client:", error);
+    throw error;
+  }
+}
+function getSupabaseClient() {
+  if (!supabase) {
+    throw new Error("Supabase client not initialized. Call initializeSupabase() first.");
+  }
+  return supabase;
+}
 async function testConnection() {
   try {
     if (!supabase) {
@@ -232,10 +472,102 @@ async function testConnection() {
     };
   }
 }
+async function updateTerminalStatus(status) {
+  const client = getSupabaseClient();
+  try {
+    const { error } = await client.from("terminal_sync_status").upsert({
+      ...status,
+      last_heartbeat: (/* @__PURE__ */ new Date()).toISOString()
+    }, {
+      onConflict: "terminal_id"
+    });
+    if (error) {
+      throw new Error(`Failed to update terminal status: ${error.message}`);
+    }
+  } catch (error) {
+    console.error("Failed to update terminal status:", error);
+    throw error;
+  }
+}
+async function unsubscribeFromAllUpdates() {
+  try {
+    for (const [name, channel] of realtimeSubscriptions) {
+      await channel.unsubscribe();
+      console.log(`Unsubscribed from ${name}`);
+    }
+    realtimeSubscriptions.clear();
+    console.log("All real-time subscriptions cleared");
+  } catch (error) {
+    console.error("Failed to unsubscribe from real-time updates:", error);
+  }
+}
+async function closeSupabaseConnection() {
+  try {
+    await unsubscribeFromAllUpdates();
+    supabase = null;
+    console.log("Supabase connection closed");
+  } catch (error) {
+    console.error("Error closing Supabase connection:", error);
+  }
+}
+let connections = null;
+async function initializeDatabases(config) {
+  try {
+    console.log("Initializing database connections...");
+    console.log("Setting up local SQLite database...");
+    const localDb = initializeDatabase({
+      databasePath: config.sqlite.databasePath,
+      enableEncryption: config.sqlite.enableEncryption,
+      encryptionKey: config.sqlite.encryptionKey
+    });
+    await runMigrations();
+    await initializeSyncStatus(config.terminalId);
+    console.log("Setting up Supabase cloud connection...");
+    const cloudClient = initializeSupabase({
+      url: config.supabase.url,
+      anonKey: config.supabase.anonKey,
+      options: config.supabase.options
+    });
+    const localHealth = checkDatabaseHealth();
+    const cloudHealth = await testConnection();
+    if (!localHealth.isConnected) {
+      throw new Error(`Local database connection failed: ${localHealth.error}`);
+    }
+    if (!cloudHealth.isConnected) {
+      console.warn(`Cloud database connection failed: ${cloudHealth.error}`);
+    }
+    connections = {
+      local: localDb,
+      cloud: cloudClient,
+      isInitialized: true
+    };
+    if (cloudHealth.isConnected) {
+      try {
+        await updateTerminalStatus({
+          terminal_id: config.terminalId,
+          status: "online",
+          pending_transaction_count: 0,
+          last_heartbeat: (/* @__PURE__ */ new Date()).toISOString()
+        });
+        console.log("Terminal status updated in cloud");
+      } catch (error) {
+        console.warn("Failed to update terminal status:", error);
+      }
+    }
+    console.log("Database connections initialized successfully");
+    console.log(`Local SQLite: ${localHealth.isConnected ? "✓" : "✗"} (version: ${localHealth.version})`);
+    console.log(`Cloud Supabase: ${cloudHealth.isConnected ? "✓" : "✗"}`);
+    return connections;
+  } catch (error) {
+    console.error("Failed to initialize databases:", error);
+    throw error;
+  }
+}
 function getDatabaseConnections() {
-  {
+  if (!connections || !connections.isInitialized) {
     throw new Error("Databases not initialized. Call initializeDatabases() first.");
   }
+  return connections;
 }
 function getLocalDatabase() {
   const { local } = getDatabaseConnections();
@@ -264,7 +596,39 @@ async function checkAllDatabaseHealth() {
   };
 }
 function createDatabaseBackup(backupPath) {
-  return createBackup();
+  return createBackup(backupPath);
+}
+async function closeDatabaseConnections() {
+  try {
+    console.log("Closing database connections...");
+    await closeSupabaseConnection();
+    closeDatabase();
+    connections = null;
+    console.log("All database connections closed successfully");
+  } catch (error) {
+    console.error("Error closing database connections:", error);
+    throw error;
+  }
+}
+function setupDatabaseShutdownHandlers() {
+  const cleanup = async () => {
+    try {
+      await closeDatabaseConnections();
+    } catch (error) {
+      console.error("Error during database cleanup:", error);
+    }
+  };
+  process.on("SIGINT", cleanup);
+  process.on("SIGTERM", cleanup);
+  process.on("beforeExit", cleanup);
+  try {
+    const { app: app2 } = require2("electron");
+    if (app2) {
+      app2.on("before-quit", cleanup);
+      app2.on("window-all-closed", cleanup);
+    }
+  } catch {
+  }
 }
 function setupDatabaseHandlers() {
   ipcMain.handle("db:health-check", async () => {
@@ -289,9 +653,9 @@ function setupDatabaseHandlers() {
   });
   ipcMain.handle("db:search-products", async (_event, query, options = {}) => {
     try {
-      const db = getLocalDatabase();
+      const db2 = getLocalDatabase();
       const { limit = 50, includeInactive = false, category } = options;
-      let queryBuilder = db.select().from(products);
+      let queryBuilder = db2.select().from(products);
       const conditions = [];
       if (!includeInactive) {
         conditions.push(eq(products.isActive, true));
@@ -320,8 +684,8 @@ function setupDatabaseHandlers() {
   });
   ipcMain.handle("db:find-product-by-barcode", async (_event, barcode) => {
     try {
-      const db = getLocalDatabase();
-      const result = await db.select({
+      const db2 = getLocalDatabase();
+      const result = await db2.select({
         product: products
       }).from(products).innerJoin(
         productBarcodes,
@@ -340,8 +704,8 @@ function setupDatabaseHandlers() {
   });
   ipcMain.handle("db:authenticate-employee", async (_event, employeeCode, pin) => {
     try {
-      const db = getLocalDatabase();
-      const employee = await db.select().from(employees).where(
+      const db2 = getLocalDatabase();
+      const employee = await db2.select().from(employees).where(
         and(
           eq(employees.employeeCode, employeeCode),
           eq(employees.isActive, true)
@@ -358,8 +722,8 @@ function setupDatabaseHandlers() {
   });
   ipcMain.handle("db:get-employees", async () => {
     try {
-      const db = getLocalDatabase();
-      return await db.select().from(employees).where(eq(employees.isActive, true)).orderBy(employees.firstName, employees.lastName);
+      const db2 = getLocalDatabase();
+      return await db2.select().from(employees).where(eq(employees.isActive, true)).orderBy(employees.firstName, employees.lastName);
     } catch (error) {
       console.error("Failed to get employees:", error);
       throw error;
@@ -367,8 +731,8 @@ function setupDatabaseHandlers() {
   });
   ipcMain.handle("db:get-inventory", async (_event, productId) => {
     try {
-      const db = getLocalDatabase();
-      const result = await db.select().from(inventory).where(eq(inventory.productId, productId)).limit(1);
+      const db2 = getLocalDatabase();
+      const result = await db2.select().from(inventory).where(eq(inventory.productId, productId)).limit(1);
       return result.length > 0 ? result[0] : null;
     } catch (error) {
       console.error("Failed to get inventory:", error);
@@ -377,8 +741,8 @@ function setupDatabaseHandlers() {
   });
   ipcMain.handle("db:update-inventory", async (_event, productId, newStock, changeReason) => {
     try {
-      const db = getLocalDatabase();
-      await db.update(inventory).set({
+      const db2 = getLocalDatabase();
+      await db2.update(inventory).set({
         currentStock: newStock,
         lastUpdated: /* @__PURE__ */ new Date()
       }).where(eq(inventory.productId, productId));
@@ -389,12 +753,175 @@ function setupDatabaseHandlers() {
   });
   ipcMain.handle("db:get-sync-status", async () => {
     try {
-      const db = getLocalDatabase();
-      const result = await db.select().from(syncStatus).where(eq(syncStatus.id, "main")).limit(1);
+      const db2 = getLocalDatabase();
+      const result = await db2.select().from(syncStatus).where(eq(syncStatus.id, "main")).limit(1);
       return result.length > 0 ? result[0] : null;
     } catch (error) {
       console.error("Failed to get sync status:", error);
       throw error;
+    }
+  });
+  ipcMain.handle("db:create-transaction", async (_event, data) => {
+    try {
+      const db2 = getLocalDatabase();
+      const result = db2.transaction((tx) => {
+        const createdTransaction = tx.insert(transactions).values(data.transaction).returning().get();
+        if (data.items.length > 0) {
+          tx.insert(transactionItems).values(data.items).run();
+        }
+        for (const item of data.items) {
+          const existingInventory = tx.select().from(inventory).where(eq(inventory.productId, item.productId)).get();
+          if (existingInventory) {
+            tx.update(inventory).set({
+              currentStock: sql`current_stock - ${item.quantity}`,
+              lastUpdated: /* @__PURE__ */ new Date()
+            }).where(eq(inventory.productId, item.productId)).run();
+          } else {
+            tx.insert(inventory).values({
+              productId: item.productId,
+              currentStock: -item.quantity,
+              // Start with negative if no initial stock
+              reservedStock: 0,
+              lastUpdated: /* @__PURE__ */ new Date()
+            }).run();
+          }
+        }
+        tx.insert(syncQueue).values({
+          id: ulid(),
+          operation: "upload_transaction",
+          entityType: "transaction",
+          entityId: createdTransaction.id,
+          payload: JSON.stringify({
+            transaction: createdTransaction,
+            items: data.items
+          }),
+          priority: 1
+          // High priority for transactions
+        }).run();
+        return createdTransaction;
+      })();
+      return {
+        success: true,
+        transaction: result
+      };
+    } catch (error) {
+      console.error("Failed to create transaction:", error);
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : "Unknown error occurred"
+      };
+    }
+  });
+  ipcMain.handle("db:get-employee-transactions", async (_event, employeeId, limit = 10) => {
+    try {
+      const db2 = getLocalDatabase();
+      const results = await db2.select({
+        id: transactions.id,
+        transactionNumber: transactions.transactionNumber,
+        employeeName: sql`${employees.firstName} || ' ' || ${employees.lastName}`,
+        employeeCode: employees.employeeCode,
+        totalAmount: transactions.totalAmount,
+        paymentMethod: transactions.paymentMethod,
+        createdAt: transactions.createdAt,
+        itemCount: sql`COUNT(${transactionItems.id})`
+      }).from(transactions).innerJoin(employees, eq(transactions.employeeId, employees.id)).leftJoin(transactionItems, eq(transactions.id, transactionItems.transactionId)).where(eq(transactions.employeeId, employeeId)).groupBy(transactions.id, employees.id).orderBy(desc(transactions.createdAt)).limit(limit);
+      return {
+        success: true,
+        transactions: results
+      };
+    } catch (error) {
+      console.error("Failed to get employee transactions:", error);
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : "Unknown error occurred"
+      };
+    }
+  });
+  ipcMain.handle("db:get-transaction-by-id", async (_event, transactionId) => {
+    try {
+      const db2 = getLocalDatabase();
+      const result = await db2.select().from(transactions).where(eq(transactions.id, transactionId)).limit(1);
+      return {
+        success: true,
+        transaction: result.length > 0 ? result[0] : void 0
+      };
+    } catch (error) {
+      console.error("Failed to get transaction by ID:", error);
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : "Unknown error occurred"
+      };
+    }
+  });
+  ipcMain.handle("db:void-transaction", async (_event, data) => {
+    try {
+      const db2 = getLocalDatabase();
+      db2.transaction((tx) => {
+        tx.update(transactions).set({
+          status: "voided",
+          voidedAt: /* @__PURE__ */ new Date(),
+          voidedBy: data.voidedBy
+        }).where(eq(transactions.id, data.transactionId)).run();
+        const items = tx.select().from(transactionItems).where(eq(transactionItems.transactionId, data.transactionId)).all();
+        for (const item of items) {
+          tx.update(inventory).set({
+            currentStock: sql`current_stock + ${item.quantity}`,
+            lastUpdated: /* @__PURE__ */ new Date()
+          }).where(eq(inventory.productId, item.productId)).run();
+        }
+        tx.insert(syncQueue).values({
+          id: ulid(),
+          operation: "void_transaction",
+          entityType: "transaction",
+          entityId: data.transactionId,
+          payload: JSON.stringify(data),
+          priority: 1
+        }).run();
+      })();
+      return { success: true };
+    } catch (error) {
+      console.error("Failed to void transaction:", error);
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : "Unknown error occurred"
+      };
+    }
+  });
+  ipcMain.handle("db:get-daily-sales-summary", async (_event, employeeId, date) => {
+    try {
+      const db2 = getLocalDatabase();
+      const startOfDay = new Date(date);
+      startOfDay.setHours(0, 0, 0, 0);
+      const endOfDay = new Date(date);
+      endOfDay.setHours(23, 59, 59, 999);
+      const result = await db2.select({
+        totalSales: sql`COALESCE(SUM(${transactions.totalAmount}), 0)`,
+        transactionCount: sql`COUNT(${transactions.id})`,
+        cashSales: sql`COALESCE(SUM(CASE WHEN ${transactions.paymentMethod} = 'cash' THEN ${transactions.totalAmount} ELSE 0 END), 0)`,
+        cardSales: sql`COALESCE(SUM(CASE WHEN ${transactions.paymentMethod} = 'card' THEN ${transactions.totalAmount} ELSE 0 END), 0)`
+      }).from(transactions).where(
+        and(
+          eq(transactions.employeeId, employeeId),
+          eq(transactions.status, "completed"),
+          gte(transactions.createdAt, startOfDay),
+          lt(transactions.createdAt, endOfDay)
+        )
+      );
+      const summary = result[0];
+      const averageTransaction = summary.transactionCount > 0 ? summary.totalSales / summary.transactionCount : 0;
+      return {
+        success: true,
+        summary: {
+          ...summary,
+          averageTransaction
+        }
+      };
+    } catch (error) {
+      console.error("Failed to get daily sales summary:", error);
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : "Unknown error occurred"
+      };
     }
   });
   console.log("Database IPC handlers registered");
@@ -475,8 +1002,8 @@ async function validatePin(employeeCode, pin) {
         attemptsRemaining: 0
       };
     }
-    const db = getLocalDatabase();
-    const employeeResult = await db.select().from(employees).where(eq(employees.employeeCode, employeeCode)).limit(1);
+    const db2 = getLocalDatabase();
+    const employeeResult = await db2.select().from(employees).where(eq(employees.employeeCode, employeeCode)).limit(1);
     if (employeeResult.length === 0) {
       recordAttempt(employeeCode, false);
       return {
@@ -523,8 +1050,8 @@ async function authenticateEmployee(credentials) {
     };
   }
   try {
-    const db = getLocalDatabase();
-    const allActiveEmployees = await db.select().from(employees).where(eq(employees.isActive, true));
+    const db2 = getLocalDatabase();
+    const allActiveEmployees = await db2.select().from(employees).where(eq(employees.isActive, true));
     for (const employee of allActiveEmployees) {
       const pinResult = await validatePin(employee.employeeCode, pin);
       if (pinResult.isValid && pinResult.employee) {
@@ -567,8 +1094,8 @@ async function createEmployee(employeeCode, firstName, lastName, plainPin, role 
       createdAt: now,
       updatedAt: now
     };
-    const db = getLocalDatabase();
-    await db.insert(employees).values(newEmployee);
+    const db2 = getLocalDatabase();
+    await db2.insert(employees).values(newEmployee);
     return { ...newEmployee, pin: "" };
   } catch (error) {
     console.error("Failed to create employee:", error);
@@ -579,12 +1106,12 @@ async function resetEmployeePin(targetEmployeeId, newPlainPin, resetByEmployeeId
   try {
     const hashedPin = await hashPin(newPlainPin);
     const now = /* @__PURE__ */ new Date();
-    const db = getLocalDatabase();
-    await db.update(employees).set({
+    const db2 = getLocalDatabase();
+    await db2.update(employees).set({
       pin: hashedPin,
       updatedAt: now
     }).where(eq(employees.id, targetEmployeeId));
-    const targetEmployee = await db.select().from(employees).where(eq(employees.id, targetEmployeeId)).limit(1);
+    const targetEmployee = await db2.select().from(employees).where(eq(employees.id, targetEmployeeId)).limit(1);
     if (targetEmployee.length > 0) {
       rateLimitStore.delete(targetEmployee[0].employeeCode);
     }
@@ -721,11 +1248,12 @@ function setupAuthHandlers() {
 }
 let mainWindow = null;
 function createWindow() {
+  const preloadPath = join(__dirname, "../preload/index.cjs");
   mainWindow = new BrowserWindow({
     width: 1400,
     height: 900,
     webPreferences: {
-      preload: join(__dirname, "preload.js"),
+      preload: preloadPath,
       contextIsolation: true,
       nodeIntegration: false
     }
@@ -736,10 +1264,27 @@ function createWindow() {
     mainWindow.loadFile(join(__dirname, "../renderer/index.html"));
   }
 }
-app.whenReady().then(() => {
-  setupDatabaseHandlers();
-  setupAuthHandlers();
-  createWindow();
+app.whenReady().then(async () => {
+  try {
+    const dbConfig = {
+      sqlite: {
+        databasePath: "./data/euphoria-pos.db"
+      },
+      supabase: {
+        url: process.env.SUPABASE_URL || "https://placeholder.supabase.co",
+        anonKey: process.env.SUPABASE_ANON_KEY || "placeholder-key"
+      },
+      terminalId: "terminal-001"
+    };
+    await initializeDatabases(dbConfig);
+    setupDatabaseShutdownHandlers();
+    setupDatabaseHandlers();
+    setupAuthHandlers();
+    createWindow();
+  } catch (error) {
+    console.error("Failed to initialize application:", error);
+    app.quit();
+  }
 });
 app.on("window-all-closed", () => {
   if (process.platform !== "darwin") {

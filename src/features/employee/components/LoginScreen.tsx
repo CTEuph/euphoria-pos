@@ -125,13 +125,25 @@ export function LoginScreen({
           aria-live="polite"
         >
           {pin.length === 0 ? (
-            <span className="text-gray-400 text-lg">••••</span>
+            <div className="flex gap-2">
+              {Array.from({ length: 4 }).map((_, index) => (
+                <div
+                  key={index}
+                  className="w-3 h-3 rounded-full bg-gray-300 animate-pulse"
+                  style={{
+                    animationDelay: `${index * 150}ms`,
+                    animationDuration: '2s'
+                  }}
+                  aria-hidden="true"
+                />
+              ))}
+            </div>
           ) : (
             <div className="flex gap-2">
               {Array.from({ length: 4 }).map((_, index) => (
                 <div
                   key={index}
-                  className={`w-3 h-3 rounded-full ${
+                  className={`w-3 h-3 rounded-full transition-colors duration-200 ${
                     index < pin.length ? 'bg-purple-600' : 'bg-gray-300'
                   }`}
                   aria-hidden="true"
